@@ -1,0 +1,278 @@
+[
+  {
+    "id": "side-tab",
+    "name": "Side-tab accent border",
+    "category": "slop",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely."
+  },
+  {
+    "id": "border-accent-on-rounded",
+    "name": "Border accent on rounded element",
+    "category": "slop",
+    "description": "Thick accent border on a rounded card — the border clashes with the rounded corners. Remove the border or the border-radius."
+  },
+  {
+    "id": "overused-font",
+    "name": "Overused font",
+    "category": "slop",
+    "description": "Inter, Roboto, Fraunces, Geist, Plus Jakarta Sans, and Space Grotesk are used on so many sites they no longer feel distinctive. Each new wave of AI-generated UIs converges on the same handful of faces. Choose a face that gives your interface personality."
+  },
+  {
+    "id": "single-font",
+    "name": "Single font for everything",
+    "category": "slop",
+    "description": "Only one font family is used for the entire page. Pair a distinctive display font with a refined body font to create typographic hierarchy."
+  },
+  {
+    "id": "flat-type-hierarchy",
+    "name": "Flat type hierarchy",
+    "category": "slop",
+    "description": "Font sizes are too close together — no clear visual hierarchy. Use fewer sizes with more contrast (aim for at least a 1.25 ratio between steps)."
+  },
+  {
+    "id": "gradient-text",
+    "name": "Gradient text",
+    "category": "slop",
+    "description": "Gradient text is decorative rather than meaningful — a common AI tell, especially on headings and metrics. Use solid colors for text."
+  },
+  {
+    "id": "ai-color-palette",
+    "name": "AI color palette",
+    "category": "slop",
+    "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette."
+  },
+  {
+    "id": "cream-palette",
+    "name": "Cream / beige palette",
+    "category": "slop",
+    "description": "A warm cream or beige page background has become the default \"tasteful\" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white."
+  },
+  {
+    "id": "nested-cards",
+    "name": "Nested cards",
+    "category": "slop",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers."
+  },
+  {
+    "id": "monotonous-spacing",
+    "name": "Monotonous spacing",
+    "category": "slop",
+    "description": "The same spacing value used everywhere — no rhythm, no variation. Use tight groupings for related items and generous separations between sections."
+  },
+  {
+    "id": "bounce-easing",
+    "name": "Bounce or elastic easing",
+    "category": "slop",
+    "description": "Bounce and elastic easing feel dated and tacky. Real objects decelerate smoothly — use exponential easing (ease-out-quart/quint/expo) instead."
+  },
+  {
+    "id": "dark-glow",
+    "name": "Dark mode with glowing accents",
+    "category": "slop",
+    "description": "Dark backgrounds with colored box-shadow glows are the default \"cool\" look of AI-generated UIs. Use subtle, purposeful lighting instead — or skip the dark theme entirely."
+  },
+  {
+    "id": "icon-tile-stack",
+    "name": "Icon tile stacked above heading",
+    "category": "slop",
+    "description": "A small rounded-square icon container above a heading is the universal AI feature-card template — every generator outputs this exact shape. Try a side-by-side icon and heading, or let the icon sit in flow without its own container."
+  },
+  {
+    "id": "italic-serif-display",
+    "name": "Italic serif display headline",
+    "category": "slop",
+    "description": "Oversized italic serif (Fraunces, Recoleta, Playfair, Newsreader-italic) as the primary hero headline reads as taste in isolation but has become the universal AI-startup landing page hero. Set roman, or move to a non-serif display face. Editorial / magazine register may legitimately want this — judge by context."
+  },
+  {
+    "id": "hero-eyebrow-chip",
+    "name": "Hero eyebrow / pill chip",
+    "category": "slop",
+    "description": "A tiny uppercase letter-spaced label sitting immediately above an oversized hero headline — or the same shape rendered as a pill chip — is now the default AI SaaS hero. Drop the eyebrow, integrate the kicker into the headline, or run it as a navigation breadcrumb instead."
+  },
+  {
+    "id": "repeated-section-kickers",
+    "name": "Repeated section kicker labels",
+    "category": "slop",
+    "description": "Repeating tiny uppercase tracked labels above section headings turns a brand page into AI editorial scaffolding. Replace them with stronger structure, artifacts, imagery, or a deliberate brand system."
+  },
+  {
+    "id": "numbered-section-markers",
+    "name": "Numbered section markers (01 / 02 / 03)",
+    "category": "slop",
+    "description": "Numbered display markers as section labels (01, 02, 03) are the AI editorial scaffold one tier deeper than tracked eyebrow chips. If you find yourself reaching for them, choose a different section cadence."
+  },
+  {
+    "id": "em-dash-overuse",
+    "name": "Em-dash overuse",
+    "category": "slop",
+    "description": "More than two em-dashes (— or --) in body copy is an AI cadence tell. Use commas, colons, periods, or parentheses instead."
+  },
+  {
+    "id": "marketing-buzzword",
+    "name": "Marketing buzzword",
+    "category": "slop",
+    "description": "Generic SaaS phrases (streamline / empower / supercharge / world-class / enterprise-grade / next-generation / cutting-edge / etc) are instant AI tells. Pick a specific verb and noun that says what the product literally does."
+  },
+  {
+    "id": "aphoristic-cadence",
+    "name": "Aphoristic-cadence copy",
+    "category": "slop",
+    "description": "Three or more sections landing on a short rebuttal sentence (\"X. No Y.\" / \"X. Just Y.\") or a manufactured-contrast aphorism (\"Not a feature. A platform.\") reads as AI cadence, not voice. Once is fine; the pattern is the tell."
+  },
+  {
+    "id": "oversized-h1",
+    "name": "Oversized hero headline",
+    "category": "slop",
+    "description": "A full-sentence headline set at display size ends up dominating the viewport, leaving no room for anything else above the fold. A punchy one- or two-word headline at that size is fine — the problem is a long headline blown up too large. Set long headlines smaller, or tighten the copy."
+  },
+  {
+    "id": "extreme-negative-tracking",
+    "name": "Crushed letter spacing",
+    "category": "slop",
+    "description": "Letter-spacing pulled tighter than the point where characters keep their own shapes costs legibility. Tighten display type optically, not destructively."
+  },
+  {
+    "id": "broken-image",
+    "name": "Broken or placeholder image",
+    "category": "quality",
+    "description": "<img> tags with empty src, missing src, or placeholder values ship as broken-image boxes. Use real images, generated assets, or remove the tag."
+  },
+  {
+    "id": "gray-on-color",
+    "name": "Gray text on colored background",
+    "category": "quality",
+    "description": "Gray text looks washed out on colored backgrounds. Use a darker shade of the background color instead, or white/near-white for contrast."
+  },
+  {
+    "id": "low-contrast",
+    "name": "Low contrast text",
+    "category": "quality",
+    "description": "Text does not meet WCAG AA contrast requirements (4.5:1 for body, 3:1 for large text). Increase the contrast between text and background."
+  },
+  {
+    "id": "layout-transition",
+    "name": "Layout property animation",
+    "category": "quality",
+    "description": "Animating width, height, padding, or margin causes layout thrash and janky performance. Use transform and opacity instead, or grid-template-rows for height animations."
+  },
+  {
+    "id": "line-length",
+    "name": "Line length too long",
+    "category": "quality",
+    "description": "Text lines wider than ~80 characters are hard to read. The eye loses its place tracking back to the start of the next line. Add a max-width (65ch to 75ch) to text containers."
+  },
+  {
+    "id": "cramped-padding",
+    "name": "Cramped padding",
+    "category": "quality",
+    "description": "Text is too close to the edge of its container. Two shapes: (1) an element with its own text where the padding is too low for the font size, and (2) a wrapper with text-bearing children and near-zero padding against a visible boundary (border, outline, or non-transparent background) — children land flush against the boundary line. Add at least 8px (ideally 12–16px) of padding inside bordered, outlined, or colored containers."
+  },
+  {
+    "id": "body-text-viewport-edge",
+    "name": "Body text touching viewport edge",
+    "category": "quality",
+    "description": "Body paragraphs render flush against the left or right viewport edge with no container providing horizontal padding. Wrap content in a container with at least 16px (ideally 24-32px) of horizontal padding, or apply max-width with mx-auto."
+  },
+  {
+    "id": "tight-leading",
+    "name": "Tight line height",
+    "category": "quality",
+    "description": "Line height below 1.3x the font size makes multi-line text hard to read. Use 1.5 to 1.7 for body text so lines have room to breathe."
+  },
+  {
+    "id": "skipped-heading",
+    "name": "Skipped heading level",
+    "category": "quality",
+    "description": "Heading levels should not skip (e.g. h1 then h3 with no h2). Screen readers use heading hierarchy for navigation. Skipping levels breaks the document outline."
+  },
+  {
+    "id": "justified-text",
+    "name": "Justified text",
+    "category": "quality",
+    "description": "Justified text without hyphenation creates uneven word spacing (\"rivers of white\"). Use text-align: left for body text, or enable hyphens: auto if you must justify."
+  },
+  {
+    "id": "tiny-text",
+    "name": "Tiny body text",
+    "category": "quality",
+    "description": "Body text below 12px is hard to read, especially on high-DPI screens. Use at least 14px for body content, 16px is ideal."
+  },
+  {
+    "id": "all-caps-body",
+    "name": "All-caps body text",
+    "category": "quality",
+    "description": "Long passages in uppercase are hard to read. We recognize words by shape (ascenders and descenders), which all-caps removes. Reserve uppercase for short labels and headings."
+  },
+  {
+    "id": "wide-tracking",
+    "name": "Wide letter spacing on body text",
+    "category": "quality",
+    "description": "Letter spacing above 0.05em on body text disrupts natural character groupings and slows reading. Reserve wide tracking for short uppercase labels only."
+  },
+  {
+    "id": "text-overflow",
+    "name": "Content overflowing its container",
+    "category": "quality",
+    "description": "Content renders wider than its container, spilling out or forcing a horizontal scrollbar. Let text wrap, constrain widths, or give the region a deliberate scroll affordance."
+  },
+  {
+    "id": "clipped-overflow-container",
+    "name": "Positioned child clipped by overflow container",
+    "category": "quality",
+    "description": "A clipping container (overflow hidden or clip) wrapping an absolutely-positioned child cuts off tooltips, menus, and popovers that need to escape. Let the overflow be visible, or move the positioned layer out of the clip."
+  },
+  {
+    "id": "design-system-font",
+    "name": "Font outside DESIGN.md",
+    "category": "quality",
+    "description": "A font is used that is not declared in DESIGN.md typography. Use the documented type system or update DESIGN.md if this is an intentional brand addition."
+  },
+  {
+    "id": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "category": "quality",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift."
+  },
+  {
+    "id": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "category": "quality",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional."
+  },
+  {
+    "id": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "category": "quality",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional."
+  },
+  {
+    "id": "gpt-thin-border-wide-shadow",
+    "name": "Hairline border with wide shadow",
+    "category": "slop",
+    "description": "A hairline border paired with a wide, diffuse shadow is a recurring generated-UI signature. Commit to one — a defined edge or a soft elevation — rather than both at once."
+  },
+  {
+    "id": "repeating-stripes-gradient",
+    "name": "Repeating-gradient stripes",
+    "category": "slop",
+    "description": "Repeating-gradient stripes used as surface decoration are a recurring generated-UI signature. Reach for a deliberate texture or leave the surface plain."
+  },
+  {
+    "id": "codex-grid-background",
+    "name": "Decorative grid-line background",
+    "category": "slop",
+    "description": "A two-axis grid drawn with hairline linear-gradient layers (\"1px, transparent 1px\" on both axes) is a recurring generated-UI signature. Reserve grid overlays for actual canvas, map, blueprint, or measurement surfaces; elsewhere use product structure or a plain surface."
+  },
+  {
+    "id": "theater-slop-phrase",
+    "name": "Theater framing copy",
+    "category": "slop",
+    "description": "Dismissing something as \"theater\" is a recurring generated-copy tic. Say plainly what the thing does or does not do."
+  },
+  {
+    "id": "image-hover-transform",
+    "name": "Image hover transform",
+    "category": "slop",
+    "description": "Scaling or rotating an image on hover is a recurring generated-UI signature. Let imagery sit still, or use a subtler, purposeful interaction."
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "Pixelpush",
+  "description": "Inspect and tweak any page, audit its design, then file the fix to Linear with your own AI model.",
+  "version": "2.0.0",
+  "minimum_chrome_version": "114",
+  "homepage_url": "https://github.com/andrewr303/pixelpush",
+  "icons": {
+    "128": "icon.png"
+  },
+  "action": {
+    "default_title": "Open Pixelpush"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "sidePanel",
+    "scripting",
+    "contextMenus",
+    "storage"
+  ],
+  "optional_permissions": [
+    "identity"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_idle",
+      "js": [
+        "content-scripts/audit.js",
+        "content-scripts/inspector.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "audit/detect.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

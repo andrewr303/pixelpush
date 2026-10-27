@@ -1,0 +1,22 @@
+{
+  "name": "pixelpush",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Inspect, tweak and audit any web page from a Chrome side panel, then file the fix to Linear with your own AI model.",
+  "license": "MIT",
+  "author": "Andrew Rodriguez",
+  "homepage": "https://github.com/andrewr303/pixelpush",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewr303/pixelpush.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "verify": "node scripts/verify.mjs",
+    "package": "node scripts/verify.mjs && node scripts/package.mjs",
+    "preview": "node tools/preview/serve.mjs"
+  }
+}
