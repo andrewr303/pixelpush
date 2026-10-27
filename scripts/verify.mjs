@@ -74,7 +74,9 @@ const forbidden = [
   /\[handle\]/,
   /content-scripts\/handle\.js/,
   /ai-sidecar/,
-  /hypestake/i
+  /hypestake/i,
+  /SF Pro/,
+  /#0071e3|#2997ff|#4a90d9/i
 ]
 
 for (const file of files) {

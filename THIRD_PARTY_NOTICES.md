@@ -150,3 +150,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Fonts
+
+The side panel ships two typefaces in `extension/panel/fonts/`, both under the SIL Open
+Font License 1.1. Each license, with its copyright line, is in `licenses/`.
+
+| File | Typeface | Copyright | License text |
+| --- | --- | --- | --- |
+| `instrument-sans.woff2` | Instrument Sans (Latin, variable weight) | Copyright 2022 The Instrument Sans Project Authors | [`licenses/OFL-1.1-Instrument-Sans.txt`](licenses/OFL-1.1-Instrument-Sans.txt) |
+| `jetbrains-mono.woff2` | JetBrains Mono (Latin, variable weight) | Copyright 2020 The JetBrains Mono Project Authors | [`licenses/OFL-1.1-JetBrains-Mono.txt`](licenses/OFL-1.1-JetBrains-Mono.txt) |
+
+The files are the unmodified Latin subsets published by Fontsource, renamed for the
+extension. The fonts are not sold on their own.

@@ -1,6 +1,6 @@
 {
   "name": "pixelpush",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "description": "Inspect, tweak and audit any web page from a Chrome side panel, then file the fix to Linear with your own AI model.",
   "license": "MIT",
@@ -15,8 +15,12 @@
     "node": ">=22"
   },
   "scripts": {
-    "verify": "node scripts/verify.mjs",
-    "package": "node scripts/verify.mjs && node scripts/package.mjs",
-    "preview": "node tools/preview/serve.mjs"
+    "verify": "node scripts/verify.mjs && node scripts/contrast.mjs",
+    "package": "npm run verify && node scripts/package.mjs",
+    "preview": "node tools/preview/serve.mjs",
+    "icons": "node scripts/icons.mjs"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
   }
 }
