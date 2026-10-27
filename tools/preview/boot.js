@@ -5,10 +5,13 @@ const params = new URLSearchParams(location.search)
 
 const html = await (await fetch("/sidepanel.html")).text()
 const doc = new DOMParser().parseFromString(html, "text/html")
+// ?css=variants/name.css swaps the design layer for a draft stylesheet in tools/preview/.
+const override = params.get("css")
 for (const link of doc.querySelectorAll('link[rel="stylesheet"]')) {
+  const href = link.getAttribute("href")
   const el = document.createElement("link")
   el.rel = "stylesheet"
-  el.href = link.getAttribute("href")
+  el.href = override && href.endsWith("/pixelpush.css") ? `/__preview/${override}` : href
   document.head.append(el)
 }
 

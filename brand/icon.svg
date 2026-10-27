@@ -1,6 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
   <title>Pixelpush</title>
   <!-- Drawn on a 16-pixel grid: a pixel-art cursor pushing one pixel. -->
-  <rect width="16" height="16" rx="3.5" fill="#0E1016"/>
-  <path fill="#BDF656" shape-rendering="crispEdges" d="M3 2H4V3H5V4H6V5H7V6H8V7H9V8H10V9H11V10H9V12H10V14H8V12H7V10H6V11H5V12H4V13H3ZM11 3H13V5H11Z"/>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#804EFA"/>
+      <stop offset="0.6" stop-color="#6010C4"/>
+      <stop offset="1" stop-color="#3E0C86"/>
+    </linearGradient>
+  </defs>
+  <rect width="16" height="16" rx="3.5" fill="url(#tile)"/>
+  <path fill="#FAF9FE" shape-rendering="crispEdges" d="M3 2H4V3H5V4H6V5H7V6H8V7H9V8H10V9H11V10H9V12H10V14H8V12H7V10H6V11H5V12H4V13H3Z"/>
+  <path fill="#CABCFD" shape-rendering="crispEdges" d="M11 3H13V5H11Z"/>
 </svg>

@@ -12,7 +12,7 @@
   },
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.2"
   },
   "scripts": {
     "verify": "node scripts/verify.mjs && node scripts/contrast.mjs",
