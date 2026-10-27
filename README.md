@@ -1,3 +1,5 @@
+<img src="extension/icons/icon-128.png" width="64" height="64" alt="">
+
 # Pixelpush
 
 Pixelpush is a Chrome side panel for fixing UI in place. Pick any element on a page,
@@ -7,6 +9,14 @@ Linear as a ready-to-build issue. An AI model you choose can rewrite that issue 
 It is built for the moment when you can see what is wrong with a screen but writing it
 up for whoever builds it takes longer than the fix itself.
 
+<p>
+  <img src="docs/screenshots/design.png" width="260" alt="Pixelpush on the Design tab: the page's element tree with h1#title selected, above the style editor showing edited width and padding.">
+  <img src="docs/screenshots/audit.png" width="260" alt="Pixelpush Audit tab listing seven findings on a test page, grouped into AI tells with suppress controls.">
+  <img src="docs/screenshots/changes.png" width="260" alt="Pixelpush Changes tab listing three edits to h1#title with Copy CSS, Copy Tailwind and Reset all.">
+</p>
+
+*The unpacked extension running in Microsoft Edge (Chromium) against a local test page.*
+
 ## What it does
 
 | Tab | What you get |
@@ -15,7 +25,7 @@ up for whoever builds it takes longer than the fix itself.
 | **Inspect** | The selected element's size, colours, font and box model, with one-click copy as CSS or Tailwind. |
 | **Colors** | The page's colour tokens and every other colour in use, so you reuse a value instead of inventing one. |
 | **Changes** | Every edit you made, as a diff. Copy it as CSS or as Tailwind classes. |
-| **Audit** | Scans the page against 46 design and quality rules (contrast, tiny text, cramped padding, overused patterns and more) and highlights each finding on the page. |
+| **Audit** | Scans the page for design and quality problems (contrast, tiny text, cramped padding, overused patterns and more) and highlights each finding on the page. |
 | **Issue** | Writes up your edits, notes and audit findings as a Linear issue, then files it to the team and project you pick. |
 
 AI features are optional and off until you add a provider. **Rewrite with AI** turns the
@@ -32,13 +42,14 @@ Pixelpush is not on the Chrome Web Store yet. Load it unpacked:
 3. Click **Load unpacked** and choose the `extension/` folder.
 4. Pin Pixelpush, then click its toolbar icon to open the side panel.
 
-You need Chrome 114 or later, the first version with the side panel API.
+You need Chrome 116 or later, the first version that lets an extension open its side panel on demand.
 
 ## First fix in two minutes
 
 1. Open any page and click the Pixelpush icon.
 2. Turn on selection mode (the cursor button in the panel header), then click an element
-   on the page. You can also right-click it and choose **Design with Pixelpush**.
+   on the page. Right-clicking the page and choosing **Design with Pixelpush** also opens
+   the panel.
 3. Change a value in the **Design** tab, for example the padding or the font size.
 4. Open **Changes** to see the diff, and use **Copy CSS** or **Copy Tailwind**.
 
@@ -92,28 +103,39 @@ into every page (`<all_urls>`) so the inspector is ready as soon as you open the
 ## Develop
 
 The `extension/` folder is the complete, loadable extension: plain files, no build step.
-The side panel and the page inspector are compiled bundles (`panel/panel.js`,
-`content-scripts/inspector.js`). The background worker, the audit bridge and the detector
-are readable JavaScript.
+The side panel, page inspector, audit bridge and background worker are compiled,
+minified bundles. The design-audit detector (`audit/detect.js`) and the panel's design
+layer (`panel/pixelpush.css`) are readable source.
 
-Node 22 or later runs the helper scripts. They use only Node built-ins, so there is
-nothing to install.
+Node 22.2 or later runs the helper scripts. Only `npm run icons` needs `npm install`; the
+others use Node built-ins.
 
 ```sh
-npm run verify    # manifest references, script syntax, license files, leftover strings
+npm run verify    # manifest references, syntax, licenses, leftover strings, colour contrast
 npm run package   # verify, then write dist/pixelpush-<version>.zip for the Web Store
 npm run preview   # serve the side panel in a normal tab at http://localhost:4173/__preview/?demo=1
+npm run icons     # re-render extension/icons/ from brand/icon.svg
 ```
 
-The preview harness stubs the `chrome.*` APIs and renders the real panel bundle in its
-built-in demo state. Use it to review styling without reloading the extension. Behaviour
-that needs a live page, such as selection, audits and Linear, only works in Chrome.
+The preview harness stubs the `chrome.*` APIs and renders the real panel bundle. Add
+`?demo=1` for the built-in sample element and `&motion=off` to freeze transitions for
+screenshots. Behaviour that needs a live page, such as selection, audits and Linear, only
+works in Chrome.
+
+The look of the panel lives in one readable stylesheet, `extension/panel/pixelpush.css`.
+[docs/DESIGN.md](docs/DESIGN.md) explains the palette, type, shape and motion rules
+behind it.
 
 ```text
 extension/
   manifest.json            Manifest V3
   sidepanel.html           Side panel entry
-  panel/                   Side panel bundle and styles
+  panel/
+    panel.js               Side panel bundle
+    tailwind.css           Compiled Tailwind utilities
+    pixelpush.css          Design system: tokens, palette, components
+    fonts/                 Instrument Sans and JetBrains Mono
+  icons/                   Toolbar and store icons
   background.js            Service worker: injection, context menu, AI provider calls
   content-scripts/
     inspector.js           Element picking, live style edits, page tokens
@@ -121,7 +143,9 @@ extension/
   audit/
     detect.js              Design-audit detector (Apache-2.0)
     antipatterns.json      Audit rule catalog
-scripts/                   verify and package
+brand/                     Icon sources (SVG)
+docs/                      Design system notes and screenshots
+scripts/                   verify, contrast, package, icons
 tools/preview/             Browser preview harness for the side panel
 licenses/                  Full license texts for bundled third-party code
 ```

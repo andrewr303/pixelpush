@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Derived from Impeccable (cli/engine/browser/injected/index.mjs).
- * Modified for Pixelpush: this header was rewritten. The detector code
- * below is unchanged. See THIRD_PARTY_NOTICES.md at the repository root.
+ * Modified: Impeccable-specific identifiers were renamed when the detector
+ * was vendored into the extension, and this header was rewritten for
+ * Pixelpush. See THIRD_PARTY_NOTICES.md at the repository root.
  */
 (function () {
 if (typeof window === "undefined") return;

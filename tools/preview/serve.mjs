@@ -18,12 +18,19 @@ const types = {
   ".woff2": "font/woff2"
 }
 
-createServer(async (req, res) => {
-  const { pathname } = new URL(req.url, "http://localhost")
-  const [base, rel] = pathname.startsWith("/__preview/")
-    ? [here, pathname.slice("/__preview/".length) || "index.html"]
-    : [ext, pathname.slice(1) || "sidepanel.html"]
-  const file = normalize(join(base, decodeURIComponent(rel)))
+async function handle(req, res) {
+  let base, file
+  try {
+    const { pathname } = new URL(req.url, "http://localhost")
+    const preview = pathname.startsWith("/__preview/")
+    base = preview ? here : ext
+    const rel = preview ? pathname.slice("/__preview/".length) || "index.html" : pathname.slice(1) || "sidepanel.html"
+    file = normalize(join(base, decodeURIComponent(rel)))
+  } catch {
+    res.writeHead(400).end("Bad request")
+    return
+  }
+  // base ends with a separator, so a sibling folder sharing the prefix cannot match.
   if (!file.startsWith(base)) {
     res.writeHead(403).end()
     return
@@ -35,6 +42,13 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(404).end("Not found")
   }
+}
+
+createServer((req, res) => {
+  handle(req, res).catch(() => {
+    if (!res.headersSent) res.writeHead(500)
+    res.end()
+  })
 }).listen(port, "127.0.0.1", () => {
   console.log(`preview: http://localhost:${port}/__preview/?demo=1`)
 })
