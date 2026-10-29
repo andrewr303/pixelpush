@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<!--
+  Audit fixture (negative control): a plain, well-built page. The design audit should report little or nothing here.
+  Used to watch for false positives when rules change. Open /__preview/fixtures/clean.html with `npm run preview`.
+-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harbour Bakery — opening hours, menu and orders</title>
+  <style>
+    :root{--ink:#1d2330;--muted:#4a5365;--paper:#fbfaf7;--brand:#9a3412;--line:#e3ded3}
+    *{box-sizing:border-box}
+    body{margin:0;font:18px/1.6 Georgia,"Times New Roman",serif;color:var(--ink);background:var(--paper)}
+    header,main,footer{max-width:46rem;margin:0 auto;padding:1.5rem 1.25rem}
+    nav ul{display:flex;gap:1.25rem;list-style:none;margin:0;padding:0;font:600 16px/1.4 system-ui,sans-serif}
+    nav a{display:inline-block;padding:.75rem .25rem;color:var(--ink)}
+    h1{font-size:2.4rem;line-height:1.15;margin:0 0 .5rem}
+    h2{font-size:1.5rem;line-height:1.25;margin:2.25rem 0 .5rem}
+    p{margin:0 0 1rem;max-width:38rem}
+    a{color:var(--brand);text-decoration:underline;text-underline-offset:.15em}
+    a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}
+    .hours{width:100%;border-collapse:collapse;font:16px/1.5 system-ui,sans-serif}
+    .hours th,.hours td{text-align:left;padding:.6rem .5rem;border-bottom:1px solid var(--line)}
+    form{display:grid;gap:.75rem;max-width:24rem;font:16px/1.5 system-ui,sans-serif}
+    label{font-weight:600}
+    input,select{padding:.6rem .7rem;border:1px solid #6b7280;border-radius:6px;font:inherit}
+    button{padding:.7rem 1.1rem;border:0;border-radius:6px;background:var(--brand);color:#fff;font:600 16px system-ui,sans-serif}
+    figure{margin:1.5rem 0}
+    figcaption{font:15px/1.5 system-ui,sans-serif;color:var(--muted)}
+    footer{border-top:1px solid var(--line);font:15px/1.5 system-ui,sans-serif;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <nav aria-label="Main"><ul><li><a href="#hours">Hours</a></li><li><a href="#order">Order</a></li><li><a href="#find">Find us</a></li></ul></nav>
+  </header>
+  <main>
+    <h1>Sourdough, baked at 5 a.m. on Quay Street</h1>
+    <p>We bake nine loaves and two kinds of rye each morning in the oven behind the counter. When a batch sells out, it is gone until tomorrow, so the pickup window opens at 7 and the small loaves usually go by 10.</p>
+    <figure>
+      <img src="/icons/icon-128.png" width="128" height="128" alt="A tray of six round sourdough loaves cooling on a wooden rack">
+      <figcaption>Saturday tray: the country loaf, the seeded loaf and the rye.</figcaption>
+    </figure>
+    <h2 id="hours">Opening hours</h2>
+    <table class="hours">
+      <caption class="visually-hidden" style="position:absolute;left:-9999px">Opening hours</caption>
+      <tr><th scope="row">Tuesday to Friday</th><td>7:00 to 15:00</td></tr>
+      <tr><th scope="row">Saturday</th><td>7:00 to 13:00</td></tr>
+      <tr><th scope="row">Sunday and Monday</th><td>Closed</td></tr>
+    </table>
+    <h2 id="order">Order a loaf for Saturday</h2>
+    <p>Orders close Thursday at noon. We hold your loaf under your name until 13:00. For allergens and ingredients, read the <a href="#find">notes on the menu board</a> or ask at the counter.</p>
+    <form>
+      <label for="name">Your name</label>
+      <input id="name" name="name" autocomplete="name">
+      <label for="loaf">Loaf</label>
+      <select id="loaf" name="loaf"><option>Country loaf</option><option>Seeded loaf</option><option>Rye</option></select>
+      <button type="submit">Reserve a loaf</button>
+    </form>
+    <h2 id="find">Find us</h2>
+    <p>12 Quay Street, a two-minute walk from the ferry landing. There is step-free access through the side door on Mill Lane.</p>
+  </main>
+  <footer><p>Harbour Bakery, 12 Quay Street. Prices include tax.</p></footer>
+</body>
+</html>

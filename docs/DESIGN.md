@@ -9,21 +9,32 @@ Everything below is implemented in
 [`extension/panel/pixelpush.css`](../extension/panel/pixelpush.css). That file is the
 source of truth; this page explains the decisions behind it.
 
+**Docs:** [Home](README.md) · [Getting started](getting-started.md) · [Features](features.md) · [Audit](audit.md) · [AI providers](ai-providers.md) · [Linear](linear.md) · [Privacy and permissions](privacy-and-permissions.md) · [Architecture](architecture.md) · [Development](development.md) · **Design system**
+
 ## Brand mark
 
 ![Pixelpush icon](../extension/icons/icon-128.png)
 
-A pixel-art cursor pushing a single pixel, drawn on a 16 × 16 grid so it stays sharp at
-every size Chrome asks for (16, 32, 48 and 128 px). The tile runs from violet `#804EFA`
-to deep purple `#3E0C86`; the cursor is near-white and the pushed pixel is lavender.
+A "layers" mark: three stacked rounded diamonds on a violet-to-deep-purple tile. The top
+layer is filled lavender, and the two behind it are near-white outlines, each one hidden
+wherever the layer in front covers it. Chrome gets it at 16, 32, 48 and 128 px, and the
+panel header shows the 48 px render.
 
 | File | Use |
 | --- | --- |
-| [`brand/icon.svg`](../brand/icon.svg) | App icon. Source for the PNGs. |
-| [`brand/mark.svg`](../brand/mark.svg) | The glyph alone, for dark surfaces. |
+| [`brand/icon.svg`](../brand/icon.svg) | App icon. It embeds a 512 px PNG master with transparent corners and is the source for the toolbar and store PNGs. |
+| [`brand/mark.svg`](../brand/mark.svg) | The vector glyph alone (`viewBox` 0 0 64 64), for dark surfaces. |
+| [`extension/icons/`](../extension/icons) | The four PNG renders (16, 32, 48, 128 px) that the manifest points to. |
+| [`docs/assets/banner.svg`](assets/banner.svg) | The README banner. It redraws the glyph from the paths in `mark.svg`. |
 
-Run `npm install` once, then `npm run icons` to re-render `extension/icons/` after editing
-`brand/icon.svg`.
+The glyph uses two colours: `#FAF9FE` for the outlines and `#CABCFD` for the top layer's
+fill, the same value as `--uv-300`. The tile is a diagonal gradient that the SVG stores
+only as pixels. Sampled from the PNG master it runs from about `#773CF7` near the top
+left to about `#430497` near the bottom right.
+
+Run `npm install` once, then `npm run icons` to re-render the four PNGs in
+`extension/icons/` from `brand/icon.svg` with resvg. The script reads only `icon.svg`, so
+a change to the artwork means replacing the PNG embedded in it; `mark.svg` is not an input.
 
 ## Light field and glass
 
@@ -93,7 +104,8 @@ to 11 px utilities to 12 px and turns tiny uppercase chips into lowercase mono t
 - Radii are soft: 8 px for controls, 12 px for rows, 16 px for cards, 20 px for the
   header slab and send bar, and pills for tabs and icon buttons.
 - Depth comes from specular inset highlights and tight contact shadows, not wide haze.
-- Status dots are square, a single pixel of colour (Linear priority, connection state).
+- Status dots are 8 px squares with a 2 px corner radius, one small block of colour
+  (Linear priority, connection state).
 - **Selection handles:** an empty state that waits for you to pick something is drawn as
   a dashed marquee with four corner handles, like a selected layer in a design tool.
 
@@ -124,3 +136,8 @@ npm run preview
 
 The preview cannot reproduce styles Chromium injects into extension pages, so check
 final changes in the real extension as well.
+
+## Next
+
+- [Development](development.md): the preview harness and the helper scripts behind these rules.
+- [Docs home](README.md): every page, by what you are trying to do.

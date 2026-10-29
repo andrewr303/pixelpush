@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-labelledby="pp-title pp-desc">
+  <title id="pp-title">Pixelpush</title>
+  <desc id="pp-desc">The Pixelpush layers mark on a violet tile, the word Pixelpush and the line: Pick an element. Tweak it live. Audit the page. File it to Linear. Dark violet background with a soft indigo and violet glow.</desc>
+
+  <!--
+    Self-contained banner: no external resources, no scripts, no raster images.
+    The layers glyph is drawn from the paths in brand/mark.svg (colours #FAF9FE outlines, #CABCFD fill).
+    The tile gradient is sampled from the 512 px PNG master embedded in brand/icon.svg. Palette tokens come from extension/panel/pixelpush.css.
+    The background is opaque so the banner reads the same on GitHub light and dark themes.
+  -->
+
+  <defs>
+    <clipPath id="pp-frame">
+      <rect width="1280" height="320" rx="22"/>
+    </clipPath>
+
+    <linearGradient id="pp-base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0819"/>
+      <stop offset="0.55" stop-color="#0e0a22"/>
+      <stop offset="1" stop-color="#07050f"/>
+    </linearGradient>
+
+    <radialGradient id="pp-glow-indigo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#343eb9" stop-opacity="0.62"/>
+      <stop offset="0.55" stop-color="#343eb9" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#343eb9" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pp-glow-violet" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#6122ac" stop-opacity="0.66"/>
+      <stop offset="0.55" stop-color="#6122ac" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#6122ac" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pp-glow-plum" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#5d1089" stop-opacity="0.6"/>
+      <stop offset="0.6" stop-color="#5d1089" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#5d1089" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pp-halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#804efa" stop-opacity="0.5"/>
+      <stop offset="0.6" stop-color="#804efa" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#804efa" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="pp-edge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Pixel grid: 32 px cells, strongest around the mark, fading away to the right. -->
+    <pattern id="pp-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#cabcfd" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="pp-grid-fade" gradientUnits="userSpaceOnUse" cx="190" cy="160" r="760">
+      <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="pp-grid-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="1280" height="320">
+      <rect width="1280" height="320" fill="url(#pp-grid-fade)"/>
+    </mask>
+
+    <filter id="pp-soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+
+    <!-- Tile gradient, sampled from the 512 px icon master (top left to bottom right). -->
+    <linearGradient id="pp-tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7b43fa"/>
+      <stop offset="0.2" stop-color="#7132f1"/>
+      <stop offset="0.5" stop-color="#6110dc"/>
+      <stop offset="0.71" stop-color="#5309c2"/>
+      <stop offset="0.85" stop-color="#430497"/>
+      <stop offset="1" stop-color="#350076"/>
+    </linearGradient>
+    <linearGradient id="pp-tile-edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.4"/>
+      <stop offset="0.35" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="0.8" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#b08cff" stop-opacity="0.35"/>
+    </linearGradient>
+
+    <!-- Layers glyph, as in brand/mark.svg (viewBox 0 0 64 64). -->
+    <mask id="pp-behind-middle" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect width="64" height="64" fill="#fff"/>
+      <path d="M21.84 20.43Q27.60 17.20 33.36 20.43L50.04 29.77Q55.80 33.00 50.04 36.23L33.36 45.57Q27.60 48.80 21.84 45.57L5.16 36.23Q-0.60 33.00 5.16 29.77Z" fill="#000"/>
+    </mask>
+    <mask id="pp-behind-top" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect width="64" height="64" fill="#fff"/>
+      <path d="M30.66 7.19Q36.90 3.60 43.14 7.19L59.86 16.81Q66.10 20.40 59.86 23.99L43.14 33.61Q36.90 37.20 30.66 33.61L13.94 23.99Q7.70 20.40 13.94 16.81Z" fill="#000"/>
+    </mask>
+
+    <!-- The top layer outline, centred on the origin, reused for the background motif. -->
+    <path id="pp-diamond" transform="translate(-36.9 -20.4)" d="M31.21 8.95Q36.90 5.80 42.59 8.95L57.61 17.25Q63.30 20.40 57.61 23.55L42.59 31.85Q36.90 35.00 31.21 31.85L16.19 23.55Q10.50 20.40 16.19 17.25Z"/>
+
+    <linearGradient id="pp-word" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#cabcfd"/>
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#pp-frame)">
+    <!-- Background and light field -->
+    <rect width="1280" height="320" fill="url(#pp-base)"/>
+    <ellipse cx="170" cy="70" rx="520" ry="300" fill="url(#pp-glow-indigo)"/>
+    <ellipse cx="1130" cy="110" rx="560" ry="300" fill="url(#pp-glow-violet)"/>
+    <ellipse cx="660" cy="372" rx="640" ry="190" fill="url(#pp-glow-plum)"/>
+
+    <!-- Pixel grid, with a few lit cells -->
+    <g mask="url(#pp-grid-mask)">
+      <rect width="1280" height="320" fill="url(#pp-grid)" opacity="0.1"/>
+      <g fill="#cabcfd">
+        <rect x="32" y="32" width="32" height="32" opacity="0.07"/>
+        <rect x="64" y="256" width="32" height="32" opacity="0.09"/>
+        <rect x="288" y="32" width="32" height="32" opacity="0.06"/>
+        <rect x="256" y="256" width="32" height="32" opacity="0.07"/>
+        <rect x="416" y="0" width="32" height="32" opacity="0.05"/>
+        <rect x="544" y="288" width="32" height="32" opacity="0.07"/>
+        <rect x="672" y="32" width="32" height="32" opacity="0.04"/>
+        <rect x="192" y="288" width="32" height="32" opacity="0.06"/>
+      </g>
+    </g>
+
+    <!-- Layer motif, cropped by the right edge -->
+    <g fill="none" stroke="#cabcfd" stroke-linejoin="round" stroke-width="1.6">
+      <use href="#pp-diamond" transform="translate(1108 232) scale(4.4)" opacity="0.1"/>
+      <use href="#pp-diamond" transform="translate(1149 177) scale(4.4)" opacity="0.16"/>
+      <use href="#pp-diamond" transform="translate(1190 122) scale(4.4)" fill="#804efa" fill-opacity="0.16" opacity="0.5" stroke-opacity="0.55"/>
+    </g>
+
+    <!-- Mark tile: glow behind, then the tile and the glyph -->
+    <circle cx="180" cy="160" r="170" fill="url(#pp-halo)"/>
+    <ellipse cx="180" cy="248" rx="78" ry="14" fill="#5a1fd0" opacity="0.65" filter="url(#pp-soft)"/>
+    <g transform="translate(92 72.2) scale(0.34375)">
+      <rect x="2" y="15" width="508" height="481" rx="120" fill="url(#pp-tile)"/>
+      <rect x="5" y="18" width="502" height="475" rx="117" fill="none" stroke="url(#pp-tile-edge)" stroke-width="6"/>
+      <g transform="translate(94 72) scale(5.84)">
+        <path d="M22.35 33.51Q27.60 30.60 32.85 33.51L48.35 42.09Q53.60 45.00 48.35 47.91L32.85 56.49Q27.60 59.40 22.35 56.49L6.85 47.91Q1.60 45.00 6.85 42.09Z" fill="none" stroke="#FAF9FE" stroke-width="2.6" stroke-linejoin="round" mask="url(#pp-behind-middle)"/>
+        <path d="M22.35 21.51Q27.60 18.60 32.85 21.51L48.35 30.09Q53.60 33.00 48.35 35.91L32.85 44.49Q27.60 47.40 22.35 44.49L6.85 35.91Q1.60 33.00 6.85 30.09Z" fill="none" stroke="#FAF9FE" stroke-width="2.6" stroke-linejoin="round" mask="url(#pp-behind-top)"/>
+        <path d="M31.21 8.95Q36.90 5.80 42.59 8.95L57.61 17.25Q63.30 20.40 57.61 23.55L42.59 31.85Q36.90 35.00 31.21 31.85L16.19 23.55Q10.50 20.40 16.19 17.25Z" fill="#CABCFD"/>
+      </g>
+    </g>
+
+    <!-- Wordmark and tagline -->
+    <g font-family="'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif">
+      <text x="316" y="172" font-size="88" font-weight="700" letter-spacing="-2" fill="url(#pp-word)">Pixelpush</text>
+      <text x="319" y="224" font-size="25" font-weight="500" letter-spacing="0.2" fill="#c5c2d0">Pick an element. Tweak it live. Audit the page. File it to Linear.</text>
+    </g>
+
+    <!-- Specular top edge and hairline frame -->
+    <rect x="22" y="0" width="1236" height="1.5" fill="url(#pp-edge)"/>
+    <rect x="0.5" y="0.5" width="1279" height="319" rx="21.5" fill="none" stroke="#cabcfd" stroke-opacity="0.16"/>
+  </g>
+</svg>

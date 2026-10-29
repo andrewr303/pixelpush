@@ -6,7 +6,12 @@
  * Derived from Impeccable (cli/engine/browser/injected/index.mjs).
  * Modified: Impeccable-specific identifiers were renamed when the detector
  * was vendored into the extension, and this header was rewritten for
- * Pixelpush. See THIRD_PARTY_NOTICES.md at the repository root.
+ * Pixelpush. Pixelpush later changed the detector: it scrolls the page before
+ * scanning, builds a page digest for the AI review, runs the copy and broken-image
+ * rules that the browser build had declared but never ran, adds further rules,
+ * and parses modern CSS colour spaces. Those additions are original Pixelpush
+ * code, offered under the same Apache-2.0 license as this file.
+ * See THIRD_PARTY_NOTICES.md at the repository root.
  */
 (function () {
 if (typeof window === "undefined") return;
@@ -271,7 +276,7 @@ const ANTIPATTERNS = [
     category: 'slop',
     name: 'Em-dash overuse',
     description:
-      'More than two em-dashes (— or --) in body copy is an AI cadence tell. Use commas, colons, periods, or parentheses instead.',
+      'Eight or more em-dashes (— or --), at a rate above one per 500 characters of body copy, is an AI cadence tell. Use commas, colons, periods, or parentheses instead.',
     skillSection: 'Copy',
     skillGuideline: 'no em dashes',
   },
@@ -545,6 +550,214 @@ const ANTIPATTERNS = [
     skillSection: 'Motion',
     skillGuideline: 'image scale or rotate on hover',
   },
+  {
+    id: 'placeholder-copy',
+    category: 'slop',
+    name: "Placeholder copy",
+    severity: 'warning',
+    description:
+      "Lorem ipsum, \"your title here\" and other template filler shipped in visible text. Replace it with real copy, or remove the block.",
+  },
+  {
+    id: 'blob-decor',
+    category: 'slop',
+    name: "Blurred gradient blob",
+    severity: 'advisory',
+    description:
+      "A large blurred round gradient used as background decoration is one of the most recognizable looks of generated landing pages. Use real imagery, a quiet solid, or a pattern that belongs to the brand.",
+  },
+  {
+    id: 'emoji-icons',
+    category: 'slop',
+    name: "Emoji used as icons",
+    severity: 'advisory',
+    description:
+      "Three or more emoji standing in for icons. They render differently on every platform and read as placeholder art. Use one consistent icon set, or drop the icons.",
+  },
+  {
+    id: 'glass-overuse',
+    category: 'slop',
+    name: "Glassmorphism overuse",
+    severity: 'advisory',
+    description:
+      "Four or more translucent, blurred glass surfaces on one page. Frosted glass works as a single accent over rich imagery; repeated everywhere it flattens hierarchy and hurts legibility.",
+  },
+  {
+    id: 'stat-row-cliche',
+    category: 'slop',
+    name: "Headline stat strip",
+    severity: 'advisory',
+    description:
+      "A row of three or four big numbers with small captions (\"10K+ teams\", \"99.9% uptime\") is a staple of generated pages and rarely carries evidence. Keep it only if every number is real and sourced.",
+  },
+  {
+    id: 'uniform-card-grid',
+    category: 'slop',
+    name: "Identical feature cards",
+    severity: 'advisory',
+    description:
+      "Three or four cards with the same size and the same icon, heading and sentence, in a row. It is the default shape of generated feature sections. Vary scale and layout, or show the product instead.",
+  },
+  {
+    id: 'missing-alt',
+    category: 'quality',
+    name: "Image without alt text",
+    severity: 'warning',
+    description:
+      "An <img> has no alt attribute, so screen readers announce the file name. Describe the image, or use alt=\"\" if it is purely decorative (WCAG 1.1.1).",
+  },
+  {
+    id: 'input-no-label',
+    category: 'quality',
+    name: "Form field without a label",
+    severity: 'warning',
+    description:
+      "A field has no label, or only a placeholder that disappears while typing. Add a visible <label> (or aria-label) so the field keeps its name (WCAG 1.3.1, 3.3.2).",
+  },
+  {
+    id: 'small-tap-target',
+    category: 'quality',
+    name: "Tap target too small",
+    severity: 'warning',
+    description:
+      "An interactive control is smaller than 24 by 24 CSS pixels and sits close to other controls, which makes it easy to miss on touch screens and for people with tremor (WCAG 2.2, 2.5.8). Enlarge the hit area or space the controls out.",
+  },
+  {
+    id: 'link-not-distinguishable',
+    category: 'quality',
+    name: "Link looks like body text",
+    severity: 'warning',
+    description:
+      "A link inside a paragraph differs from the surrounding text only by a subtle colour. People who cannot tell the colours apart will not find it. Underline it, or give it a 3:1 colour contrast and a second cue (WCAG 1.4.1).",
+  },
+  {
+    id: 'focus-outline-removed',
+    category: 'quality',
+    name: "Focus outline removed",
+    severity: 'warning',
+    description:
+      "A stylesheet removes the focus outline without a replacement, so keyboard users cannot see where they are (WCAG 2.4.7). Restyle :focus-visible instead of deleting it.",
+  },
+  {
+    id: 'horizontal-overflow',
+    category: 'quality',
+    name: "Page scrolls sideways",
+    severity: 'warning',
+    description:
+      "Something is wider than the viewport and makes the whole page scroll horizontally. Find the element that overflows and constrain it.",
+  },
+  {
+    id: 'missing-lang',
+    category: 'quality',
+    name: "Missing page language",
+    severity: 'advisory',
+    description:
+      "The <html> element has no lang attribute. Screen readers pick the wrong pronunciation and browsers cannot translate or hyphenate correctly (WCAG 3.1.1).",
+  },
+  {
+    id: 'heading-one',
+    category: 'quality',
+    name: "Page heading problem",
+    severity: 'advisory',
+    description:
+      "A page should have exactly one <h1> that names the page. A missing or repeated <h1> weakens the outline for screen reader users and search.",
+  },
+  {
+    id: 'accent-word-headline',
+    category: 'slop',
+    name: "One accented word in the headline",
+    severity: 'advisory',
+    description:
+      "A single word in a heading set apart by italics, colour, weight or a gradient (\"Ship <em>faster</em> than ever\") is the default flourish of generated pages. Let the whole line carry the weight, or use emphasis where meaning needs it.",
+  },
+  {
+    id: 'radial-halo',
+    category: 'slop',
+    name: "Radial glow halo",
+    severity: 'advisory',
+    description:
+      "A soft chromatic radial gradient glowing behind the content (on the page, a section, or a ::before/::after layer) is the stock \"atmosphere\" of generated pages. Use a real background, image or flat surface.",
+  },
+  {
+    id: 'template-punctuation',
+    category: 'slop',
+    name: "Template punctuation",
+    severity: 'advisory',
+    description:
+      "Meta strings joined with middle dots, links ending in a typed arrow, and \"WORD - fragment\" labels recur across generated pages. Use plain sentences, real icons and normal labels.",
+  },
+  {
+    id: 'stock-avatars',
+    category: 'slop',
+    name: "Placeholder avatars",
+    severity: 'warning',
+    description:
+      "Avatars from generator services (pravatar, dicebear, randomuser, ui-avatars) in testimonials or logo walls signal invented customers. Use real people with permission, or drop the avatars.",
+  },
+  {
+    id: 'ai-voice-copy',
+    category: 'slop',
+    name: "Copy that reads as generated",
+    severity: 'warning',
+    description:
+      "Phrasing such as \"stands as a testament\", \"it’s not just X, it’s Y\", \"delve into\" or \"ever-evolving landscape\" in headlines or body copy. One hit proves nothing; several together are a strong tell. Say the specific thing instead.",
+  },
+  {
+    id: 'tinted-icon-coin',
+    category: 'slop',
+    name: "Icons in tinted squares",
+    severity: 'advisory',
+    description:
+      "Three or more icons each sitting in a faint square of their own colour is a repeated template shape. Use bare icons, or give the icons a job that needs a container.",
+  },
+  {
+    id: 'pulsing-dot',
+    category: 'slop',
+    name: "Decorative pulsing dot",
+    severity: 'advisory',
+    description:
+      "A small dot that pulses beside a word like \"live\", \"new\" or \"available\" with no real status behind it. Animate only genuine, current state.",
+  },
+  {
+    id: 'content-hidden-at-rest',
+    category: 'quality',
+    name: "Content stays invisible",
+    severity: 'warning',
+    description:
+      "A large share of the page text is invisible even after scrolling through it, so a reveal-on-scroll script is not firing, or hides content again. People with reduced motion, print views and crawlers all see an empty page. Show content by default and treat reveal as an enhancement.",
+  },
+  {
+    id: 'control-missing-name',
+    category: 'quality',
+    name: "Control without an accessible name",
+    severity: 'warning',
+    description:
+      "A link or button has no text, aria-label or title, so screen readers announce just \"link\" or \"button\". Icon-only controls need a name (WCAG 4.1.2, 2.4.4).",
+  },
+  {
+    id: 'generic-link-text',
+    category: 'quality',
+    name: "Repeated \"Learn more\" links",
+    severity: 'warning',
+    description:
+      "Several links say only \"Learn more\", \"Read more\" or \"Click here\". Out of context they are indistinguishable, for screen reader users and for everyone skimming. Name the destination (WCAG 2.4.4).",
+  },
+  {
+    id: 'placeholder-links',
+    category: 'slop',
+    name: "Links that go nowhere",
+    severity: 'advisory',
+    description:
+      "Three or more links point to \"#\" with no handler, a sign of unfinished or generated markup. Wire them up, or make them buttons or plain text.",
+  },
+  {
+    id: 'token-sprawl',
+    category: 'quality',
+    name: "No shared type, radius or shadow scale",
+    severity: 'advisory',
+    description:
+      "Many near-identical font sizes, corner radii or shadows suggest values chosen one at a time instead of from a scale. Define a small set of tokens and reuse them.",
+  },
 ];
 
 // --- cli/engine/shared/color.mjs ---
@@ -601,10 +814,40 @@ function isNeutralColor(color) {
   return false;
 }
 
+// Chrome serializes computed colours in the space they were authored in, so pages
+// written with oklch()/lab()/color() (Tailwind v4, most modern design systems) hand
+// us strings the rgb() regex cannot read. Those used to parse as "no colour", which
+// fell back to white and produced bogus contrast failures. Let the browser convert.
+const MODERN_COLOR_RE = /^(?:oklch|oklab|lab|lch|hwb|color|color-mix)\(/i;
+const modernColorCache = new Map();
+let modernColorCtx = null;
+function parseModernColor(css) {
+  if (modernColorCache.has(css)) return modernColorCache.get(css);
+  let out = null;
+  try {
+    modernColorCtx = modernColorCtx || document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    modernColorCtx.clearRect(0, 0, 1, 1);
+    modernColorCtx.fillStyle = '#010203';
+    modernColorCtx.fillStyle = css;
+    // An unparseable colour leaves the sentinel in place. Otherwise paint one pixel and read
+    // it back as sRGB: canvas serializes wide-gamut colours as strings we cannot parse.
+    if (String(modernColorCtx.fillStyle).toLowerCase() !== '#010203') {
+      modernColorCtx.fillRect(0, 0, 1, 1);
+      const [r, g, b, a] = modernColorCtx.getImageData(0, 0, 1, 1).data;
+      out = { r, g, b, a: Math.round((a / 255) * 100) / 100 };
+    }
+  } catch { /* no canvas: leave unparsed */ }
+  modernColorCache.set(css, out);
+  return out;
+}
+
 function parseRgb(color) {
   if (!color || color === 'transparent') return null;
   const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-  if (!m) return null;
+  if (!m) {
+    const t = typeof color === 'string' ? color.trim() : '';
+    return typeof document !== 'undefined' && MODERN_COLOR_RE.test(t) ? parseModernColor(t) : null;
+  }
   return { r: +m[1], g: +m[2], b: +m[3], a: m[4] !== undefined ? +m[4] : 1 };
 }
 
@@ -3343,7 +3586,7 @@ if (IS_BROWSER) {
       pointer-events: none;
       outline: 2px solid ${OUTLINE_COLOR};
       border-radius: 4px;
-      transition: outline-color 0.15s ease;
+      transition: outline-color 0.15s ease, opacity 0.2s ease, filter 0.2s ease;
       animation: audit-reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
       animation-play-state: paused;
       border-top-left-radius: 0;
@@ -3355,15 +3598,44 @@ if (IS_BROWSER) {
       outline-color: ${BRAND_COLOR_HOVER};
       z-index: 100001 !important;
     }
+    .audit-label button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      min-height: 24px;
+      border-radius: 4px;
+      transition: background-color 0.15s ease, transform 0.15s ease;
+    }
+    .audit-label button:active {
+      transform: scale(0.96);
+    }
+    .audit-label button:focus-visible {
+      outline: 2px solid ${LABEL_INK};
+      outline-offset: -2px;
+    }
+    @media (hover: hover) {
+      .audit-label button:hover {
+        background: rgba(0, 0, 0, 0.12) !important;
+      }
+    }
     .audit-overlay.audit-hover .audit-label {
       background: ${BRAND_COLOR_HOVER};
+    }
+    .audit-overlay .audit-label {
+      box-sizing: border-box;
+      width: max-content;
+      max-width: min(560px, calc(100vw - 16px));
+      white-space: normal !important;
+      overflow-wrap: anywhere;
+      text-wrap: pretty;
+      line-height: 1.4 !important;
     }
     .audit-overlay.audit-spotlight {
       z-index: 100002 !important;
     }
     .audit-overlay.audit-spotlight-dimmed {
       opacity: 0.15 !important;
-      animation: none !important;
       filter: blur(3px);
     }
     .audit-spotlight-backdrop {
@@ -3374,11 +3646,31 @@ if (IS_BROWSER) {
       pointer-events: none;
       z-index: 99998;
       opacity: 0;
+      transition: opacity 0.2s ease;
       outline: none !important;
       animation: none !important;
     }
     .audit-spotlight-backdrop.audit-visible {
       opacity: 1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .audit-overlay:not(.audit-banner) {
+        animation-duration: 0.2s !important;
+        animation-delay: 0s !important;
+        animation-timing-function: linear !important;
+      }
+      .audit-overlay.audit-banner {
+        transform: none !important;
+        transition: none !important;
+        animation: audit-reveal 0.2s linear both;
+      }
+    }
+    @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+      .audit-spotlight-backdrop {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: rgba(0, 0, 0, 0.6);
+      }
     }
     .audit-hidden .audit-overlay${EXTENSION_MODE ? '' : ':not(.audit-banner)'} {
       display: none !important;
@@ -3474,11 +3766,20 @@ if (IS_BROWSER) {
       overlay.style.left = `${rect.left - 2}px`;
     } else {
       // Document-relative coords for normal targets
-      overlay.style.top = `${rect.top + scrollY - 2}px`;
-      overlay.style.left = `${rect.left + scrollX - 2}px`;
+      const bodyBox = getComputedStyle(document.body).position === 'static' ? null : document.body.getBoundingClientRect();
+      overlay.style.top = `${bodyBox ? rect.top - bodyBox.top - document.body.clientTop - 2 : rect.top + scrollY - 2}px`;
+      overlay.style.left = `${bodyBox ? rect.left - bodyBox.left - document.body.clientLeft - 2 : rect.left + scrollX - 2}px`;
     }
     overlay.style.width = `${rect.width + 4}px`;
     overlay.style.height = `${rect.height + 4}px`;
+    const lbl = overlay.firstElementChild;
+    if (lbl && lbl.classList.contains('audit-label')) {
+      const flip = rect.top < 26;
+      const below = rect.bottom + 26 < window.innerHeight;
+      lbl.style.top = flip ? (below ? '100%' : Math.max(0, 6 - rect.top) + 'px') : 'auto';
+      lbl.style.bottom = flip ? 'auto' : '100%';
+      lbl.style.borderRadius = flip ? (below ? '0 0 4px 4px' : '4px') : '4px 4px 0 0';
+    }
   }
 
   function repositionOverlays() {
@@ -3623,7 +3924,7 @@ if (IS_BROWSER) {
       cycleMode = true;
 
       const btnStyle = {
-        background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)',
+        background: 'none', border: 'none', color: LABEL_INK,
         fontSize: '11px', cursor: 'pointer', padding: '3px 4px',
         fontFamily: 'system-ui, sans-serif', lineHeight: '14px',
         pointerEvents: 'auto',
@@ -3637,6 +3938,8 @@ if (IS_BROWSER) {
       prevBtn = document.createElement('button');
       prevBtn.textContent = '\u2039';
       Object.assign(prevBtn.style, btnStyle);
+      prevBtn.type = 'button';
+      prevBtn.setAttribute('aria-label', 'Previous finding');
       prevBtn.style.paddingLeft = '6px';
       prevBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -3647,6 +3950,8 @@ if (IS_BROWSER) {
       nextBtn = document.createElement('button');
       nextBtn.textContent = '\u203A';
       Object.assign(nextBtn.style, btnStyle);
+      nextBtn.type = 'button';
+      nextBtn.setAttribute('aria-label', 'Next finding');
       nextBtn.style.paddingRight = '2px';
       nextBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -4852,6 +5157,8 @@ if (IS_BROWSER) {
       addBrowserFindings(groupMap, document.body, creamFindings);
     }
 
+    try { collectPixelpushExtras(groupMap, _ruleOk); } catch (err) { if (!EXTENSION_MODE) console.warn('[audit] extra rules failed', err); }
+
     // Regex-on-HTML checks (shared with Node)
     // Clone the document and strip audit-live overlay nodes before the
     // regex scan, so the inspector's own inline styles (transitions on top/
@@ -5157,16 +5464,1211 @@ if (IS_BROWSER) {
     return options.serialize === false ? allFindings : serializeFindings(allFindings);
   };
 
+  // ── Pixelpush additions: extra rules ────────────────────────────────────
+  // Rules that the vendored detector declared but never ran in the browser (copy
+  // tells, broken images) plus common, standards-backed problems it never covered.
+  // One pass over the page; every finding goes through the same groupMap as the
+  // original checks so highlighting, grouping and "disabled rules" keep working.
+
+  const PP_PLACEHOLDER_IMG_RE = /(?:placehold\.(?:co|it)|via\.placeholder\.com|placeimg\.com|dummyimage\.com|picsum\.photos|placekitten\.com|loremflickr\.com|\/(?:image-?)?placeholder[-_.\w]*\.(?:png|jpe?g|svg|webp|gif)\b)/i;
+  const PP_PLACEHOLDER_COPY_RE = /\b(lorem ipsum|dolor sit amet|consectetur adipiscing|your (?:text|title|headline|company|name|tagline) here|(?:heading|title|subtitle|description|text|content|tagline) goes here|insert (?:text|title|image|content|copy) here|click to edit|sample text|john doe|jane doe)\b/i;
+
+  // Generic SaaS filler. Matched as whole words/phrases; a single hit in body copy is
+  // normal, so the rule needs two distinct phrases or one in the hero.
+  const PP_BUZZWORDS = [
+    'streamline', 'streamlined', 'empower', 'empowers', 'empowering', 'supercharge', 'supercharged',
+    'world-class', 'enterprise-grade', 'next-generation', 'next-gen', 'cutting-edge', 'state-of-the-art',
+    'best-in-class', 'game-changing', 'game changer', 'revolutionize', 'revolutionary', 'seamless',
+    'seamlessly', 'unleash', 'unlock the power', 'harness the power', 'take your .{1,24} to the next level',
+    'elevate your', 'reimagine', 'reimagined', 'effortless', 'effortlessly', 'robust and scalable',
+    'all-in-one', 'one-stop', 'in today’s fast-paced', "in today's fast-paced", 'at the forefront', 'built for the future',
+    'transform the way', 'future-proof', 'turbocharge', 'synergy', 'holistic',
+  ];
+  const PP_BUZZ_RE = new RegExp(`(?:^|[^\\w-])(${PP_BUZZWORDS.join('|')})(?![\\w-])`, 'gi');
+
+  function ppVisibleTextNodes(limit = 60000) {
+    const nodes = [];
+    let total = 0;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const p = node.parentElement;
+        if (!p || !node.textContent.trim()) return NodeFilter.FILTER_REJECT;
+        if (/^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA|TEMPLATE|CODE|PRE)$/.test(p.tagName)) return NodeFilter.FILTER_REJECT;
+        if (p.closest('.audit-overlay, .audit-label, .audit-banner, .audit-tooltip, [id^="audit-live-"]')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+    while (walker.nextNode() && total < limit) {
+      const node = walker.currentNode;
+      const parent = node.parentElement;
+      if (isElementHidden(parent)) continue;
+      const text = node.textContent.replace(/\s+/g, ' ').trim();
+      nodes.push({ text, el: parent });
+      total += text.length;
+    }
+    return nodes;
+  }
+
+  function ppShort(text, max = 60) {
+    const t = String(text || '').replace(/\s+/g, ' ').trim();
+    return t.length > max ? `${t.slice(0, max - 1)}…` : t;
+  }
+
+  function ppIsInlineLink(a) {
+    const cs = getComputedStyle(a);
+    if (cs.display !== 'inline') return false;
+    const parent = a.parentElement;
+    if (!parent) return false;
+    const own = [...parent.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
+    return own.length >= 12;
+  }
+
+  // ── Pixelpush additions: calibrated tells (see docs/audit.md for sources) ───
+
+  const PP_DESIGNED_HIDDEN = '[hidden], [inert], [aria-hidden="true"], details:not([open]), dialog:not([open]), [role="tooltip"], [role="menu"], .sr-only, .visually-hidden, [class*="skeleton"], [class*="cookie"], [class*="consent"], [class*="tooltip"], [class*="dropdown"], [class*="swiper-slide"], [class*="slick-slide"], [class*="splide__slide"], [aria-roledescription="slide"]';
+
+  // Product of opacity up the ancestor chain; text under 0.02 is invisible.
+  function ppEffectiveOpacity(el) {
+    let o = 1;
+    let n = 0;
+    for (let e = el; e && n < 12; e = e.parentElement, n++) {
+      const cs = getComputedStyle(e);
+      if (cs.visibility === 'hidden' || cs.visibility === 'collapse') return 0;
+      o *= parseFloat(cs.opacity);
+      if (o <= 0.02) return o;
+    }
+    return o;
+  }
+
+  // Text blocks that exist but are invisible (a reveal animation that never ran, or ran and undid itself).
+  function ppHiddenTextBlocks(nodes) {
+    let total = 0;
+    let hidden = 0;
+    const groups = new Map();
+    for (const { text, el } of nodes) {
+      total += text.length;
+      if (el.closest(PP_DESIGNED_HIDDEN)) continue;
+      if (ppEffectiveOpacity(el) > 0.02) continue;
+      hidden += text.length;
+      const block = el.closest('p, li, h1, h2, h3, h4, h5, h6, blockquote, div, section') || el;
+      groups.set(block, (groups.get(block) || 0) + text.length);
+    }
+    return { total, hidden, groups };
+  }
+
+  // Scroll each still-hidden block to the middle of the screen and see whether it reveals.
+  async function ppProbeHiddenBlocks(scrollTo, isCurrent, budgetMs = 5000) {
+    const info = ppHiddenTextBlocks(ppVisibleTextNodes());
+    if (info.total < 200 || info.hidden < 150 || info.hidden / info.total <= 0.3) return;
+    const started = Date.now();
+    for (const block of [...info.groups.keys()].slice(0, 20)) {
+      if (Date.now() - started > budgetMs || !isCurrent()) break;
+      const r = block.getBoundingClientRect();
+      scrollTo(Math.max(0, r.top + window.scrollY - window.innerHeight / 2));
+      for (let i = 0; i < 4; i++) {
+        await auditPause(60);
+        if (ppEffectiveOpacity(block) > 0.02) break;
+      }
+    }
+  }
+
+  const PP_AVATAR_HOST_RE = /(?:^|\/\/|\.)(?:i\.)?(?:pravatar\.cc|dicebear\.com|randomuser\.me|thispersondoesnotexist\.com|ui-avatars\.com)/i;
+
+  // Phrase lists live in data so they can drift with the models (Wikipedia: Signs of AI writing).
+  const PP_AI_VOICE_PHRASES = [
+    /\b(?:stands?|serves?|remains?) as an? (?:testament|reminder|beacon)\b/i, /\bis an? testament to\b/i,
+    /\bplays? an? (?:vital|pivotal|crucial|significant|key) role\b/i, /\bunderscor(?:es|ing) (?:the|its|how|why)\b/i,
+    /\bmarks? a (?:pivotal|significant|key|watershed) (?:moment|shift|turning point)\b/i, /\brich (?:cultural )?tapestry\b/i,
+    /\b(?:ever-evolving|ever-changing) (?:landscape|world)\b/i, /\bdelves? (?:into|deeper)\b/i, /\bhere['’]s the thing\b/i,
+    /\blet me be clear\b/i, /\bwhat (?:nobody|no one|most people) (?:tells you|gets|realize)\b/i,
+    /\bthe (?:part|thing) (?:most people|everyone) (?:miss|skip|get wrong)\b/i, /\bit['’]s worth (?:noting|mentioning) that\b/i,
+    /\b(?:it['’]s|this is|that['’]s) not (?:just )?[^.!?]{2,40}[,;—-]\s*(?:it['’]s|but)\b/i,
+    /\bno [^.!?,]{2,20}, no [^.!?,]{2,20},? just\b/i,
+  ];
+  const PP_AI_VOICE_HEADLINES = [
+    /^(?:build|shape|create|power|scale|ship) the future of\b/i, /^your (?:all-in-one|one-stop|ultimate|complete) /i, /\bscale without limits\b/i,
+    /^everything you need to\b/i, /^empowering (?:teams|businesses|creators|developers)\b/i, /^(?:the )?(?:smarter|better|faster) way to\b/i,
+    /\bsay goodbye to\b/i, /\bmeet your new\b/i,
+  ];
+  const PP_AI_VOICE_LEXICON = /\b(?:delve|tapestry|multifaceted|meticulous(?:ly)?|intricate|interplay|pivotal|embark|beacon|paramount|bolstered|garner|vibrant|boasts|showcasing|fostering|testament)\b/gi;
+
+  // Accessible name, close to the browser's own computation (aria-labelledby, aria-label,
+  // subtree text with img alt and svg title, alphabetic generated content, title).
+  function ppAccessibleName(el) {
+    const labelledby = (el.getAttribute('aria-labelledby') || '').split(/\s+/).map(id => document.getElementById(id)?.textContent || '').join(' ').trim();
+    if (labelledby) return labelledby;
+    const al = (el.getAttribute('aria-label') || '').trim();
+    if (al) return al;
+    let text = '';
+    const walk = (node) => {
+      for (const c of node.childNodes) {
+        if (c.nodeType === 3) { text += c.textContent; continue; }
+        if (c.nodeType !== 1) continue;
+        const ccs = getComputedStyle(c);
+        if (ccs.display === 'none' || ccs.visibility === 'hidden' || c.getAttribute('aria-hidden') === 'true') continue;
+        const t = c.tagName.toLowerCase();
+        if (t === 'img') text += ` ${c.getAttribute('alt') || ''}`;
+        else if (t === 'svg') text += ` ${c.getAttribute('aria-label') || ''}${c.querySelector('title')?.textContent || ''}`;
+        else { text += ` ${c.getAttribute('aria-label') || ''}`; walk(c); }
+      }
+    };
+    walk(el);
+    for (const p of ['::before', '::after']) {
+      const content = getComputedStyle(el, p).content;
+      if (content && content !== 'none' && content !== 'normal') {
+        const inner = content.replace(/^["']|["']$/g, '');
+        if (/[A-Za-z]/.test(inner)) text += ` ${inner}`;
+      }
+    }
+    text = text.replace(/\s+/g, ' ').trim();
+    return text || (el.getAttribute('title') || '').trim();
+  }
+
+  function collectPixelpushTells({ add, ruleOk, nodes, body }) {
+    // Accent word in a headline: one italic / coloured / heavier / gradient word set apart.
+    if (ruleOk('accent-word-headline')) {
+      const hits = [];
+      for (const h of body.querySelectorAll('h1, h2')) {
+        if (isElementHidden(h) || h.closest('blockquote, q, nav, footer, [class*="brand"], [class*="logo"]')) continue;
+        const text = (h.textContent || '').replace(/\s+/g, ' ').trim();
+        if (text.split(' ').filter(Boolean).length < 4 || h.querySelector('a, abbr, code, sup, sub, img, svg, br')) continue;
+        const hcs = getComputedStyle(h);
+        const accents = [];
+        for (const d of h.querySelectorAll('em, i, b, strong, mark, u, span')) {
+          const dt = (d.textContent || '').replace(/\s+/g, ' ').trim();
+          if (!dt || dt.split(' ').length > 3 || dt.length > text.length * 0.4) continue;
+          const dcs = getComputedStyle(d);
+          const reasons = [];
+          if ((dcs.fontStyle === 'italic') !== (hcs.fontStyle === 'italic')) reasons.push('italic');
+          if (Math.abs((parseInt(dcs.fontWeight, 10) || 400) - (parseInt(hcs.fontWeight, 10) || 400)) >= 200) reasons.push('weight');
+          const hc = parseRgb(hcs.color);
+          const dc = parseRgb(dcs.color);
+          if (hc && dc && hc.a > 0.1 && dc.a > 0.1 && Math.hypot(hc.r - dc.r, hc.g - dc.g, hc.b - dc.b) >= 90) reasons.push('colour');
+          if (browserPrimaryFont(dcs.fontFamily) !== browserPrimaryFont(hcs.fontFamily)) reasons.push('typeface');
+          if (/text/.test(dcs.webkitBackgroundClip || dcs.backgroundClip || '') && /gradient/.test(dcs.backgroundImage)) reasons.push('gradient');
+          if (reasons.length) accents.push({ dt, reasons });
+        }
+        if (accents.length === 1) hits.push({ h, ...accents[0] });
+      }
+      if (hits.length && (hits.some(x => x.h.tagName === 'H1') || hits.length >= 2)) {
+        add(hits[0].h, 'accent-word-headline', `"${ppShort(hits[0].dt, 24)}" is set apart in the heading by ${hits[0].reasons.join(' + ')}`);
+      }
+    }
+
+    // Chromatic radial-gradient glow, including ::before / ::after layers.
+    if (ruleOk('radial-halo')) {
+      const cands = new Set([document.documentElement, body]);
+      for (const el of body.querySelectorAll('main, section, header, [class*="hero"], [class*="glow"]')) { if (cands.size > 140) break; cands.add(el); }
+      const vp = window.innerWidth * window.innerHeight;
+      let halo = null;
+      for (const el of cands) {
+        for (const pseudo of [null, '::before', '::after']) {
+          const cs = pseudo ? getComputedStyle(el, pseudo) : getComputedStyle(el);
+          if (pseudo && (cs.content === 'none' || cs.content === 'normal' || !/^(?:absolute|fixed)$/.test(cs.position))) continue;
+          const bi = cs.backgroundImage || '';
+          if (!/radial-gradient\(/.test(bi) || /url\(/.test(bi)) continue;
+          const glows = bi.split(/(?=radial-gradient\()/).filter(x => x.startsWith('radial-gradient(')).some(layer => {
+            const toks = layer.match(/(?:rgba?|oklch|oklab|lab|lch|color)\([^)]*\)|transparent/g) || [];
+            const first = toks.find(t => t !== 'transparent');
+            const c = first && parseRgb(first);
+            const last = toks[toks.length - 1];
+            const fades = last === 'transparent' || (parseRgb(last)?.a ?? 1) <= 0.02;
+            return c && hasChroma(c, 30) && c.a >= 0.12 && fades;
+          });
+          if (!glows) continue;
+          const area = pseudo ? (parseFloat(cs.width) || 0) * (parseFloat(cs.height) || 0) : el.getBoundingClientRect().width * el.getBoundingClientRect().height;
+          if (el !== document.documentElement && el !== body && area < vp * 0.05) continue;
+          halo = halo || { el, pseudo };
+        }
+      }
+      if (halo) add(halo.el, 'radial-halo', `Chromatic radial-gradient glow on ${halo.el.tagName.toLowerCase()}${halo.pseudo || ''}`);
+    }
+
+    // Template punctuation: middle-dot meta strings, arrow-suffixed links, WORD - label fragments.
+    if (ruleOk('template-punctuation')) {
+      const skip = 'nav, footer, [aria-label*="breadcrumb" i], pre, code, time, ol, [class*="marquee"], [class*="ticker"]';
+      const dots = new Map();
+      const labels = new Map();
+      for (const { text, el } of nodes) {
+        if (el.closest(skip)) continue;
+        if ((text.match(/\s[·•]\s/g) || []).length >= 2) dots.set(text, el);
+        if (text.length < 60 && /^[A-Z]{3,}\s+[-—–]\s+\S/.test(text)) labels.set(text, el);
+      }
+      const arrows = [...body.querySelectorAll('a, button')].filter(c => !isElementHidden(c) && !c.closest(skip) && /(?:→|->|›|»|⟶)\s*$/.test((c.textContent || '').trim()));
+      const first = dots.size >= 2 ? [...dots.values()][0] : arrows.length >= 3 ? arrows[0] : labels.size >= 2 ? [...labels.values()][0] : null;
+      if (first) {
+        const why = dots.size >= 2 ? `${dots.size} meta strings joined with middle dots` : arrows.length >= 3 ? `${arrows.length} links end in a typed arrow` : `${labels.size} "WORD - fragment" labels`;
+        add(first, 'template-punctuation', `${why}, e.g. "${ppShort(first.textContent, 44)}"`);
+      }
+    }
+
+    // Placeholder avatar services inside testimonial-shaped blocks (or three or more anywhere).
+    if (ruleOk('stock-avatars')) {
+      const hits = [];
+      for (const img of body.querySelectorAll('img')) {
+        if (isElementHidden(img) || img.closest('pre, code')) continue;
+        if (PP_AVATAR_HOST_RE.test(`${img.getAttribute('src') || ''} ${img.getAttribute('srcset') || ''}`)) hits.push(img);
+      }
+      const testimonial = hits.find(i => i.closest('blockquote, figure, [class*="testimonial"], [class*="review"], [class*="quote"], [class*="customer"]'));
+      if (testimonial || hits.length >= 3) add(testimonial || hits[0], 'stock-avatars', `${hits.length} placeholder avatar${hits.length === 1 ? '' : 's'} from a generator service (${ppShort((hits[0].getAttribute('src') || '').replace(/^https?:\/\//, ''), 34)})`);
+    }
+
+    // AI-voice copy: puffery and faux-insight phrases scored by density.
+    if (ruleOk('ai-voice-copy')) {
+      const lang = (document.documentElement.lang || '').toLowerCase();
+      const prose = nodes.filter(n => !n.el.closest('blockquote, q, cite, pre, code, textarea, [contenteditable], [class*="comment"], [class*="review"], nav, footer'));
+      const wordCount = prose.reduce((s, n) => s + n.text.split(' ').length, 0);
+      if (wordCount >= 120 && (!lang || lang.startsWith('en'))) {
+        let score = 0;
+        let sample = '';
+        let headlineHit = false;
+        let hitEl = null;
+        const seen = new Set();
+        for (const { text, el } of prose) {
+          const inHead = !!el.closest('h1, h2') || !!el.closest('header, [class*="hero"]');
+          for (const re of PP_AI_VOICE_PHRASES) {
+            const m = re.exec(text);
+            if (m && !seen.has(re.source)) { seen.add(re.source); score += 2; sample = sample || m[0]; hitEl = hitEl || el; if (inHead) headlineHit = true; }
+          }
+          if (el.closest('h1, h2, [class*="hero"] p, header p')) {
+            for (const re of PP_AI_VOICE_HEADLINES) {
+              if (re.test(text) && !seen.has(re.source)) { seen.add(re.source); score += 2; sample = sample || text; hitEl = hitEl || el; headlineHit = true; }
+            }
+          }
+          PP_AI_VOICE_LEXICON.lastIndex = 0;
+          let lm;
+          while ((lm = PP_AI_VOICE_LEXICON.exec(text)) !== null) {
+            const w = lm[0].toLowerCase();
+            if (!seen.has(w)) { seen.add(w); score += 1; sample = sample || lm[0]; hitEl = hitEl || el; }
+          }
+        }
+        if (score >= 4 || (score >= 2 && headlineHit)) add(hitEl || body, 'ai-voice-copy', `Phrasing that reads as generated (score ${score}), e.g. "${ppShort(sample, 48)}"`);
+      }
+    }
+
+    // Icons in a translucent tint of their own colour, repeated.
+    if (ruleOk('tinted-icon-coin')) {
+      const bySection = new Map();
+      let seen = 0;
+      for (const k of body.querySelectorAll('div, span, i')) {
+        if (++seen > 4000) break;
+        if (k.closest('nav, aside, [role="toolbar"], button, a, [class*="avatar"]') || isElementHidden(k)) continue;
+        const r = k.getBoundingClientRect();
+        if (r.width < 28 || r.width > 72 || r.height < 28 || r.height > 72 || r.width / r.height > 1.25 || r.height / r.width > 1.25) continue;
+        if (k.textContent.trim() && !isEmojiOnlyText(k.textContent.trim())) continue;
+        const icons = k.querySelectorAll('svg, i, img');
+        if (icons.length !== 1 && !(icons.length === 0 && isEmojiOnlyText(k.textContent.trim()))) continue;
+        const cs = getComputedStyle(k);
+        if (parseFloat(cs.borderTopLeftRadius) < 6 && !cs.borderTopLeftRadius.includes('%')) continue;
+        const bg = parseRgb(cs.backgroundColor);
+        if (!bg || !hasChroma(bg, 12)) continue;
+        const translucent = bg.a >= 0.04 && bg.a <= 0.25;
+        const pale = bg.a >= 0.9 && relativeLuminance(bg) >= 0.75;
+        if (!translucent && !pale) continue;
+        const icon = icons[0];
+        const ic = icon ? parseRgb(getComputedStyle(icon).stroke !== 'none' && parseRgb(getComputedStyle(icon).stroke) ? getComputedStyle(icon).stroke : getComputedStyle(icon).color) : null;
+        if (ic && hasChroma(ic, 30)) {
+          let d = Math.abs(getHue(bg) - getHue(ic));
+          d = Math.min(d, 360 - d);
+          if (d > 20) continue;
+        } else if (icon) continue;
+        const section = k.closest('section') || body;
+        const list = bySection.get(section) || [];
+        list.push(k);
+        bySection.set(section, list);
+      }
+      for (const list of bySection.values()) {
+        if (list.length >= 3) { add(list[0], 'tinted-icon-coin', `${list.length} icons sit in a tinted square of their own colour`); break; }
+      }
+    }
+
+    // Decorative pulsing "live" dot.
+    if (ruleOk('pulsing-dot')) {
+      const dots = [];
+      let seen = 0;
+      for (const el of body.querySelectorAll('span, i, div')) {
+        if (++seen > 3000) break;
+        const cs = getComputedStyle(el);
+        if (cs.animationName === 'none' || !/pulse|ping|blink|breath|glow/i.test(cs.animationName) || cs.animationIterationCount !== 'infinite') continue;
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.width > 16 || r.height > 16 || r.width / r.height > 1.5 || r.height / r.width > 1.5) continue;
+        if (el.closest('[role="status"], [aria-live], [data-status]')) continue;
+        const parent = el.parentElement;
+        const sibText = parent ? (parent.textContent || '').replace(/\s+/g, ' ').trim() : '';
+        const pill = parent && parseFloat(getComputedStyle(parent).borderTopLeftRadius) >= 99;
+        if (/(?:live|online|ready|available|open|new|beta|now|shipping|accepting|active)/i.test(sibText) || pill) dots.push({ el, top: r.top + window.scrollY });
+      }
+      if (dots.length >= 2 || dots.some(d => d.top < window.innerHeight * 2)) add(dots[0].el, 'pulsing-dot', 'A pulsing status dot with no live data behind it');
+    }
+
+    // Text that stays invisible after the scroll pass.
+    if (ruleOk('content-hidden-at-rest')) {
+      const info = ppHiddenTextBlocks(nodes);
+      if (info.total >= 200 && info.hidden >= 150 && info.hidden / info.total > 0.3) {
+        const first = [...info.groups.keys()][0];
+        add(first || body, 'content-hidden-at-rest', `${Math.round((info.hidden / info.total) * 100)}% of the page text (${info.hidden} characters) is still invisible after scrolling through it`);
+      }
+    }
+
+    // ── Controls and tokens (axe, Lighthouse and design-token calibration) ──
+    if (ruleOk('control-missing-name') || ruleOk('generic-link-text') || ruleOk('placeholder-links')) {
+      const sig = (el) => `${el.tagName.toLowerCase()}.${[...el.classList].slice(0, 2).join('.')}`;
+      const unnamed = [];
+      const unnamedSigs = new Set();
+      let unnamedCount = 0;
+      const generic = new Map();
+      const placeholders = [];
+      let seen = 0;
+      for (const el of body.querySelectorAll('a[href], button, summary, [role="button"], [role="link"], [role="menuitem"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"]')) {
+        if (++seen > 2500) break;
+        if (isElementHidden(el) || el.closest(PP_DESIGNED_HIDDEN + ', .audit-overlay, [id^="audit-live-"]')) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width <= 2 && r.height <= 2) continue;
+        const cs = getComputedStyle(el);
+        if (/rect\(\s*0(?:px)?[ ,]+0(?:px)?[ ,]+0(?:px)?[ ,]+0(?:px)?\s*\)/.test(cs.clip || '') || (r.bottom <= 0 && cs.position !== 'fixed')) continue;
+        const name = ppAccessibleName(el);
+        if (!name) {
+          unnamedCount++;
+          if (!unnamedSigs.has(sig(el)) && unnamed.length < 10) { unnamedSigs.add(sig(el)); unnamed.push(el); }
+        }
+        if (el.tagName === 'A') {
+          const norm = name.toLowerCase().replace(/^[\s→›»>↗↘⟶…·|\-–—]+|[\s→›»>↗↘⟶…·|\-–—]+$/g, '').replace(/\s+/g, ' ');
+          if (!el.closest('nav, header, footer') && /^(?:click here|click this|go|here|information|learn more|more|more info|more information|right here|read more|see more|start|this)$/.test(norm)) {
+            const list = generic.get(norm) || [];
+            list.push(el);
+            generic.set(norm, list);
+          }
+          const href = (el.getAttribute('href') || '').replace(/\s+/g, '');
+          const framework = Object.keys(el).some(k => k.startsWith('__reactProps$') && el[k] && el[k].onClick) || el._vei?.onClick || [...el.attributes].some(a => /^(?:@|x-on:|v-on:|\(click\)|ng-click)/.test(a.name));
+          if (/^(?:#!?|javascript:(?:void\(?0?\)?)?;?)$/i.test(href) && !el.getAttribute('role') && !el.hasAttribute('onclick') && !el.onclick && !framework
+            && !el.closest('[role="tablist"], [role="menu"], [role="menubar"]') && !el.hasAttribute('aria-expanded') && !el.hasAttribute('aria-controls') && !el.hasAttribute('aria-haspopup')
+            && !el.hasAttribute('data-toggle') && !el.hasAttribute('data-bs-toggle') && !el.hasAttribute('data-action') && !el.hasAttribute('data-target')) placeholders.push(el);
+        }
+      }
+      if (unnamedCount > 0) {
+        add(unnamed[0], 'control-missing-name', `${unnamedCount} control${unnamedCount === 1 ? ' has' : 's have'} no accessible name (screen readers announce just "${unnamed[0].tagName.toLowerCase() === 'a' ? 'link' : 'button'}"), e.g. <${sig(unnamed[0])}>`);
+      }
+      for (const [name, list] of generic) {
+        const sections = new Set(list.map(a => a.closest('section, article, li, div')));
+        if (list.length >= 3 && sections.size >= 3) { add(list[0], 'generic-link-text', `${list.length} links just say "${name}"; link text should describe the destination`); break; }
+      }
+      if (placeholders.length >= 3) add(placeholders[0], 'placeholder-links', `${placeholders.length} links point to "#" and have no handler, so they go nowhere`);
+    }
+
+    if (ruleOk('token-sprawl')) {
+      const sizes = new Map();
+      const radii = new Map();
+      const shadows = new Map();
+      let totalChars = 0;
+      let seen = 0;
+      for (const el of body.querySelectorAll('*')) {
+        if (++seen > 6000) break;
+        const tag = el.tagName.toLowerCase();
+        if (DESIGN_SKIP_TAGS.has(tag) || /^(?:svg|canvas|img|video|code|pre|path|g)$/.test(tag) || isElementHidden(el)) continue;
+        if (el.closest('svg, canvas, pre, code, [class*="chart"], [class*="graph"], .audit-overlay, [id^="audit-live-"]')) continue;
+        const cs = getComputedStyle(el);
+        if (browserHasDirectText(el)) {
+          const chars = [...el.childNodes].filter(n => n.nodeType === 3).reduce((n, t) => n + t.textContent.trim().length, 0);
+          const px = Math.round((parseFloat(cs.fontSize) || 0) * 2) / 2;
+          const e = sizes.get(px) || { chars: 0, els: 0 };
+          e.chars += chars; e.els++;
+          sizes.set(px, e);
+          totalChars += chars;
+        }
+        const r = el.getBoundingClientRect();
+        if (r.width >= 24 && r.height >= 24) {
+          const rad = parseFloat(cs.borderTopLeftRadius) || 0;
+          if (rad > 0) { const k = rad >= 9999 || cs.borderTopLeftRadius.includes('%') ? 'full' : String(Math.round(rad)); radii.set(k, (radii.get(k) || 0) + 1); }
+          if (cs.boxShadow && cs.boxShadow !== 'none' && !/^inset/.test(cs.boxShadow)) shadows.set(cs.boxShadow.replace(/\d+(?:\.\d+)?px/g, m => `${Math.round(parseFloat(m))}px`), (shadows.get(cs.boxShadow.replace(/\d+(?:\.\d+)?px/g, m => `${Math.round(parseFloat(m))}px`)) || 0) + 1);
+        }
+      }
+      const significant = [...sizes.entries()].filter(([, v]) => v.chars >= totalChars * 0.015 || v.els >= 4).map(([px]) => px).sort((a, b) => a - b);
+      const fractional = significant.filter(px => px % 1 !== 0).length >= significant.length / 2;
+      const limit = fractional ? 14 : 11;
+      let dupes = 0;
+      for (let i = 1; i < significant.length; i++) if (significant[i] - significant[i - 1] <= 1 || significant[i] / significant[i - 1] <= 1.07) dupes++;
+      const reasons = [];
+      if (significant.length >= limit) reasons.push(`${significant.length} font sizes in real use (${significant.slice(0, 8).join(', ')}px…)`);
+      else if (dupes >= 2) reasons.push(`${dupes} near-duplicate font sizes (${significant.join(', ')}px)`);
+      const radiiUsed = [...radii.entries()].filter(([, n]) => n >= 3);
+      if (radiiUsed.length > 5) reasons.push(`${radiiUsed.length} different corner radii`);
+      const shadowsUsed = [...shadows.entries()].filter(([, n]) => n >= 3);
+      if (shadowsUsed.length > 5) reasons.push(`${shadowsUsed.length} different box shadows`);
+      if (reasons.length) add(body, 'token-sprawl', `No shared scale: ${reasons.join('; ')}`);
+    }
+  }
+
+  function collectPixelpushExtras(groupMap, ruleOk) {
+    const add = (el, id, detail, ignoreValue) => {
+      if (!ruleOk(id) || !el) return;
+      const existing = groupMap.get(el) || [];
+      if (existing.some(f => (f.type || f.id) === id)) return;
+      addBrowserFindings(groupMap, el, [{ type: id, detail, ...(ignoreValue ? { ignoreValue } : {}) }]);
+    };
+    const body = document.body;
+    if (!body) return;
+
+    // Page-level document checks.
+    if (!(document.documentElement.getAttribute('lang') || '').trim()) {
+      add(body, 'missing-lang', 'The <html> element has no lang attribute');
+    }
+    const h1s = [...document.querySelectorAll('h1, [role="heading"][aria-level="1"]')].filter(h => !isElementHidden(h) && !h.closest('.audit-overlay, [id^="audit-live-"]'));
+    if (h1s.length === 0) add(body, 'heading-one', 'The page has no <h1>');
+
+    // Elements: one pass.
+    const targets = [];
+    const emojiOnly = [];
+    const glass = [];
+    let all = 0;
+    for (const el of body.querySelectorAll('*')) {
+      if (++all > 6000) break;
+      if (el.closest('.audit-overlay, .audit-label, .audit-banner, .audit-tooltip, [id^="audit-live-"]')) continue;
+      const tag = el.tagName.toLowerCase();
+      if (DESIGN_SKIP_TAGS.has(tag) || isElementHidden(el)) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+
+      if (tag === 'img') {
+        const rect = el.getBoundingClientRect();
+        const src = el.getAttribute('src');
+        const lazy = el.loading === 'lazy' || el.hasAttribute('data-src') || el.hasAttribute('data-lazy-src') || el.hasAttribute('srcset');
+        if (src === null && !lazy) add(el, 'broken-image', '<img> has no src');
+        else if (src !== null && src.trim() === '' && !lazy) add(el, 'broken-image', '<img> has an empty src');
+        else if (src && PP_PLACEHOLDER_IMG_RE.test(src)) add(el, 'broken-image', `Placeholder image: ${ppShort(src, 50)}`);
+        else if (el.complete && el.naturalWidth === 0 && el.currentSrc && !el.currentSrc.startsWith('data:')) add(el, 'broken-image', `Image failed to load: ${ppShort(el.currentSrc, 50)}`);
+        const decorative = el.getAttribute('role') === 'presentation' || el.getAttribute('role') === 'none' || el.getAttribute('aria-hidden') === 'true';
+        const named = (el.getAttribute('aria-label') || '').trim() || (el.getAttribute('title') || '').trim()
+          || ((el.getAttribute('aria-labelledby') || '').split(/\s+/).some(id => (document.getElementById(id)?.textContent || '').trim()));
+        if (!el.hasAttribute('alt') && !decorative && !named && (rect.width >= 8 || rect.height >= 8)) {
+          add(el, 'missing-alt', `<img${src ? ` src="${ppShort(src.split('/').pop(), 36)}"` : ''}> has no alt attribute`);
+        } else if (el.hasAttribute('alt') && !decorative && (/\.(?:jpe?g|png|webp|gif|svg|avif)$/i.test(el.alt.trim()) || /^(?:img|image|dsc|screenshot)[-_ ]?\d+$/i.test(el.alt.trim()))) {
+          add(el, 'missing-alt', `alt text "${ppShort(el.alt, 30)}" is a file name, not a description`);
+        }
+      }
+
+      if ((tag === 'input' || tag === 'select' || tag === 'textarea')) {
+        const type = (el.getAttribute('type') || 'text').toLowerCase();
+        if (!['hidden', 'submit', 'button', 'reset', 'image'].includes(type) && !el.disabled) {
+          const named = (el.labels && el.labels.length > 0) || el.getAttribute('aria-label') || el.getAttribute('aria-labelledby') || el.getAttribute('title');
+          if (!named) {
+            const ph = el.getAttribute('placeholder');
+            add(el, 'input-no-label', ph
+              ? `Field "${ppShort(ph, 30)}" has only a placeholder; it disappears as soon as someone types`
+              : `${tag}${type !== 'text' && tag === 'input' ? `[type=${type}]` : ''} has no label`);
+          }
+        }
+      }
+
+      const interactive = tag === 'a' ? el.hasAttribute('href')
+        : tag === 'button' || tag === 'summary' || tag === 'select' || (tag === 'input' && !['hidden'].includes((el.getAttribute('type') || '').toLowerCase()))
+          || ['button', 'link', 'checkbox', 'radio', 'tab', 'menuitem', 'switch'].includes(el.getAttribute('role'));
+      if (interactive && !el.disabled && !(tag === 'a' && ppIsInlineLink(el))) {
+        const r = el.getBoundingClientRect();
+        const visuallyHidden = (r.width <= 2 && r.height <= 2) || (/rect\(\s*0(?:px)?[ ,]+0(?:px)?[ ,]+0(?:px)?[ ,]+0(?:px)?\s*\)/.test(cs.clip || '') && /absolute|fixed/.test(cs.position))
+          || /inset\((?:[5-9]\d|100)%/.test(cs.clipPath || '');
+        const offscreen = cs.position !== 'fixed' && (r.bottom <= 0 || r.right <= 0);
+        const inert = cs.pointerEvents === 'none' || el.getAttribute('aria-disabled') === 'true'
+          || (el.getAttribute('tabindex') === '-1' && !el.getAttribute('role'));
+        const nativeBox = tag === 'input' && /^(?:checkbox|radio)$/i.test(el.getAttribute('type') || '') && !el.style.width && !el.style.height;
+        if (r.width > 0 && r.height > 0 && !visuallyHidden && !offscreen && !inert && !nativeBox) {
+          targets.push({ el, r, label: ppShort(el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || tag, 24), href: tag === 'a' ? (() => { try { const u = new URL(el.getAttribute('href'), document.baseURI); return /^javascript:/i.test(u.href) || u.hash === '' && /#$/.test(u.href) ? '' : u.href; } catch { return ''; } })() : '' });
+        }
+      }
+
+      if (tag === 'a' && el.hasAttribute('href') && ppIsInlineLink(el) && !el.closest('nav, footer')) {
+        let block = el.parentElement;
+        while (block && getComputedStyle(block).display.startsWith('inline')) block = block.parentElement;
+        block = block || el.parentElement;
+        const bcs = getComputedStyle(block);
+        const linkC = parseRgb(cs.color);
+        const textC = parseRgb(bcs.color);
+        const border = (side) => (parseFloat(cs[`border${side}Width`]) || 0) > 0 && cs[`border${side}Style`] !== 'none';
+        const distinct = /underline|overline|line-through/.test(cs.textDecorationLine || '')
+          || cs.textDecorationLine !== bcs.textDecorationLine || cs.textDecorationStyle !== bcs.textDecorationStyle
+          || (cs.backgroundImage && cs.backgroundImage !== 'none') || border('Top') || border('Bottom')
+          || ((parseFloat(cs.outlineWidth) || 0) > 0 && cs.outlineStyle !== 'none')
+          || /inset\s+0(?:px)?\s+-[1-9]/.test(cs.boxShadow || '')
+          || browserPrimaryFont(cs.fontFamily) !== browserPrimaryFont(bcs.fontFamily)
+          || cs.fontStyle !== bcs.fontStyle || cs.fontSize !== bcs.fontSize
+          || Math.abs((parseInt(cs.fontWeight, 10) || 400) - (parseInt(bcs.fontWeight, 10) || 400)) >= 100;
+        // Decorative ::before/::after underlines are the usual false positive: leave those to the human.
+        const pseudo = ['::before', '::after'].some(p => { const pc = getComputedStyle(el, p); return pc.content !== 'none' && pc.content !== 'normal' && (parseFloat(pc.height) <= 3 || pc.position === 'absolute'); });
+        if (linkC && textC && !distinct && !pseudo && contrastRatio(linkC, textC) < 3) {
+          add(el, 'link-not-distinguishable', `Link "${ppShort(el.textContent, 28)}" differs from the surrounding text only by a subtle colour (${contrastRatio(linkC, textC).toFixed(1)}:1); add an underline`);
+        }
+      }
+
+      // Decorative blurred blob: big, blurred, round, coloured, no text.
+      const blur = /blur\(\s*([\d.]+)px/.exec(cs.filter || '');
+      const rect0 = (blur || cs.backdropFilter !== 'none') ? el.getBoundingClientRect() : null;
+      if (blur && parseFloat(blur[1]) >= 30 && rect0 && rect0.width >= 160 && rect0.height >= 160 && !el.textContent.trim()
+        && (parseFloat(cs.borderTopLeftRadius) >= 50 || cs.borderTopLeftRadius.includes('%'))
+        && (/gradient\(/.test(cs.backgroundImage) || (readOwnBackgroundColor(el, cs)?.a || 0) > 0.2)) {
+        add(el, 'blob-decor', `Blurred gradient blob (${Math.round(rect0.width)}px, blur ${blur[1]}px) used as decoration`);
+      }
+
+      const bd = cs.backdropFilter && cs.backdropFilter !== 'none' ? cs.backdropFilter : (cs.webkitBackdropFilter && cs.webkitBackdropFilter !== 'none' ? cs.webkitBackdropFilter : '');
+      if (/blur/.test(bd)) {
+        const bg = readOwnBackgroundColor(el, cs);
+        if (bg && bg.a < 0.9) glass.push(el);
+      }
+
+      if (browserHasDirectText(el) && isEmojiOnlyText(getDirectText(el)) && !el.closest('button, a, [role="button"]')) emojiOnly.push(el);
+    }
+
+    // Tap targets (WCAG 2.2, 2.5.8): under 24x24 unless spacing keeps a 24px circle clear.
+    const small = targets.filter(t => t.r.width < 24 || t.r.height < 24);
+    let reported = 0;
+    for (const t of small) {
+      if (reported >= 8) break;
+      const cx = t.r.left + t.r.width / 2;
+      const cy = t.r.top + t.r.height / 2;
+      if (t.r.width >= 240 && t.r.height >= 240) continue;
+      const clear = targets.every(o => {
+        if (o === t) return true;
+        if (t.el.contains(o.el) || o.el.contains(t.el)) return true;
+        if (t.href && t.href === o.href) return true; // two links to one place count as one target
+        if ((t.el.labels && [...t.el.labels].includes(o.el)) || (o.el.labels && [...o.el.labels].includes(t.el))) return true;
+        const dx = Math.max(o.r.left - cx, 0, cx - o.r.right);
+        const dy = Math.max(o.r.top - cy, 0, cy - o.r.bottom);
+        if (Math.hypot(dx, dy) < 12) return false;
+        const oSmall = o.r.width < 24 || o.r.height < 24;
+        if (oSmall && Math.hypot(cx - (o.r.left + o.r.width / 2), cy - (o.r.top + o.r.height / 2)) < 24) return false;
+        return true;
+      });
+      if (clear) continue;
+      reported++;
+      add(t.el, 'small-tap-target', `"${t.label}" is ${Math.round(t.r.width)}×${Math.round(t.r.height)}px and sits close to other controls; WCAG 2.2 asks for 24×24px`);
+    }
+
+    if (emojiOnly.length >= 3) add(emojiOnly[0], 'emoji-icons', `${emojiOnly.length} emoji used as icons (${emojiOnly.slice(0, 4).map(e => ppShort(getDirectText(e), 4)).join(' ')})`);
+    if (glass.length >= 4) add(glass[0], 'glass-overuse', `${glass.length} translucent blurred glass surfaces on one page`);
+
+    // Visible copy.
+    const nodes = ppVisibleTextNodes();
+    const proseText = [];
+    const buzz = new Map();
+    let buzzFirst = null;
+    let heroBuzz = false;
+    let emDashes = 0;
+    let emDashEl = null;
+    const aphorisms = [];
+    for (const { text, el } of nodes) {
+      const tag = el.tagName.toLowerCase();
+      if (PP_PLACEHOLDER_COPY_RE.test(text)) {
+        add(el, 'placeholder-copy', `Placeholder copy: "${ppShort(text.match(PP_PLACEHOLDER_COPY_RE)[0], 40)}"`);
+      }
+      if (/^(P|LI|H[1-6]|BLOCKQUOTE|DD|FIGCAPTION)$/i.test(tag) || el.closest('p, li, h1, h2, h3, blockquote')) {
+        proseText.push(text);
+        const dashes = (text.match(/—|(?<=\w)\s--\s(?=\w)/g) || []).length;
+        if (dashes) { emDashes += dashes; emDashEl = emDashEl || el; }
+        // Aphoristic cadence: a short "No X." / "Just X." rebuttal, or "Not a X. A Y."
+        const sentences = text.split(/(?<=[.!?])\s+/);
+        const last = sentences[sentences.length - 1] || '';
+        if (sentences.length >= 2 && /^(?:no|just|only|zero)\b[^.!?]{0,30}[.!]$/i.test(last)) aphorisms.push({ el, quote: ppShort(sentences.slice(-2).join(' '), 70) });
+        else if (/\bnot (?:a|an|just|only|another)\b[^.!?]{1,40}[.!]\s+(?:a|an|it['’]s|your|the)\b[^.!?]{1,40}[.!]/i.test(text)) aphorisms.push({ el, quote: ppShort(text.match(/\bnot (?:a|an|just|only|another)\b[^.!?]{1,40}[.!]\s+(?:a|an|it['’]s|your|the)\b[^.!?]{1,40}[.!]/i)[0], 70) });
+      }
+      PP_BUZZ_RE.lastIndex = 0;
+      let m;
+      while ((m = PP_BUZZ_RE.exec(text)) !== null) {
+        const phrase = m[1].toLowerCase();
+        buzz.set(phrase, (buzz.get(phrase) || 0) + 1);
+        buzzFirst = buzzFirst || el;
+        if (el.closest('h1, h2') || (el.closest('p') && el.closest('section, header')?.getBoundingClientRect().top + window.scrollY < window.innerHeight * 1.2)) heroBuzz = true;
+      }
+    }
+    const proseChars = proseText.reduce((n, t) => n + t.length, 0);
+    if (emDashes >= 8 && emDashes * 500 >= proseChars) add(emDashEl || body, 'em-dash-overuse', `${emDashes} em-dashes in ${proseChars} characters of body copy`);
+    if (buzz.size >= 2 || (buzz.size === 1 && heroBuzz)) {
+      add(buzzFirst || body, 'marketing-buzzword', `Generic phrases: ${[...buzz.keys()].slice(0, 5).map(p => `"${p}"`).join(', ')}`);
+    }
+    if (aphorisms.length >= 3) add(aphorisms[0].el, 'aphoristic-cadence', `${aphorisms.length} blocks end on a punchy rebuttal, e.g. "${aphorisms[0].quote}"`);
+
+    // Numbered section markers: 01 / 02 / 03 as display labels.
+    const markers = [];
+    for (const { text, el } of nodes) {
+      if (/^0[1-9]$/.test(text) && !el.closest('li, td, th, time, a, button')) markers.push({ text, el });
+    }
+    if (new Set(markers.map(m => m.text)).size >= 3) add(markers[0].el, 'numbered-section-markers', `Numbered markers ${markers.slice(0, 4).map(m => m.text).join(' / ')} used as section labels`);
+
+    // Stat strip: 3-4 big numbers, each with a small caption.
+    const BIG_NUM_RE = /^[~<>]?\d[\d.,]*\s?(?:[kKmMbB]|%|x|×)?\+?\s?[★]?$/;
+    const statSeen = new Set();
+    for (const { text, el } of nodes) {
+      if (!BIG_NUM_RE.test(text) || !(parseFloat(getComputedStyle(el).fontSize) >= 28)) continue;
+      let cell = el;
+      while (cell.parentElement && cell.parentElement !== body && cell.parentElement.children.length < 3) cell = cell.parentElement;
+      const row = cell.parentElement;
+      if (!row || statSeen.has(row)) continue;
+      const cells = [...row.children].filter(c => !isElementHidden(c));
+      if (cells.length < 3 || cells.length > 5) continue;
+      const nums = cells.map(c => [...c.querySelectorAll('*')].concat(c).find(n => browserHasDirectText(n) && BIG_NUM_RE.test(n.textContent.trim()) && parseFloat(getComputedStyle(n).fontSize) >= 28));
+      if (nums.filter(Boolean).length >= 3) {
+        statSeen.add(row);
+        add(row, 'stat-row-cliche', `A row of ${cells.length} headline numbers (${nums.filter(Boolean).slice(0, 3).map(n => n.textContent.trim()).join(', ')}) with small captions`);
+      }
+    }
+
+    // Identical cards: 3-4 siblings, same structure and size, each a short icon + heading + sentence.
+    const cardSeen = new Set();
+    for (const h of body.querySelectorAll('h3, h4')) {
+      if (isElementHidden(h)) continue;
+      const card = h.parentElement;
+      const row = card && card.parentElement;
+      if (!row || cardSeen.has(row)) continue;
+      const kids = [...row.children].filter(k => !isElementHidden(k));
+      if (kids.length < 3 || kids.length > 4) continue;
+      const sig = elementStructureSignature(kids[0]);
+      if (!/(?:div|span|svg|img|i)\+h[34]\+p/.test(sig.replace(/^(?:div|span|svg|img|i)\+/, m => m)) && !/^(?:div|span|svg|img|i|picture)\+h[34]\+p$/.test(sig)) continue;
+      if (kids.some(k => elementStructureSignature(k) !== sig)) continue;
+      const widths = kids.map(k => Math.round(k.getBoundingClientRect().width));
+      if (Math.max(...widths) - Math.min(...widths) > 6) continue;
+      const kcs = getComputedStyle(kids[0]);
+      const cardLike = (kcs.boxShadow && kcs.boxShadow !== 'none') || (parseFloat(kcs.borderTopWidth) || 0) > 0 || ((readOwnBackgroundColor(kids[0], kcs)?.a || 0) > 0.03 && parseFloat(kcs.borderTopLeftRadius) >= 8);
+      if (!cardLike || kids.some(k => (k.textContent || '').trim().length > 260)) continue;
+      cardSeen.add(row);
+      add(row, 'uniform-card-grid', `${kids.length} identical cards in a row (${sig.replace(/\+/g, ' + ')}), each the same size and structure`);
+    }
+
+    collectPixelpushTells({ add, ruleOk, nodes, body });
+
+    // Removed focus outlines in the page's own stylesheets (WCAG 2.4.7).
+    if (ruleOk('focus-outline-removed')) {
+      const offenders = [];
+      const walk = (rules) => {
+        for (const rule of rules) {
+          if (offenders.length >= 3) return;
+          if (rule.cssRules && !rule.selectorText) { try { walk(rule.cssRules); } catch { /* cross-origin */ } continue; }
+          const sel = rule.selectorText || '';
+          if (!/:focus(?!-visible|-within)/.test(sel) || /:not\(\s*:focus-visible/.test(sel) || sel.includes('\\:')) continue; // utility classes (focus\:outline-none) pair with ring utilities
+          const st = rule.style;
+          const none = st.outlineStyle === 'none' || st.outline === 'none' || st.outline === '0' || st.outlineWidth === '0px' || /^0(px)?\s+none/.test(st.outline || '');
+          if (!none) continue;
+          const replaced = (st.boxShadow && st.boxShadow !== 'none') || st.borderColor || st.border || st.background || st.backgroundColor || st.textDecoration;
+          if (!replaced) offenders.push(ppShort(sel, 50));
+        }
+      };
+      let restyled = false;
+      const scanVisible = (rules) => {
+        for (const rule of rules) {
+          if (restyled) return;
+          if (rule.cssRules && !rule.selectorText) { try { scanVisible(rule.cssRules); } catch { /* cross-origin */ } continue; }
+          if (/:focus-visible/.test(rule.selectorText || '') && (rule.style.outlineStyle !== 'none' && (rule.style.outlineWidth || rule.style.outline) || rule.style.boxShadow || rule.style.borderColor)) restyled = true;
+        }
+      };
+      for (const sheet of document.styleSheets) {
+        let rules;
+        try { rules = sheet.cssRules; } catch { continue; }
+        if (rules) { walk(rules); scanVisible(rules); }
+      }
+      if (offenders.length && !restyled) add(body, 'focus-outline-removed', `${offenders.join(', ')} removes the focus outline and offers no replacement`);
+    }
+
+    // Horizontal overflow of the page itself.
+    const root = document.documentElement;
+    if (root.scrollWidth > root.clientWidth + 4 && getComputedStyle(root).overflowX !== 'hidden' && getComputedStyle(body).overflowX !== 'hidden') {
+      let culprit = null;
+      for (const el of body.querySelectorAll('*')) {
+        if (el.closest('.audit-overlay, [id^="audit-live-"]')) continue;
+        const r = el.getBoundingClientRect();
+        if (r.right > root.clientWidth + 1 && r.width > 0 && getComputedStyle(el).position !== 'fixed' && !isElementHidden(el)) { culprit = el; break; }
+      }
+      add(culprit || body, 'horizontal-overflow', `The page scrolls sideways: content is ${root.scrollWidth - root.clientWidth}px wider than the viewport`);
+    }
+  }
+
+  // ── Pixelpush additions: page settling (auto-scroll) ────────────────────
+  // Lazy-loaded images, reveal-on-scroll sections and infinite lists only exist
+  // after the page has been scrolled, so a scan of the untouched DOM misses them.
+  // settlePage() walks the page once, then puts the reader back where they were.
+
+  const SETTLE_DEFAULTS = {
+    maxMs: 6000,        // hard wall-clock budget
+    maxSteps: 48,       // scroll steps
+    maxViewports: 30,   // never walk past this many viewport heights (infinite feeds)
+    stepRatio: 0.7,     // each step is 70% of a viewport (clamped 240-900px) so nothing is skipped
+    stepDelayMs: 130,   // pause after each step for observers, lazy images and transitions
+    bottomWaitMs: 350,  // extra wait at the bottom to catch infinite-scroll growth
+  };
+
+  function auditPause(ms) {
+    // setTimeout only: requestAnimationFrame is paused in hidden tabs.
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function postAuditProgress(config, phase, extra = {}) {
+    if (!EXTENSION_MODE) return;
+    window.postMessage({
+      source: 'audit-progress',
+      phase,
+      ...(config && config.scanId != null ? { scanId: String(config.scanId) } : {}),
+      ...extra,
+    }, '*');
+  }
+
+  // The element that actually scrolls: the document, or (for app shells with
+  // `overflow: auto` on a main pane) the biggest inner scroll container.
+  function findPrimaryScroller() {
+    const root = document.scrollingElement || document.documentElement;
+    if (root.scrollHeight - root.clientHeight > 40) return { el: root, isDocument: true };
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let best = null;
+    let bestOverflow = 0;
+    let seen = 0;
+    for (const el of document.body ? document.body.querySelectorAll('*') : []) {
+      if (++seen > 6000) break;
+      const overflow = el.scrollHeight - el.clientHeight;
+      if (overflow < 80 || el.clientWidth * el.clientHeight < vw * vh * 0.35) continue;
+      const overflowY = getComputedStyle(el).overflowY;
+      if (overflowY !== 'auto' && overflowY !== 'scroll' && overflowY !== 'overlay') continue;
+      if (overflow > bestOverflow) { best = el; bestOverflow = overflow; }
+    }
+    return best ? { el: best, isDocument: false } : { el: root, isDocument: true };
+  }
+
+  // Overlapping passes (a rescan while one is scrolling) must restore to the reader's
+  // original spot, not to wherever the earlier pass had got to.
+  let settleOrigin = null;
+  let settleDepth = 0;
+  let lastSettleStats = null; // coverage of the latest pass, shared with the AI digest
+
+  async function settlePage(config = {}, control = {}) {
+    const opts = {
+      ...SETTLE_DEFAULTS,
+      ...(Number.isFinite(config.autoScrollMaxMs) ? { maxMs: Math.max(500, Math.min(15000, config.autoScrollMaxMs)) } : {}),
+    };
+    const isCurrent = control.isCurrent || (() => true);
+    const { el: scroller, isDocument } = findPrimaryScroller();
+    const clientHeight = () => (isDocument ? window.innerHeight : scroller.clientHeight);
+    const totalHeight = () => scroller.scrollHeight;
+    const getTop = () => (isDocument ? window.scrollY : scroller.scrollTop);
+    const setTop = (y) => {
+      if (isDocument) window.scrollTo({ top: y, left: window.scrollX, behavior: 'instant' });
+      else scroller.scrollTop = y;
+    };
+
+    if (!settleOrigin || settleOrigin.scroller !== scroller) {
+      settleOrigin = { scroller, top: getTop(), left: isDocument ? window.scrollX : scroller.scrollLeft };
+    }
+    const startTop = settleOrigin.top;
+    const startLeft = settleOrigin.left;
+    const heightBefore = totalHeight();
+    const stats = { scrolled: false, steps: 0, heightBefore, heightAfter: heightBefore, hitCap: false, interrupted: false, blocked: false, feed: 'finite', stoppedBy: 'bottom', scrolledPx: 0, container: isDocument ? 'document' : generateSelector(scroller) };
+    lastSettleStats = stats;
+    const startPath = location.pathname + location.search;
+
+    // Nothing to walk: the page already fits in one screen.
+    if (heightBefore - clientHeight() < 40) { if (settleDepth === 0) settleOrigin = null; return stats; }
+    settleDepth++;
+
+    // Smooth scrolling would turn every step into an animation; force instant jumps.
+    const htmlEl = document.documentElement;
+    const savedHtmlBehavior = htmlEl.style.scrollBehavior;
+    const savedScrollerBehavior = scroller.style.scrollBehavior;
+    htmlEl.style.scrollBehavior = 'auto';
+    if (!isDocument) scroller.style.scrollBehavior = 'auto';
+
+    // A person scrolling or typing always wins over the scan.
+    let interrupted = false;
+    // Only real input counts: pages that dispatch synthetic wheel or key events must not cancel the scan.
+    const onUser = (e) => {
+      if (e.isTrusted === false) return;
+      if (e.type === 'keydown' && ['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+      interrupted = true;
+    };
+    const userEvents = ['wheel', 'touchstart', 'keydown', 'mousedown', 'pointerdown'];
+    for (const ev of userEvents) window.addEventListener(ev, onUser, { capture: true, passive: true });
+
+    const started = Date.now();
+    try {
+      let y = startTop;
+      let stable = 0;
+      const step = Math.min(900, Math.max(240, Math.round(clientHeight() * opts.stepRatio)));
+      let stall = 0;
+      let growth = 0;
+      let prevActual = getTop();
+      const maxTop = clientHeight() * opts.maxViewports;
+      postAuditProgress(config, 'scrolling', { pct: 0 });
+
+      while (stats.steps < opts.maxSteps && Date.now() - started < opts.maxMs && isCurrent() && !interrupted) {
+        // A hidden tab throttles timers and never runs IntersectionObservers; a route change makes the walk meaningless.
+        if (document.visibilityState !== 'visible') { stats.stoppedBy = 'hidden'; break; }
+        if (location.pathname + location.search !== startPath) { interrupted = true; stats.stoppedBy = 'navigated'; break; }
+        const limit = Math.max(0, totalHeight() - clientHeight());
+        const next = Math.min(y + step, limit, maxTop);
+        const moving = next > y + 1;
+        if (moving) {
+          setTop(next);
+          stats.steps++;
+          stats.scrolled = true;
+        }
+        await auditPause(opts.stepDelayMs);
+        // Lazy images that entered the viewport get a short grace period to load.
+        for (let w = 0; w < 9; w++) {
+          const loading = [...document.images].some(img => { const r = img.getBoundingClientRect(); return !img.complete && r.bottom > 0 && r.top < window.innerHeight; });
+          if (!loading) break;
+          await auditPause(50);
+        }
+        // Trust the browser, not our intent: scroll locks, overflow:clip and snap-back stop us moving.
+        const actual = getTop();
+        const moved = actual - prevActual;
+        prevActual = actual;
+        y = actual;
+        if (moving && moved < step * 0.25 && actual < limit - 2) {
+          if (++stall >= 3) { stats.blocked = true; stats.stoppedBy = 'blocked'; break; }
+        } else {
+          stall = 0;
+        }
+        stats.scrolledPx = Math.max(stats.scrolledPx, Math.round(actual - startTop));
+        const nowLimit = Math.max(0, totalHeight() - clientHeight());
+        postAuditProgress(config, 'scrolling', { pct: nowLimit > 0 ? Math.min(1, y / nowLimit) : 1 });
+        if (y >= maxTop - 1) { stats.hitCap = true; stats.stoppedBy = 'distance'; break; }
+        if (y >= nowLimit - 2) {
+          // At the bottom: give lazy content and infinite scroll a moment to extend the page.
+          const before = totalHeight();
+          await auditPause(opts.bottomWaitMs);
+          const grew = totalHeight() - before;
+          if (grew <= 2) {
+            if (++stable >= 2) break;
+          } else {
+            stable = 0;
+            if (grew >= clientHeight() * 0.5 && ++growth >= 3) { stats.feed = 'infinite'; stats.stoppedBy = 'feed'; break; }
+          }
+        }
+      }
+      if (stats.steps >= opts.maxSteps || Date.now() - started >= opts.maxMs) { stats.hitCap = true; if (stats.stoppedBy === 'bottom') stats.stoppedBy = stats.steps >= opts.maxSteps ? 'steps' : 'time'; }
+      // Reveal-on-view blocks that the walk did not trigger: nudge each one into the middle of the screen.
+      if (!interrupted && isCurrent()) await ppProbeHiddenBlocks(setTop, () => isCurrent() && !interrupted);
+      stats.interrupted = interrupted;
+      if (interrupted && stats.stoppedBy === 'bottom') stats.stoppedBy = 'interrupted';
+    } finally {
+      for (const ev of userEvents) window.removeEventListener(ev, onUser, { capture: true });
+      // Put the reader back (the last overlapping pass does it), then let observers and
+      // transitions settle before we measure.
+      settleDepth--;
+      if (settleDepth === 0) {
+        if (!interrupted) {
+          if (isDocument) window.scrollTo({ top: startTop, left: startLeft, behavior: 'instant' });
+          else { scroller.scrollTop = startTop; scroller.scrollLeft = startLeft; }
+        }
+        settleOrigin = null;
+      }
+      htmlEl.style.scrollBehavior = savedHtmlBehavior;
+      if (!isDocument) scroller.style.scrollBehavior = savedScrollerBehavior;
+      await auditPause(450);
+    }
+    stats.heightAfter = totalHeight();
+    if (stats.heightAfter / Math.max(1, stats.heightBefore) >= 2.5) stats.feed = 'infinite';
+    postAuditProgress(config, 'scanning');
+    return stats;
+  }
+
+  let activeScanToken = 0;
+  async function runExtensionScan(config = {}) {
+    const token = ++activeScanToken;
+    try {
+      if (config.autoScroll !== false) {
+        await settlePage(config, { isCurrent: () => token === activeScanToken });
+        if (token !== activeScanToken) return; // a newer scan took over
+      }
+      scan(config);
+    } catch (err) {
+      postExtensionError(err);
+    }
+  }
+
+  // ── Pixelpush additions: compact page digest for the AI review ──────────
+  // A bounded, privacy-conscious outline of the page: structure, copy excerpts and
+  // style statistics. No HTML, no form values, no URLs. Every element the model may
+  // cite gets an opaque ref ("e1"); the panel maps refs back to selectors, so a
+  // finding that cites an unknown ref is dropped instead of invented.
+
+  const DIGEST_MAX_BYTES = 14000;
+
+  function redactDigestText(value, max = 160) {
+    let text = String(value || '').replace(/\s+/g, ' ').trim();
+    text = text
+      .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]')
+      .replace(/\b[A-Za-z0-9_-]{28,}\b/g, '[token]')
+      .replace(/\+?\d[\d\s().-]{8,}\d/g, '[number]');
+    return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+  }
+
+  function bumpCount(map, key) {
+    if (!key) return;
+    map.set(key, (map.get(key) || 0) + 1);
+  }
+
+  function topCounts(map, n) {
+    return [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, n);
+  }
+
+  function elementStructureSignature(el) {
+    const parts = [];
+    for (const child of el.children) {
+      const tag = child.tagName.toLowerCase();
+      if (tag === 'script' || tag === 'style') continue;
+      parts.push(tag);
+      if (parts.length >= 6) break;
+    }
+    return parts.join('+');
+  }
+
+  // A row of 3+ siblings that share one structure (the "three feature cards" shape).
+  function findRepeatedGroup(section) {
+    let best = null;
+    const scan = [section, ...section.querySelectorAll('*')].slice(0, 400);
+    for (const container of scan) {
+      const kids = [...container.children].filter(c => {
+        const r = c.getBoundingClientRect();
+        return r.width > 80 && r.height > 60 && !isElementHidden(c);
+      });
+      if (kids.length < 3 || kids.length > 12) continue;
+      const sig = elementStructureSignature(kids[0]);
+      if (!sig || sig.split('+').length < 2) continue;
+      const same = kids.filter(k => elementStructureSignature(k) === sig).length;
+      if (same < 3 || same / kids.length < 0.75) continue;
+      if (!best || same > best.count) best = { count: same, signature: sig, ref: container };
+    }
+    return best;
+  }
+
+  function buildPageDigest() {
+    const refByEl = new Map();
+    const refs = {};
+    let refN = 0;
+    const refOf = (el) => {
+      if (refByEl.has(el)) return refByEl.get(el);
+      const id = `e${++refN}`;
+      refByEl.set(el, id);
+      try { refs[id] = generateSelector(el); } catch { refs[id] = el.tagName.toLowerCase(); }
+      return id;
+    };
+
+    const fonts = new Map();
+    const sizes = new Map();
+    const weights = new Map();
+    const textColors = new Map();
+    const bgColors = new Map();
+    const radii = new Map();
+    const stats = {
+      elements: 0, gradients: 0, glass: 0, blurDecor: 0, shadows: 0, emojiHeadings: 0,
+      images: 0, imagesNoAlt: 0, imagesBroken: 0, lazyImages: 0,
+      inputs: 0, inputsUnlabelled: 0, smallTargets: 0, fixedOrSticky: 0, h1: 0, emojiOnly: 0,
+    };
+
+    let seen = 0;
+    for (const el of document.body ? document.body.querySelectorAll('*') : []) {
+      if (++seen > 6000) break;
+      if (el.closest('.audit-overlay, .audit-label, .audit-banner, .audit-tooltip, [id^="audit-live-"]')) continue;
+      const tag = el.tagName.toLowerCase();
+      if (DESIGN_SKIP_TAGS.has(tag) || isElementHidden(el)) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none') continue;
+      stats.elements++;
+
+      if (tag === 'img') {
+        stats.images++;
+        if (!el.hasAttribute('alt')) stats.imagesNoAlt++;
+        if (el.complete && el.naturalWidth === 0 && el.currentSrc) stats.imagesBroken++;
+        if (el.loading === 'lazy') stats.lazyImages++;
+      }
+      if (tag === 'h1') stats.h1++;
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+        const type = (el.getAttribute('type') || 'text').toLowerCase();
+        if (!['hidden', 'submit', 'button', 'reset', 'image'].includes(type)) {
+          stats.inputs++;
+          const labelled = el.labels?.length > 0 || el.getAttribute('aria-label') || el.getAttribute('aria-labelledby') || el.getAttribute('title');
+          if (!labelled) stats.inputsUnlabelled++;
+        }
+      }
+
+      const hasText = browserHasDirectText(el);
+      if (hasText) {
+        bumpCount(fonts, browserPrimaryFont(cs.fontFamily || ''));
+        bumpCount(sizes, `${Math.round(parseFloat(cs.fontSize) || 0)}px`);
+        bumpCount(weights, String(cs.fontWeight));
+        const tc = parseRgb(cs.color);
+        if (tc) bumpCount(textColors, colorToHex(tc));
+      }
+      const bg = readOwnBackgroundColor(el, cs);
+      if (bg && bg.a > 0.5) bumpCount(bgColors, colorToHex(bg));
+      if (cs.backgroundImage && /gradient\(/.test(cs.backgroundImage)) stats.gradients++;
+      const backdrop = cs.backdropFilter || cs.webkitBackdropFilter;
+      if (backdrop && backdrop !== 'none' && /blur/.test(backdrop)) stats.glass++;
+      const blurMatch = /blur\(\s*([\d.]+)px/.exec(cs.filter || '');
+      if (blurMatch && parseFloat(blurMatch[1]) >= 30 && (parseFloat(cs.borderTopLeftRadius) >= 50 || cs.borderRadius.includes('%'))) stats.blurDecor++;
+      if (cs.boxShadow && cs.boxShadow !== 'none') stats.shadows++;
+      const radius = parseFloat(cs.borderTopLeftRadius) || 0;
+      if (radius > 0) bumpCount(radii, `${Math.round(radius)}px`);
+      if (cs.position === 'fixed' || cs.position === 'sticky') stats.fixedOrSticky++;
+      if (/^h[1-6]$/.test(tag) && EMOJI_CHAR_RE.test(el.textContent || '')) stats.emojiHeadings++;
+      if (hasText && isEmojiOnlyText(getDirectText(el))) stats.emojiOnly++;
+      if ((tag === 'a' || tag === 'button' || el.getAttribute('role') === 'button') && hasText) {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && (r.width < 24 || r.height < 24)) stats.smallTargets++;
+      }
+    }
+
+    // Heading outline.
+    const headings = [];
+    for (const h of document.querySelectorAll('h1,h2,h3,h4,h5,h6')) {
+      if (headings.length >= 28) break;
+      if (isElementHidden(h)) continue;
+      const text = redactDigestText(h.textContent, 90);
+      if (text) headings.push({ ref: refOf(h), level: Number(h.tagName[1]), text });
+    }
+
+    // Calls to action.
+    const ctas = [];
+    for (const a of document.querySelectorAll('a,button,[role="button"]')) {
+      if (ctas.length >= 14) break;
+      if (isElementHidden(a)) continue;
+      const text = redactDigestText(a.textContent, 40);
+      if (!text || text.length < 2) continue;
+      const cs = getComputedStyle(a);
+      const bg = readOwnBackgroundColor(a, cs);
+      const gradient = /gradient\(/.test(cs.backgroundImage || '');
+      const filled = !!(bg && bg.a > 0.5) || gradient;
+      const bordered = (parseFloat(cs.borderTopWidth) || 0) > 0;
+      if (!filled && !bordered && a.tagName !== 'BUTTON') continue; // plain text links are noise here
+      ctas.push({ ref: refOf(a), text, style: gradient ? 'gradient' : filled ? 'filled' : bordered ? 'outline' : 'plain' });
+    }
+
+    // Top-level sections.
+    let root = document.querySelector('main') || document.body;
+    for (let i = 0; i < 3; i++) {
+      const kids = [...root.children].filter(c => !DESIGN_SKIP_TAGS.has(c.tagName.toLowerCase()) && !isElementHidden(c));
+      if (kids.length === 1 && kids[0].getBoundingClientRect().height > window.innerHeight * 0.8) root = kids[0];
+      else break;
+    }
+    const sections = [];
+    for (const sec of root.children) {
+      if (sections.length >= 16) break;
+      const tag = sec.tagName.toLowerCase();
+      if (DESIGN_SKIP_TAGS.has(tag) || isElementHidden(sec) || sec.closest('.audit-overlay, [id^="audit-live-"]')) continue;
+      const r = sec.getBoundingClientRect();
+      if (r.height < 100 || r.width < window.innerWidth * 0.4) continue;
+      if (!(sec.innerText || '').trim() && !sec.querySelector('img,svg,picture,video,canvas')) continue; // empty spacer
+      const cs = getComputedStyle(sec);
+      const heading = sec.querySelector('h1,h2,h3');
+      const bg = readOwnBackgroundColor(sec, cs);
+      const group = findRepeatedGroup(sec);
+      const entry = {
+        ref: refOf(sec),
+        tag,
+        y: Math.round(r.top + window.scrollY),
+        h: Math.round(r.height),
+        heading: heading ? redactDigestText(heading.textContent, 90) : '',
+        text: redactDigestText(sec.innerText || sec.textContent, 200),
+        bg: bg && bg.a > 0.3 ? colorToHex(bg) : (/gradient\(/.test(cs.backgroundImage) ? 'gradient' : ''),
+        align: cs.textAlign === 'center' ? 'center' : '',
+        images: sec.querySelectorAll('img,svg,picture').length,
+        buttons: sec.querySelectorAll('a[class*="btn"],a[class*="button"],button').length,
+      };
+      if (group) entry.repeat = { ref: refOf(group.ref), count: group.count, structure: group.signature };
+      sections.push(entry);
+    }
+
+    const copy = [];
+    const h1 = document.querySelector('h1');
+    if (h1) copy.push(`h1: ${redactDigestText(h1.textContent, 140)}`);
+    const lead = h1 && (h1.nextElementSibling || h1.parentElement?.querySelector('p'));
+    if (lead && lead.tagName === 'P') copy.push(`lead: ${redactDigestText(lead.textContent, 180)}`);
+    for (const c of ctas.slice(0, 6)) copy.push(`cta: ${c.text}`);
+
+    // A few prose samples (start, middle, end) so the model can judge voice and specificity.
+    const proseBlocks = [];
+    for (const p of document.querySelectorAll('p, blockquote, li')) {
+      if (isElementHidden(p) || p.closest('nav, footer, pre, code, [contenteditable], .audit-overlay, [id^="audit-live-"]')) continue;
+      const t = redactDigestText(p.textContent, 220);
+      if (t.length >= 60) proseBlocks.push({ ref: refOf(p), text: t });
+    }
+    const pickAt = [0, 1, Math.floor(proseBlocks.length / 2) - 1, Math.floor(proseBlocks.length / 2), proseBlocks.length - 2, proseBlocks.length - 1];
+    const copySample = [...new Set(pickAt.filter(i => i >= 0 && i < proseBlocks.length))].map(i => proseBlocks[i]);
+    const heroEl = document.querySelector('h1');
+    const hero = heroEl ? (() => {
+      const hr = heroEl.getBoundingClientRect();
+      const hcs = getComputedStyle(heroEl);
+      const box = heroEl.closest('section, header, main > div') || heroEl.parentElement;
+      return {
+        h1Words: (heroEl.textContent || '').trim().split(/\s+/).filter(Boolean).length,
+        h1Px: Math.round(parseFloat(hcs.fontSize) || 0),
+        align: hcs.textAlign === 'center' ? 'center' : 'start',
+        mediaInFirstScreen: !!(box && [...box.querySelectorAll('img, video, canvas, svg')].some(m => { const r = m.getBoundingClientRect(); return r.width >= 240 && r.height >= 160 && r.top < window.innerHeight; })),
+        ctasInFirstScreen: ctas.filter(c => { const el = document.querySelector(refs[c.ref] || ''); return el && el.getBoundingClientRect().top < window.innerHeight; }).length,
+        top: Math.round(hr.top + window.scrollY),
+      };
+    })() : null;
+
+    const landmarks = ['header', 'nav', 'main', 'footer', 'aside'].filter(t => document.querySelector(t));
+    const digest = {
+      v: 1,
+      title: redactDigestText(document.title, 100),
+      lang: document.documentElement.lang || '',
+      viewport: { w: window.innerWidth, h: window.innerHeight },
+      page: { height: document.documentElement.scrollHeight, width: document.documentElement.scrollWidth, landmarks, hasViewportMeta: !!document.querySelector('meta[name="viewport"]') },
+      stats,
+      type: {
+        families: topCounts(fonts, 5),
+        sizes: topCounts(sizes, 10),
+        distinctSizes: sizes.size,
+        weights: topCounts(weights, 6),
+      },
+      color: {
+        text: topCounts(textColors, 6),
+        background: topCounts(bgColors, 8),
+        distinctText: textColors.size,
+        distinctBackground: bgColors.size,
+        accentHues: (() => { const bins = new Set(); for (const map of [textColors, bgColors]) for (const [hex] of map) { const c = parseRgb(`rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)})`); if (c && hasChroma(c, 60)) bins.add(Math.floor(getHue(c) / 28)); } return bins.size; })(),
+      },
+      radii: { top: topCounts(radii, 6), distinct: radii.size },
+      headings,
+      ctas,
+      sections,
+      copy,
+      copySample,
+      hero,
+      coverage: lastSettleStats ? {
+        stoppedBy: lastSettleStats.stoppedBy, scrolledPx: lastSettleStats.scrolledPx, pageHeightStart: lastSettleStats.heightBefore,
+        pageHeightEnd: lastSettleStats.heightAfter, complete: !['time', 'steps', 'distance', 'blocked', 'hidden', 'navigated', 'interrupted', 'feed'].includes(lastSettleStats.stoppedBy), feed: lastSettleStats.feed,
+      } : { stoppedBy: 'not-scrolled' },
+    };
+
+    // Stay inside the budget: shed the least useful detail first.
+    const fit = () => JSON.stringify(digest).length <= DIGEST_MAX_BYTES;
+    for (const trim of [
+      () => { digest.headings.length = Math.min(digest.headings.length, 16); },
+      () => { for (const s of digest.sections) s.text = s.text.slice(0, 100); },
+      () => { digest.ctas.length = Math.min(digest.ctas.length, 8); },
+      () => { digest.sections.length = Math.min(digest.sections.length, 10); },
+      () => { digest.headings.length = Math.min(digest.headings.length, 8); digest.copy.length = Math.min(digest.copy.length, 4); },
+    ]) {
+      if (fit()) break;
+      trim();
+    }
+    // Drop refs the trimmed digest no longer mentions.
+    const used = new Set(JSON.stringify(digest).match(/"e\d+"/g)?.map(s => s.slice(1, -1)) || []);
+    for (const id of Object.keys(refs)) if (!used.has(id)) delete refs[id];
+
+    return { digest, refs };
+  }
+
   if (EXTENSION_MODE) {
     // Extension mode: listen for commands, don't auto-scan
     window.addEventListener('message', (e) => {
       if (e.source !== window || !e.data || e.data.source !== 'audit-command') return;
       if (e.data.action === 'scan') {
         if (e.data.config) window.__AUDIT_CONFIG__ = e.data.config;
+        runExtensionScan(e.data.config || {});
+      }
+      if (e.data.action === 'digest') {
         try {
-          scan(e.data.config || {});
+          const { digest, refs } = buildPageDigest();
+          window.postMessage({ source: 'audit-digest', requestId: String(e.data.requestId || ''), digest, refs }, '*');
         } catch (err) {
-          postExtensionError(err);
+          window.postMessage({ source: 'audit-digest', requestId: String(e.data.requestId || ''), error: err?.message || String(err) }, '*');
         }
       }
       if (e.data.action === 'toggle-overlays') {

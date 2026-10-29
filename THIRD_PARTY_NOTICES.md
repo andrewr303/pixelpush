@@ -44,10 +44,17 @@ limitations under the License.
 
 Changes from the upstream source: when the detector was first vendored into the
 extension, its Impeccable-specific identifiers (CSS classes, data attributes, message
-sources, window globals and console prefixes) were renamed. Pixelpush rewrote the
-header comment of `detect.js` and has not changed the detector logic or the rule
-catalog. The upstream NOTICE file only covers platform reference documents that
-Pixelpush does not include, so none of its notices apply here.
+sources, window globals and console prefixes) were renamed, and Pixelpush rewrote the
+header comment of `detect.js`. Pixelpush has since changed the detector: it scrolls
+the page before scanning, builds a page digest for the optional AI review, runs the
+copy and broken-image rules that the browser build declared but never ran, adds 26
+rules to the catalog, and parses modern CSS colour spaces. Those additions are
+original Pixelpush code, offered under the same Apache License, Version 2.0 as the
+file they live in. Ideas and thresholds for the added rules were taken from public
+projects and documents listed in
+[`research/audit-2026-10/`](research/audit-2026-10/outputs/audit-improvements-decision-report.md);
+no code or text was copied from them. The upstream NOTICE file only covers platform
+reference documents that Pixelpush does not include, so none of its notices apply here.
 
 ## Libraries compiled into the bundles
 

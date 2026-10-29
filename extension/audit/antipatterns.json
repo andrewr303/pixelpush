@@ -105,7 +105,7 @@
     "id": "em-dash-overuse",
     "name": "Em-dash overuse",
     "category": "slop",
-    "description": "More than two em-dashes (— or --) in body copy is an AI cadence tell. Use commas, colons, periods, or parentheses instead."
+    "description": "Eight or more em-dashes (— or --), at a rate above one per 500 characters of body copy, is an AI cadence tell. Use commas, colons, periods, or parentheses instead."
   },
   {
     "id": "marketing-buzzword",
@@ -274,5 +274,161 @@
     "name": "Image hover transform",
     "category": "slop",
     "description": "Scaling or rotating an image on hover is a recurring generated-UI signature. Let imagery sit still, or use a subtler, purposeful interaction."
+  },
+  {
+    "id": "placeholder-copy",
+    "name": "Placeholder copy",
+    "category": "slop",
+    "description": "Lorem ipsum, \"your title here\" and other template filler shipped in visible text. Replace it with real copy, or remove the block."
+  },
+  {
+    "id": "blob-decor",
+    "name": "Blurred gradient blob",
+    "category": "slop",
+    "description": "A large blurred round gradient used as background decoration is one of the most recognizable looks of generated landing pages. Use real imagery, a quiet solid, or a pattern that belongs to the brand."
+  },
+  {
+    "id": "emoji-icons",
+    "name": "Emoji used as icons",
+    "category": "slop",
+    "description": "Three or more emoji standing in for icons. They render differently on every platform and read as placeholder art. Use one consistent icon set, or drop the icons."
+  },
+  {
+    "id": "glass-overuse",
+    "name": "Glassmorphism overuse",
+    "category": "slop",
+    "description": "Four or more translucent, blurred glass surfaces on one page. Frosted glass works as a single accent over rich imagery; repeated everywhere it flattens hierarchy and hurts legibility."
+  },
+  {
+    "id": "stat-row-cliche",
+    "name": "Headline stat strip",
+    "category": "slop",
+    "description": "A row of three or four big numbers with small captions (\"10K+ teams\", \"99.9% uptime\") is a staple of generated pages and rarely carries evidence. Keep it only if every number is real and sourced."
+  },
+  {
+    "id": "uniform-card-grid",
+    "name": "Identical feature cards",
+    "category": "slop",
+    "description": "Three or four cards with the same size and the same icon, heading and sentence, in a row. It is the default shape of generated feature sections. Vary scale and layout, or show the product instead."
+  },
+  {
+    "id": "missing-alt",
+    "name": "Image without alt text",
+    "category": "quality",
+    "description": "An <img> has no alt attribute, so screen readers announce the file name. Describe the image, or use alt=\"\" if it is purely decorative (WCAG 1.1.1)."
+  },
+  {
+    "id": "input-no-label",
+    "name": "Form field without a label",
+    "category": "quality",
+    "description": "A field has no label, or only a placeholder that disappears while typing. Add a visible <label> (or aria-label) so the field keeps its name (WCAG 1.3.1, 3.3.2)."
+  },
+  {
+    "id": "small-tap-target",
+    "name": "Tap target too small",
+    "category": "quality",
+    "description": "An interactive control is smaller than 24 by 24 CSS pixels and sits close to other controls, which makes it easy to miss on touch screens and for people with tremor (WCAG 2.2, 2.5.8). Enlarge the hit area or space the controls out."
+  },
+  {
+    "id": "link-not-distinguishable",
+    "name": "Link looks like body text",
+    "category": "quality",
+    "description": "A link inside a paragraph differs from the surrounding text only by a subtle colour. People who cannot tell the colours apart will not find it. Underline it, or give it a 3:1 colour contrast and a second cue (WCAG 1.4.1)."
+  },
+  {
+    "id": "focus-outline-removed",
+    "name": "Focus outline removed",
+    "category": "quality",
+    "description": "A stylesheet removes the focus outline without a replacement, so keyboard users cannot see where they are (WCAG 2.4.7). Restyle :focus-visible instead of deleting it."
+  },
+  {
+    "id": "horizontal-overflow",
+    "name": "Page scrolls sideways",
+    "category": "quality",
+    "description": "Something is wider than the viewport and makes the whole page scroll horizontally. Find the element that overflows and constrain it."
+  },
+  {
+    "id": "missing-lang",
+    "name": "Missing page language",
+    "category": "quality",
+    "description": "The <html> element has no lang attribute. Screen readers pick the wrong pronunciation and browsers cannot translate or hyphenate correctly (WCAG 3.1.1)."
+  },
+  {
+    "id": "heading-one",
+    "name": "Page heading problem",
+    "category": "quality",
+    "description": "A page should have exactly one <h1> that names the page. A missing or repeated <h1> weakens the outline for screen reader users and search."
+  },
+  {
+    "id": "accent-word-headline",
+    "name": "One accented word in the headline",
+    "category": "slop",
+    "description": "A single word in a heading set apart by italics, colour, weight or a gradient (\"Ship <em>faster</em> than ever\") is the default flourish of generated pages. Let the whole line carry the weight, or use emphasis where meaning needs it."
+  },
+  {
+    "id": "radial-halo",
+    "name": "Radial glow halo",
+    "category": "slop",
+    "description": "A soft chromatic radial gradient glowing behind the content (on the page, a section, or a ::before/::after layer) is the stock \"atmosphere\" of generated pages. Use a real background, image or flat surface."
+  },
+  {
+    "id": "template-punctuation",
+    "name": "Template punctuation",
+    "category": "slop",
+    "description": "Meta strings joined with middle dots, links ending in a typed arrow, and \"WORD - fragment\" labels recur across generated pages. Use plain sentences, real icons and normal labels."
+  },
+  {
+    "id": "stock-avatars",
+    "name": "Placeholder avatars",
+    "category": "slop",
+    "description": "Avatars from generator services (pravatar, dicebear, randomuser, ui-avatars) in testimonials or logo walls signal invented customers. Use real people with permission, or drop the avatars."
+  },
+  {
+    "id": "ai-voice-copy",
+    "name": "Copy that reads as generated",
+    "category": "slop",
+    "description": "Phrasing such as \"stands as a testament\", \"it’s not just X, it’s Y\", \"delve into\" or \"ever-evolving landscape\" in headlines or body copy. One hit proves nothing; several together are a strong tell. Say the specific thing instead."
+  },
+  {
+    "id": "tinted-icon-coin",
+    "name": "Icons in tinted squares",
+    "category": "slop",
+    "description": "Three or more icons each sitting in a faint square of their own colour is a repeated template shape. Use bare icons, or give the icons a job that needs a container."
+  },
+  {
+    "id": "pulsing-dot",
+    "name": "Decorative pulsing dot",
+    "category": "slop",
+    "description": "A small dot that pulses beside a word like \"live\", \"new\" or \"available\" with no real status behind it. Animate only genuine, current state."
+  },
+  {
+    "id": "content-hidden-at-rest",
+    "name": "Content stays invisible",
+    "category": "quality",
+    "description": "A large share of the page text is invisible even after scrolling through it, so a reveal-on-scroll script is not firing, or hides content again. People with reduced motion, print views and crawlers all see an empty page. Show content by default and treat reveal as an enhancement."
+  },
+  {
+    "id": "control-missing-name",
+    "name": "Control without an accessible name",
+    "category": "quality",
+    "description": "A link or button has no text, aria-label or title, so screen readers announce just \"link\" or \"button\". Icon-only controls need a name (WCAG 4.1.2, 2.4.4)."
+  },
+  {
+    "id": "generic-link-text",
+    "name": "Repeated \"Learn more\" links",
+    "category": "quality",
+    "description": "Several links say only \"Learn more\", \"Read more\" or \"Click here\". Out of context they are indistinguishable, for screen reader users and for everyone skimming. Name the destination (WCAG 2.4.4)."
+  },
+  {
+    "id": "placeholder-links",
+    "name": "Links that go nowhere",
+    "category": "slop",
+    "description": "Three or more links point to \"#\" with no handler, a sign of unfinished or generated markup. Wire them up, or make them buttons or plain text."
+  },
+  {
+    "id": "token-sprawl",
+    "name": "No shared type, radius or shadow scale",
+    "category": "quality",
+    "description": "Many near-identical font sizes, corner radii or shadows suggest values chosen one at a time instead of from a scale. Define a small set of tokens and reuse them."
   }
 ]
