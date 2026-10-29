@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<!--
+  Audit fixture: a deliberately generic, AI-looking landing page with real design problems.
+  Serve with `npm run preview`, open /__preview/fixtures/slop.html, then run the detector:
+    document.documentElement.dataset.auditExtension = "true"   // optional: extension mode
+    const s = document.createElement("script"); s.src = "/audit/detect.js"; document.head.append(s)
+  The lower half of the page is only built when it scrolls into view, to exercise auto-scroll.
+-->
+<head>
+  <meta charset="utf-8">
+  <title>Nimbus — Unleash the power of your workflow</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b0b1a;color:#e8e8f5;line-height:1.5}
+    section{padding:96px 24px}
+    .hero{min-height:100vh;text-align:center;background:radial-gradient(circle at 20% 10%,#6d28d9 0,transparent 55%),radial-gradient(circle at 80% 30%,#4f46e5 0,transparent 50%),#0b0b1a;position:relative;overflow:hidden}
+    .blob{position:absolute;width:420px;height:420px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#ec4899);filter:blur(90px);opacity:.45;top:-120px;right:-80px}
+    .chip{display:inline-block;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);backdrop-filter:blur(12px);font-size:13px;margin-bottom:24px}
+    h1{font-size:76px;line-height:1.02;margin:0 auto 24px;max-width:900px;letter-spacing:-.04em;background:linear-gradient(90deg,#a78bfa,#f472b6);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .lead{font-size:20px;max-width:620px;margin:0 auto 32px;color:#b9b9d6}
+    .btn{display:inline-block;padding:14px 26px;border-radius:14px;font-weight:600;text-decoration:none;margin:0 6px;background:linear-gradient(90deg,#7c3aed,#4f46e5);color:#fff;box-shadow:0 10px 40px rgba(124,58,237,.5)}
+    .btn.alt{background:linear-gradient(90deg,#ec4899,#8b5cf6)}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1040px;margin:0 auto}
+    .card{padding:28px;border-radius:24px;background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+    .icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:grid;place-items:center;font-size:24px;margin-bottom:16px}
+    .card h3{margin:0 0 8px;font-size:20px}
+    .card p{margin:0;color:#9a9ab8;font-size:15px}
+    .stats{display:flex;justify-content:center;gap:64px;text-align:center}
+    .stats b{display:block;font-size:44px}
+    .stats span{font-size:11px;color:#6b6b88}
+    .tiny a{font-size:11px;color:#55557a;margin-right:6px}
+    form{max-width:420px;margin:0 auto;display:grid;gap:12px}
+    input{padding:6px;border-radius:6px;border:1px solid #333;background:#15152b;color:#ddd;outline:none}
+    .step .num{font-size:36px;font-weight:700;color:#7c6aa8;display:block}
+    .step p{color:#9a9ab8;margin:0}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.6)}}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.08);font-size:13px}
+    .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite}
+    .coins{display:flex;gap:16px;justify-content:center}
+    .coin{width:44px;height:44px;border-radius:12px;background:rgba(139,92,246,.14);display:grid;place-items:center;color:#8b5cf6}
+    .tells h2{font-size:34px;margin:0 0 16px}
+    .tells h2 em{font-style:italic;color:#f472b6}
+    .never{opacity:0}
+    .sentinel{height:1px}
+    #late{min-height:600px}
+    .late-card{max-width:760px;margin:0 auto 24px;padding:24px;border-radius:12px;background:#f4f1ea;color:#a8a39a}
+    .late-card p{font-size:12px;margin:0}
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="blob"></div>
+    <span class="chip">✨ New — Nimbus 2.0 is here</span><br><span class="pill" style="margin-bottom:20px"><i class="dot"></i> Live</span><br>
+    <h1>Unleash the power of seamless, next-generation workflows</h1>
+    <p class="lead">Elevate your team with a game-changing platform that transforms the way you work. Built for the future.</p>
+    <a class="btn" href="#">Get started free</a><a href="#" style="display:inline-block;width:20px;height:20px;vertical-align:middle"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="8"/></svg></a><a class="btn alt" href="#">Book a demo</a>
+  </section>
+
+  <section>
+    <div class="grid">
+      <div class="card"><div class="icon">⚡</div><h3>Lightning fast</h3><p>Experience blazing performance that scales effortlessly with your needs.</p><a href="#" style="color:#a78bfa">Learn more</a></div>
+      <div class="card"><div class="icon">🔒</div><h3>Secure by design</h3><p>Enterprise-grade security keeps your data protected at every step.</p><a href="#" style="color:#a78bfa">Learn more</a></div>
+      <div class="card"><div class="icon">🚀</div><h3>Built to scale</h3><p>Grow without limits using tools designed for tomorrow's teams.</p><a href="#" style="color:#a78bfa">Learn more</a></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="stats">
+      <div><b>10K+</b><span>Happy teams</span></div>
+      <div><b>99.9%</b><span>Uptime</span></div>
+      <div><b>4.9★</b><span>Rating</span></div>
+    </div>
+  </section>
+
+  <section class="steps">
+    <div class="grid">
+      <div class="step"><span class="num">01</span><h4>Connect</h4><p>Plug in your tools — no config. No setup.</p></div>
+      <div class="step"><span class="num">02</span><h4>Automate</h4><p>Build flows — fast — without code. Just results.</p></div>
+      <div class="step"><span class="num">03</span><h4>Scale</h4><p>Not a feature. A platform. Zero friction.</p></div>
+    </div>
+  </section>
+
+  <section class="tells">
+    <p style="text-align:center"><span class="pill"><i class="dot"></i> Now available</span></p>
+    <h2>Ship <em>faster</em> than ever before</h2>
+    <h2>Automate <em>everything</em> your team does</h2>
+    <p style="color:#9a9ab8">Nimbus · Workflows · Automation · 2026</p>
+    <p style="color:#9a9ab8">Platform · Security · Pricing · Docs</p>
+    <p><a href="#" style="color:#a78bfa">Learn more →</a> <a href="#" style="color:#a78bfa">See pricing →</a> <a href="#" style="color:#a78bfa">Read the docs →</a></p>
+    <div class="coins">
+      <div class="coin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 18H3z"/></svg></div>
+      <div class="coin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></div>
+      <div class="coin"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16"/></svg></div>
+    </div>
+    <figure class="testimonial"><img src="https://i.pravatar.cc/80?img=3" width="48" height="48" alt=""><blockquote>It changed how we work.</blockquote><figcaption>Sarah Chen, CTO at Acme</figcaption></figure>
+    <p style="max-width:720px;margin:24px auto;color:#b9b9d6">Nimbus stands as a testament to what modern tooling can be. It delves into the ever-evolving landscape of work and it's not just a tool, it's a platform for the entire team. Whether you are scaling a startup or leading an enterprise, Nimbus plays a pivotal role in helping every group navigate the multifaceted challenges of collaboration, and it remains a beacon for teams that value meticulous, intricate planning across the whole organization every single day.</p>
+  </section>
+
+  <section class="never"><p style="max-width:720px;margin:0 auto">Our approach to onboarding has three phases. First we map your existing workflows and identify the steps where handoffs between people slow things down. Then we configure automations for each of those steps, testing them against real examples from your own history so nothing surprises you. Finally we monitor the results for a month, adjusting thresholds and notifications until the team trusts the output and the manual checks can be retired safely. Every phase has a named owner on our side and a named owner on yours, and each one ends with a short written summary of what changed and what we learned along the way, so decisions never live only in someone's head.</p></section>
+
+  <section class="tiny">
+    <p><a href="#">Docs</a><a href="#">Blog</a><a href="#">Status</a></p>
+    <form>
+      <input placeholder="Your email">
+      <input placeholder="Company">
+      <button type="button" style="padding:4px 8px;font-size:11px">Go</button>
+    </form>
+  </section>
+
+  <div style="height:900px"></div>
+  <div class="sentinel" id="sentinel"></div>
+  <section id="late"></section>
+
+  <script>
+    // Lazy section: only exists after the sentinel scrolls into view.
+    new IntersectionObserver((entries, obs) => {
+      if (!entries[0].isIntersecting) return
+      obs.disconnect()
+      document.getElementById("late").innerHTML =
+        '<div class="late-card"><h2 style="color:#6b665c;font-size:18px">What teams say</h2><p>"Lorem ipsum dolor sit amet, consectetur adipiscing elit."</p><img src="/icons/icon-48.png" width="48" height="48"></div>' +
+        '<div class="late-card"><p>"Nimbus changed everything for us. Truly game-changing."</p><img src="/icons/icon-48.png" width="48" height="48"></div>'
+    }, { rootMargin: "0px" }).observe(document.getElementById("sentinel"))
+  </script>
+</body>
+</html>
