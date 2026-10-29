@@ -1,6 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <title>Pixelpush mark</title>
-  <!-- The glyph alone, for use on any dark surface. -->
-  <path fill="#FAF9FE" shape-rendering="crispEdges" d="M3 2H4V3H5V4H6V5H7V6H8V7H9V8H10V9H11V10H9V12H10V14H8V12H7V10H6V11H5V12H4V13H3Z"/>
-  <path fill="#CABCFD" shape-rendering="crispEdges" d="M11 3H13V5H11Z"/>
+  <!-- The layers glyph alone, for use on any dark surface. Each layer hides the one behind it. -->
+  <defs>
+    <mask id="behind-middle" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect width="64" height="64" fill="#fff"/>
+      <path d="M21.84 20.43Q27.60 17.20 33.36 20.43L50.04 29.77Q55.80 33.00 50.04 36.23L33.36 45.57Q27.60 48.80 21.84 45.57L5.16 36.23Q-0.60 33.00 5.16 29.77Z" fill="#000"/>
+    </mask>
+    <mask id="behind-top" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <rect width="64" height="64" fill="#fff"/>
+      <path d="M30.66 7.19Q36.90 3.60 43.14 7.19L59.86 16.81Q66.10 20.40 59.86 23.99L43.14 33.61Q36.90 37.20 30.66 33.61L13.94 23.99Q7.70 20.40 13.94 16.81Z" fill="#000"/>
+    </mask>
+  </defs>
+  <path d="M22.35 33.51Q27.60 30.60 32.85 33.51L48.35 42.09Q53.60 45.00 48.35 47.91L32.85 56.49Q27.60 59.40 22.35 56.49L6.85 47.91Q1.60 45.00 6.85 42.09Z" stroke="#FAF9FE" stroke-width="2.6" stroke-linejoin="round" mask="url(#behind-middle)"/>
+  <path d="M22.35 21.51Q27.60 18.60 32.85 21.51L48.35 30.09Q53.60 33.00 48.35 35.91L32.85 44.49Q27.60 47.40 22.35 44.49L6.85 35.91Q1.60 33.00 6.85 30.09Z" stroke="#FAF9FE" stroke-width="2.6" stroke-linejoin="round" mask="url(#behind-top)"/>
+  <path d="M31.21 8.95Q36.90 5.80 42.59 8.95L57.61 17.25Q63.30 20.40 57.61 23.55L42.59 31.85Q36.90 35.00 31.21 31.85L16.19 23.55Q10.50 20.40 16.19 17.25Z" fill="#CABCFD"/>
 </svg>

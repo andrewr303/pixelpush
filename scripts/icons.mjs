@@ -1,5 +1,5 @@
 // Renders brand/icon.svg into the PNG sizes Chrome asks for.
-// The icon is drawn on a 16px grid, so every size here stays pixel-sharp.
+// brand/icon.svg embeds a 512px raster master, so every size is a clean downscale of it.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
