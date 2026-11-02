@@ -1,0 +1,11 @@
+{
+  "run_id": "20261102-pixelpush-afs-v1.1",
+  "self_review_complete": true,
+  "criteria": {
+    "feature_parity_agentation": "PASS — In-page floating toolbar (#pixelpush-floating-toolbar), numbered [data-annotation-marker] pins, inline popover editor, Place UI (12 wireframe components + Blank Canvas), Rearrange (drag ghost outlines + connector + spatial deltas), Draw (SVG strokes), Self-Drive critique, Freeze animations/videos, Block Clicks, Shadow DOM + same-origin iframe piercing, Alt/Option overlapping layer cycling, 4 Markdown export levels (Compact/Standard/Detailed/Forensic), and MCP HTTP sync (localhost:4747).",
+    "afs_v1_1_schema_integration": "PASS — extension/schema/annotation.v1.1.json shipped and integrated across sidebar Instructions notes, property edits, Audit Pin to AFS, Inspect telemetry card, Changes tab export, and Linear issue formatter.",
+    "ai_features_and_self_driving": "PASS — Expanded 50-property CSS allowlist in background.js and panel.js, enriched propose_edits and rewrite_issue prompts, and new self_driving_critique job kind + skills/pixelpush-self-driving/SKILL.md.",
+    "cloudflare_workers_ai_and_multi_provider_ux": "PASS — First-class cloudflare-workers-ai provider with Account ID + Base URL + curated @cf/... models, HTTP 400 response_format fallback, reasoning_content extraction, Favorite Models (★), and AiQuickSwitcher across Design, Audit, and Issue tabs.",
+    "clean_room_mit_compliance": "PASS — Zero verbatim code or prose copied from PolyForm Shield agentation-main; passes npm run verify and contrast checks."
+  }
+}

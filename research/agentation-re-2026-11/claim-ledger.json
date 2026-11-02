@@ -1,0 +1,113 @@
+{
+  "target": {
+    "name": "Agentation v3.x + Live Schema Site (https://www.agentation.com/schema)",
+    "local_source": "/Users/andrew/Downloads/agentation-main",
+    "live_urls": [
+      "https://www.agentation.com/schema",
+      "https://www.agentation.com/features",
+      "https://www.agentation.com/output",
+      "https://www.agentation.com/mcp",
+      "https://www.agentation.com/api"
+    ],
+    "license": "PolyForm Shield License 1.0.0",
+    "reconstruction_policy": "Clean-room MIT reimplementation from behavioral contracts and AFS v1.1 specification"
+  },
+  "claims": [
+    {
+      "id": "CLM-AFS-001",
+      "status": "PROVED",
+      "category": "schema",
+      "summary": "Annotation Format Schema (AFS) v1.1 defines three annotation kinds ('feedback', 'placement', 'rearrange') with discriminated required fields and shared element/position/workflow metadata.",
+      "evidence": [
+        "attachment:annotation.v1.1.json",
+        "attachment:schema.pdf#pages=1-12",
+        "https://www.agentation.com/schema (_next/static/chunks/fd6f784f96df6de4.js)",
+        "agentation-main/package/src/types.ts:14-121"
+      ]
+    },
+    {
+      "id": "CLM-TOOLBAR-002",
+      "status": "PROVED",
+      "category": "ui-surface",
+      "summary": "The live site https://www.agentation.com/schema mounts an interactive PageToolbarCSS floating pill in the bottom-right corner with collapsed badge state and expanded controls (Annotate, Layout Place/Rearrange, Freeze Animations, Markers visibility, Output Detail cycling, Copy, Clear, Settings, and Session sync).",
+      "evidence": [
+        "https://www.agentation.com/schema (_next/static/chunks/0e4028d1bf6db852.js)",
+        "agentation-main/package/src/components/page-toolbar-css/index.tsx:1-520"
+      ]
+    },
+    {
+      "id": "CLM-TELEMETRY-003",
+      "status": "PROVED",
+      "category": "dom-forensics",
+      "summary": "Element identification extracts human-readable label ('element'), compact selector path ('elementPath'), full DOM hierarchy ('fullPath'), CSS classes with module-hash stripping ('cssClasses'), test/QA data attributes ('attributes'), accessibility semantics ('accessibility'), nearby text/sibling context ('nearbyText', 'nearbyElements'), and tag-relevant vs. full forensic computed styles.",
+      "evidence": [
+        "agentation-main/package/src/utils/element-identification.ts:1-460",
+        "agentation-main/package/src/utils/element-attributes.ts:1-48"
+      ]
+    },
+    {
+      "id": "CLM-REACT-004",
+      "status": "PROVED",
+      "category": "framework-introspection",
+      "summary": "React Fiber tree walking extracts component hierarchy with four filtering modes ('off', 'filtered', 'smart', 'all') and resolves source file locations via _debugSource/__source in React <=18 and a temporary React 19 hook-dispatcher stack-trace probe fallback.",
+      "evidence": [
+        "agentation-main/package/src/utils/react-detection.ts:1-290",
+        "agentation-main/package/src/utils/source-location.ts:1-310"
+      ]
+    },
+    {
+      "id": "CLM-HITTEST-005",
+      "status": "PROVED",
+      "category": "interaction",
+      "summary": "Deep hit-testing pierces open Shadow DOM roots and same-origin iframes (translating client coordinates across frame rects), while Alt/Option modifier collects elementsStack via elementsFromPoint to cycle through overlapping layers.",
+      "evidence": [
+        "agentation-main/package/src/utils/hit-testing.ts:1-145",
+        "agentation-main/package/src/utils/frame-dom.ts:1-75"
+      ]
+    },
+    {
+      "id": "CLM-LAYOUT-006",
+      "status": "PROVED",
+      "category": "layout-mode",
+      "summary": "Design/Layout Mode supports two sub-modes: Place (wireframe component palette for button, input, text, card, image,section, nav, modal, badge, divider, avatar, toggle with alignment snap guides, 8-direction resize, and Blank Canvas toggle) and Rearrange (heuristic section detection, click-to-capture, drag-to-move/resize, original-rect ghost outlines, and getSpatialContext reference-frame extraction).",
+      "evidence": [
+        "agentation-main/package/src/components/design-mode/types.ts:1-190",
+        "agentation-main/package/src/components/design-mode/section-detection.ts:1-210",
+        "agentation-main/package/src/components/design-mode/spatial.ts:1-250",
+        "agentation-main/package/src/components/design-mode/output.ts:1-340"
+      ]
+    },
+    {
+      "id": "CLM-OUTPUT-007",
+      "status": "PROVED",
+      "category": "formatting",
+      "summary": "Output generation formats feedback, placement, and rearrange annotations into four Markdown detail tiers ('compact', 'standard', 'detailed', 'forensic') plus single-element copy formats ('source', 'classes', 'attribute', 'css', 'tailwind') and AFS v1.1 JSON.",
+      "evidence": [
+        "agentation-main/package/src/utils/generate-output.ts:1-225",
+        "agentation-main/package/src/utils/copy-format.ts:1-265"
+      ]
+    },
+    {
+      "id": "CLM-SYNC-008",
+      "status": "PROVED",
+      "category": "sync-protocol",
+      "summary": "Local session sync uses HTTP REST and SSE against a configurable endpoint (default http://localhost:4747) with /health, /sessions, /sessions/:id/annotations, and /pending routes plus status/thread lifecycle transitions ('pending', 'acknowledged', 'resolved', 'dismissed').",
+      "evidence": [
+        "agentation-main/package/src/utils/sync.ts:1-310",
+        "agentation-main/mcp/src/server/http.ts:1-420",
+        "agentation-main/mcp/src/server/mcp.ts:1-360"
+      ]
+    },
+    {
+      "id": "CLM-SELFDRIVE-009",
+      "status": "PROVED",
+      "category": "ai-workflow",
+      "summary": "Self-driving critique systematically inspects page sections (Hero, Navigation, Visuals/Interactive Demos, Content Hierarchy, Copy/Taglines, CTAs/Footer), scrolls each target into view, attaches numbered AFS annotations with concrete 2-3 sentence critiques (naming the design principle and specific CSS/token replacements), and summarizes findings.",
+      "evidence": [
+        "skills/pixelpush-self-driving/SKILL.md",
+        "extension/background.js",
+        "extension/panel/panel.js"
+      ]
+    }
+  ]
+}

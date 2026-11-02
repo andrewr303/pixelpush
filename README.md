@@ -57,19 +57,19 @@ to the AI provider you configure.
 
 | Tab | What you get |
 | --- | --- |
-| **Design** | An element tree for the page, plus a style editor for layout, spacing, size, colour, type, borders, radius and shadow. Edits apply live on the page. |
-| **Inspect** | The selected element's size, colours, font and box model, with the text/background contrast ratio and one-click copy as CSS or Tailwind. |
+| **Design** | An element tree for the page, an in-page floating annotation toolbar (**Annotate**, **Place UI**, **Rearrange**, **Draw**, **Self-Drive**, **Freeze**), and a live style editor for layout, spacing, size, colour, type, borders, radius and shadow. |
+| **Inspect** | The selected element's size, colours, font, box model, text/background contrast ratio, **AFS v1.1+ telemetry** (full DOM path, accessibility attributes, framework component stack), and one-click copy as CSS, Tailwind, or **AFS JSON**. |
 | **Colors** | The colours in use on the page, most used first, with the roles each one plays (text, background, border), so you reuse a value instead of inventing one. Filter by hex or role, copy a value, or export the lot as CSS variables. |
-| **Issue** | Writes up your edits, notes and audit findings as a Linear issue, then files it to the team and project you pick. Also lists recent and matching issues. |
-| **Changes** | Every edit you made, as a diff. Copy it as CSS or as Tailwind classes. |
-| **Audit** | By default scrolls the page first so lazy-loaded sections exist, then runs 72 checks in two groups, 41 AI tells and 31 quality issues (contrast, tiny text, cramped padding, overused patterns, missing labels and more), and highlights each finding on the page. How it works: [docs/audit.md](docs/audit.md). |
+| **Issue** | Writes up your edits, notes, AFS v1.1+ annotations and audit findings as a Linear issue, then files it to the team and project you pick. Also lists recent and matching issues. |
+| **Changes** | Every edit and **AFS v1.1+ annotation** (including pinned notes, placed UI wireframes, rearrangements, drawings, and AI critiques) as a unified diff. Copy as CSS, Tailwind, **AFS Markdown** (`Compact`, `Standard`, `Detailed`, `Forensic`), or **AFS JSON**, or sync live to an MCP server (`http://localhost:4747`). |
+| **Audit** | By default scrolls the page first so lazy-loaded sections exist, then runs 72 checks in two groups, 41 AI tells and 31 quality issues (contrast, tiny text, cramped padding, overused patterns, missing labels and more), highlights each finding on the page, lets you **Pin to AFS**, and supports **Self-Drive** autonomous AI design walkthroughs. How it works: [docs/audit.md](docs/audit.md). |
 
 AI features are optional and off until you add a provider. **Rewrite with AI** turns the
-raw capture into a clean issue, **Propose edits** suggests CSS for the selected element from
-a note you write, and **Enrich with AI** reviews the audit: it can hide false hits and add
+raw capture (including AFS v1.1+ annotations, wireframes, and threads) into a clean issue, **Propose edits** suggests CSS across 50 layout/typography/visual properties for the selected element from
+a note you write, **Self-Drive** autonomously walks the page to attach structured AFS v1.1+ design critiques with one-click CSS/text fix proposals, and **Enrich with AI** reviews the audit: it can hide false hits and add
 findings, and the panel drops any suggestion it cannot tie back to the page outline it sent
-(see [How suggestions are checked](docs/audit.md#how-suggestions-are-checked)). The
-**Disable AI features** checkbox in Settings turns all three off and keeps your keys.
+(see [How suggestions are checked](docs/audit.md#how-suggestions-are-checked)). You can sign in to multiple AI providers at once, star **Favorite Models (`★`)**, and switch providers or models on the fly from the **AI Quick Switcher** directly inside the Design, Audit, and Issue tabs. The
+**Disable AI features** checkbox in Settings turns all AI features off and keeps your keys.
 
 The panel is keyboard operable. The tabs move with the arrow keys, Home and End, Esc closes
 Settings, and the divider between the element tree and the editor resizes with the up and
@@ -154,11 +154,12 @@ provider, which defaults to the first enabled one.
 | Provider | You supply | Notes |
 | --- | --- | --- |
 | OpenAI compatible | Base URL, model, API key | Defaults to `https://api.openai.com/v1` and `gpt-4.1-mini`. Any server that speaks the chat completions API works. |
+| Cloudflare Workers AI | Account ID (or custom Base URL), `@cf/...` model, API token | Calls `https://api.cloudflare.com/client/v4/accounts/<accountId>/ai/v1/chat/completions` with built-in model presets (`@cf/moonshotai/kimi-k2.5`, `@cf/zai-org/glm-4.7-flash`, `@cf/qwen/qwq-32b`, `@cf/qwen/qwen2.5-coder-32b-instruct`, `@cf/deepseek-ai/deepseek-r1-distill-qwen-32b`, `@cf/meta/llama-3.3-70b-instruct-fp8-fast`, `@cf/meta/llama-4-scout-17b-16e-instruct`, `@cf/google/gemma-3-12b-it`) or any custom `@cf/...` ID. |
 | Bedrock Mantle | AWS region (default `us-east-1`), model, Bedrock API key | Models in the menu: `anthropic.claude-opus-5-5`, `openai.gpt-6.1-sol`, `openai.gpt-6.1-terra` (default). Claude Opus 5.5 uses `/anthropic/v1/messages`; GPT 6.1 Sol and Terra use `/openai/v1/responses` with `store: false`. Claude Sonnet 5.5 is not in this menu: the panel notes it is not on Mantle outside GovCloud, so use Bedrock Runtime for it. The key needs `bedrock-mantle:CreateInference`. |
 | Bedrock Runtime | AWS region (default `us-east-1`), model, Bedrock API key | The menu lists `us.` and `global.` inference profiles for GPT 6.1 Sol and Terra (default `us.openai.gpt-6.1-terra`), Claude Opus 5.5, Claude Sonnet 5.5 and Kimi K3 (`us.moonshotai.kimi-k3`, `global.moonshotai.kimi-k3`), which is offered on Runtime only. Any other model ID, including an unprefixed one, is rejected before a request is sent. Claude models use the Anthropic Messages route; GPT 6.1 and Kimi K3 use Chat Completions, with `max_completion_tokens` for GPT 6.1 (if the server answers 400 and names that parameter as unsupported, the request is retried once with the other name). Needs `bedrock:InvokeModel`. |
 | Local CLI | CLI profile (`claude`, `codex`, `grok`, `gemini`, `ollama`, `llm`) or a custom binary path | Talks to a local bridge on `127.0.0.1:58932`. The bridge is **not** included with Pixelpush, so this provider only works if you run your own. |
 
-Use **Test connection** on each provider card to check the key and model. Per-provider
+Star any model on a provider card (`☆ Favorite` → `★ Favorited`) to pin it to the **Favorite Models (1-Click Switch)** bar and the **AI Quick Switcher** in the Design, Audit, and Issue tabs. Use **Test connection** on each provider card to check the key and model. Per-provider
 details are in [docs/ai-providers.md](docs/ai-providers.md).
 
 ## Privacy
@@ -235,6 +236,10 @@ extension/
   audit/
     detect.js              Design-audit detector (Apache-2.0)
     antipatterns.json      Audit rule catalog (72 rules)
+  schema/
+    annotation.v1.1.json   Annotation Format Schema (AFS v1.1+) JSON Schema
+skills/
+  pixelpush-self-driving/  Autonomous visual critique & AFS v1.1+ annotation skill
 brand/                     Icon sources: icon.svg (512 px PNG master), mark.svg (vector glyph)
 docs/                      Documentation, design system notes, banner and screenshots
 research/                  Audit research record: sources, claim ledger, decision report
