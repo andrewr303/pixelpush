@@ -1,0 +1,45 @@
+{
+  "run_id": "20261102T175544Z",
+  "gate": "E1",
+  "status": "PASS",
+  "timestamp": "2026-11-02T18:36:00Z",
+  "consultants": [
+    {
+      "model": "qwen-token-plan/qwen3.8-max",
+      "runner": "andrewcode",
+      "thinking_effort": "xhigh",
+      "artifact": "review/consult-qwen3.8-max.md"
+    },
+    {
+      "model": "grok-4.7",
+      "runner": "andrewcode",
+      "thinking_effort": "xhigh",
+      "artifact": "review/consult-grok-4.7.md"
+    }
+  ],
+  "checks": [
+    {
+      "name": "npm run verify (syntax, manifest, WCAG contrast)",
+      "command": "npm run verify",
+      "exit_code": 0,
+      "output": "verify: ok (17 files, manifest v2.1.0) && contrast: all 91 pairs pass"
+    },
+    {
+      "name": "JSON Schema Draft 2020-12 & Manifest Validation",
+      "command": "node -e \"JSON.parse(fs.readFileSync('extension/schema/annotation.v1.1.json')); JSON.parse(fs.readFileSync('extension/manifest.json'))\"",
+      "exit_code": 0,
+      "output": "Valid JSON Schema Draft 2020-12 and Manifest V3"
+    },
+    {
+      "name": "Cross-consult P1/P2 findings resolved",
+      "findings_resolved": [
+        "F-01: DOM XSS in inspector.js openPopover fixed by replacing innerHTML interpolation of item.selectedText with DOM node construction and .textContent",
+        "F-02: SSRF / URL-injection in background.js cfUrl and Ve_sync fixed by enforcing /^[0-9a-fA-F]{32}$/ on accountId, validating HTTPS/loopback on custom baseUrl, blocking RFC1918/link-local IPs in Ve_sync, and enforcing extension-origin sender validation",
+        "F-03: Scroll/resize listener duplication and active popover destruction in inspector.js fixed by guarding startAnnotationEngine listeners and passing { preservePopover: true } during viewport scroll/resize",
+        "F-04: Schema-to-runtime contract alignment across annotation.v1.1.json, inspector.js, panel.js, and background.js (50-property AFS_ALLOWED_PROPS allowlist, unified kind enum, drawingStroke + drawing Data, Apply Fix textContent + CSS sync, formatAfsMarkdown string/object signature)",
+        "F-05: Self-Drive concurrency lock (state.selfDriveRunning) and WCAG relative luminance contrast heuristic in inspector.js",
+        "F-06: Keyboard accessibility (role='button', tabIndex=0, aria-label, Enter/Space keydown) on AFS floating pins in inspector.js"
+      ]
+    }
+  ]
+}

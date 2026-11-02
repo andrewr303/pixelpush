@@ -10,12 +10,12 @@ The tab strip reads **Design, Inspect, Colors, Issue, Changes, Audit**. This pag
 
 | Tab | What you get | What you can copy or send |
 | --- | --- | --- |
-| [Design](#design) | Element tree plus a style editor. Edits apply live to the page. | Edits flow to Changes. |
-| [Inspect](#inspect) | Size, colours, font, contrast and box model of the selected element. | **Copy CSS**, **Tailwind**. |
+| [Design](#design) | Element tree, in-page floating annotation toolbar (`Annotate`, `Place UI`, `Rearrange`, `Draw`, `Self-Drive`, `Freeze`), plus a live style editor and **AFS v1.1+** intent/severity/thread fields. | Edits and AFS annotations flow to Changes. |
+| [Inspect](#inspect) | Size, colours, font, contrast, box model and **AFS v1.1+ Element Telemetry** of the selected element. | **Copy CSS**, **Tailwind**, **AFS JSON**. |
 | [Colors](#colors) | The colours the page actually uses, with roles and contrast. | **Copy hex**, **Copy raw**, **Export all**. |
-| [Changes](#changes) | Every edit as a `from → to` diff, plus your notes. | **Copy CSS**, **Copy Tailwind**, **Reset all**. |
-| [Audit](#audit) | Scrolls the page (by default), then scans it with 72 rules for design and quality problems and highlights each one. | Selected findings go to an issue. |
-| [Issue](#issue) | Composer and recent issues for Linear. | **Create Linear issue**. |
+| [Changes](#changes) | Every edit as a `from → to` diff, plus **AFS v1.1+ annotations** (pins, placed UI wireframes, rearrangements, drawings, AI critiques, threads). | **Copy CSS**, **Copy Tailwind**, **Copy AFS Markdown** (`Compact`, `Standard`, `Detailed`, `Forensic`), **Copy AFS JSON**, **Sync to MCP**, **Reset all**. |
+| [Audit](#audit) | Scrolls the page (by default), then scans it with 72 rules for design and quality problems, highlights each one, lets you **Pin to AFS**, and supports **Self-Drive** autonomous AI critique walkthroughs. | Selected findings and AFS pins go to an issue. |
+| [Issue](#issue) | Composer (with **AI Quick Switcher** and **Rewrite with AI**) and recent issues for Linear. | **Create Linear issue**. |
 
 ```mermaid
 flowchart LR
@@ -61,7 +61,8 @@ The editor has these groups:
 
 | Group | Controls |
 | --- | --- |
-| Instructions | A free-text note for the element. |
+| In-Page Floating Toolbar Bar | Controls for the in-page floating annotation toolbar (`Toolbar: On/Off`, `Annotate`, `Place UI`, `Rearrange`, `Draw`, `Self-Drive`, `Freeze`, `Pins: On/Off`, and `Clear AFS`). |
+| Instructions & AFS v1.1+ | A free-text note for the element, **AFS v1.1+ Intent** (`fix`, `change`, `question`, `approve`), **Severity** (`blocking`, `important`, `suggestion`), **Status** (`pending`, `acknowledged`, `resolved`, `dismissed`), an **AI Quick Switcher** + **Propose edits** button, a one-click **Apply Proposed Fix** banner when an AI/Self-Drive fix is attached, and an **AFS Thread** reply list. Saving a note or editing styles automatically creates or updates a numbered in-page AFS pin (`[data-annotation-marker]`). |
 | Layout | Flow (vertical, horizontal, grid) and alignment, width and height, an optional min and max size toggle, gap (row and column gap for grids, plus grid columns and rows), padding and margin (top, bottom, left, right), and **Clip content**. |
 | Appearance | Opacity, corner radius (with a toggle for the four corners). |
 | Fill | Colour, through a picker with **Custom** and **Tokens** tabs. **Tokens** lists the page's colour variables. A value picked there is recorded by token name. |
@@ -69,6 +70,19 @@ The editor has these groups:
 | Effects | Add or remove one drop shadow and edit its X, Y, blur, spread and colour. |
 | Typography | Font family, weight, size, line height, letter spacing, alignment and text colour. |
 | Content | **Text** when the element holds only text, and an icon picker when the element carries a `lucide` class. |
+
+### In-Page Floating Annotation Toolbar & AFS v1.1+ Modes
+
+When design mode is active, Pixelpush renders a floating bottom-right toolbar (`#pixelpush-floating-toolbar`) inside `#pixelpush-afs-root` on the page alongside the sidebar:
+
+- **Annotate (`select`)**: Hover to spotlight any element (including inside open Shadow DOM roots and same-origin iframes), hold <kbd>Alt</kbd> / <kbd>Option</kbd> + click to cycle through overlapping z-index layers at the cursor, or drag across text/regions to open an inline AFS v1.1+ popover editor with Intent (`fix`, `change`, `question`, `approve`) and Severity (`blocking`, `important`, `suggestion`) pills.
+- **Place UI (`place`)**: Choose from 12 wireframe component types (`Button`, `Input`, `Search`, `Text Block`, `Image`, `Card`, `Form`, `Navbar`, `Modal`, `Sidebar`, `Table`, `Badge`) or `Blank Canvas`, then drag on the page to place a resizable wireframe box with spatial context (nearest siblings and parent container) and a configuration popover.
+- **Rearrange (`rearrange`)**: Click elements to capture their original bounding boxes and drag them to new positions with dashed ghost outlines, connector lines, and automatic `rearrangeSpec` spatial deltas.
+- **Draw (`draw`)**: Freehand SVG drawing directly over the viewport, grouped into `drawingStroke` AFS annotations.
+- **Self-Drive (`Self-Drive`)**: Launches an autonomous AI design walkthrough (`self_driving_critique`) that inspects candidate elements on the page, spotlights each target in the viewport, and attaches structured AFS v1.1+ annotations with 2–3 sentence design critiques and one-click CSS/text fix proposals.
+- **Freeze (`Freeze`)**: Injects a global pause stylesheet (`animation-play-state: paused !important`) and pauses `<video>` elements so transient motion states can be inspected and annotated.
+- **Block Clicks (`Block Clicks`)**: Prevents underlying page navigation while annotating interactive controls.
+- **Pins (`Pins: On/Off`) & Copy AFS**: Toggles numbered `[data-annotation-marker]` pins on the page and copies the full AFS v1.1+ report directly to the clipboard.
 
 **Limits.**
 
@@ -87,9 +101,9 @@ The editor has these groups:
 
 <p align="center"><em>Inspect: a read-only card for the selected element.</em></p>
 
-**What it shows.** For the selected element: its tag, id and classes (and component name if found), its width × height and `display`, the **Text** and **Background** colours, the **Font** (family, size, weight, line height), a **Contrast** row, and a **Box model** diagram (margin, border, padding, content size). With nothing selected it says `Select an element to inspect.`
+**What it shows.** For the selected element: its tag, id and classes (and component name if found), its width × height and `display`, the **Text** and **Background** colours, the **Font** (family, size, weight, line height), a **Contrast** row, a **Box model** diagram (margin, border, padding, content size), and an **AFS v1.1+ Element Telemetry** card (`fullPath`, `accessibility`, `reactComponents`, `cssClasses`). With nothing selected it says `Select an element to inspect.`
 
-**How you use it.** Select an element, read the card, and press **Copy CSS** or **Tailwind** to put its values on the clipboard.
+**How you use it.** Select an element, read the card, and press **Copy CSS**, **Tailwind**, or **AFS JSON** to put its values or full AFS v1.1+ telemetry payload on the clipboard.
 
 - **Contrast** is the ratio of the element's own computed text colour to its own computed background colour, with AA, AAA or Fail badges (and an AA Large badge when the large-text result differs). It does not look at ancestor backgrounds: a semi-transparent or transparent colour is blended over the other colour of the pair, not over what is behind the element. The row is left out when either colour cannot be parsed.
 - **Copy CSS** writes a rule whose selector is the element's full selector path and whose body lists every captured style value that is a non-empty string.
@@ -133,7 +147,9 @@ The editor has these groups:
 - Click an element row (or focus it and press <kbd>Enter</kbd> or <kbd>Space</kbd>) to jump back to Design with that element selected.
 - **Copy CSS** puts one rule per edited element on the clipboard. The selector is the element's full selector path, the declarations are the edited properties in kebab-case, and a note becomes a `/* note: … */` comment. A value you picked from the colour **Tokens** tab is written as `var(--token-name)`.
 - **Copy Tailwind** puts one `<!-- selector path -->` comment per element followed by one line of utility classes. A note becomes a `<!-- note: … -->` comment.
-- **Reset all** clears the tracked list, including your Instructions notes, and shows `Changes cleared`.
+- **AFS v1.1+ Export & MCP Sync** lets you choose a Markdown verbosity level (**Compact**, **Standard**, **Detailed**, or **Forensic**), **Copy AFS Markdown**, **Copy AFS JSON** (conforming to `extension/schema/annotation.v1.1.json`), or **Sync to MCP** to push the session's annotations and edits to a local MCP server (default `http://localhost:4747`).
+- **AFS v1.1+ Annotations List** shows every in-page pin, placed UI wireframe, rearranged element, freehand drawing, and Self-Drive critique with its `#N` badge, `intent`, `severity`, `status`, thread replies, and a one-click **Apply Proposed Fix** button when an AI fix is attached.
+- **Reset all** clears the tracked list, including your Instructions notes and AFS pins, and shows `Changes cleared`.
 
 ```css
 body > main > h1#title {
@@ -232,9 +248,10 @@ Two row actions appear while AI features are enabled:
 
 **What it shows.** Open it with the gear icon in the header. It replaces the tab content and has three parts:
 
-- **Disable AI features.** One checkbox that turns off Rewrite, Propose and Enrich while keeping your saved keys.
+- **Disable AI features.** One checkbox that turns off Rewrite, Propose, Enrich, and Self-Drive while keeping your saved keys.
 - **App origins.** The hosts that count as your own app, with **Add**, **Remove** and **Restore defaults**. Capturing any other host asks you to confirm before filing.
-- **Providers.** Buttons to add **Bedrock Mantle**, **Bedrock Runtime**, **OpenAI-compat** or **local CLI** providers, one card per provider, and a **Test connection** button on each card.
+- **Favorite Models (1-Click Switch).** A quick-switch pill bar at the top of the Providers section listing every model you starred (`★`) across all enabled providers. Clicking any favorite immediately switches the active provider and model.
+- **Providers.** Buttons to add **Bedrock Mantle**, **Bedrock Runtime**, **OpenAI-compat**, **Cloudflare Workers AI**, or **local CLI** providers, one card per provider, a **★ Favorited / ☆ Favorite** toggle next to the model selector on each card, and a **Test connection** button on each card.
 
 **How you use it.** Press **Done**, press <kbd>Esc</kbd> or click any tab to close it. Provider fields, the active provider and app origins save as you change them. An API key is saved only when you press **Save key**.
 

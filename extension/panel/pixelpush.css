@@ -2239,3 +2239,92 @@ button[aria-busy="true"]:not(.btn-ghost)::after {
   margin-right: var(--space-3);
   vertical-align: middle;
 }
+
+/* ------------------------------------------- AFS v1.1 & Quick AI Switcher */
+
+.afs-toolbar-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--glass-2);
+}
+
+.afs-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--field);
+  color: var(--fg-2);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
+}
+
+.afs-pill:hover:not([disabled]) {
+  background: var(--glass-3);
+  color: var(--fg);
+}
+
+.afs-pill--active {
+  background: var(--accent-tint);
+  border-color: var(--accent-line);
+  color: var(--accent-hi);
+}
+
+.afs-pill[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ai-quick-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-quick-select {
+  max-width: 195px;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--field);
+  color: var(--fg-2);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ai-quick-select:hover {
+  border-color: var(--accent-line);
+  color: var(--fg);
+}
+
+.fav-star-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--field);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fav-star-btn--active {
+  border-color: oklch(0.82 0.16 85 / 0.55);
+  background: oklch(0.82 0.16 85 / 0.14);
+  color: oklch(0.88 0.15 85);
+}
+

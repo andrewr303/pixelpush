@@ -10,8 +10,9 @@ Pixelpush does not host a model and ships with none configured. AI is off until 
 
 | Feature | Where | What it does | What you get back |
 | --- | --- | --- | --- |
-| **Rewrite with AI** | Issue tab | Turns the raw draft into a cleaner Linear issue. | A new title and body that replace the composer text. **Show raw draft** restores the original. |
-| **Propose edits** | Design tab, Edit mode | Suggests CSS for the selected element from the note you wrote in **Instructions**. | A list of property edits applied live to the element. **Undo AI proposal** reverts them. |
+| **Rewrite with AI** | Issue tab | Turns the raw draft (including AFS v1.1+ annotations, wireframes, rearrangements, drawings, and threads) into a cleaner Linear issue. | A new title and body that replace the composer text. **Show raw draft** restores the original. |
+| **Propose edits** | Design tab, Edit mode | Suggests CSS across 50 layout, typography, spacing, and visual properties for the selected element from the note you wrote in **Instructions**, enriched with AFS v1.1+ box-model and spatial telemetry. | A list of property edits applied live to the element. **Undo AI proposal** reverts them. |
+| **Self-Drive** | Design tab, Audit tab, and in-page toolbar | Autonomously inspects candidate elements on the page (`self_driving_critique`), spotlights each element in the viewport, and evaluates typography, rhythm, hierarchy, contrast, and polish. | Structured AFS v1.1+ annotations pinned to the page (`source: "self-driving"`), each with a 2–3 sentence design critique and one-click `proposedEdits` CSS/text fixes. |
 | **Enrich with AI** | Audit tab | An AI design review on top of the detector. It does not replace the detector. See [Enrich with AI](#enrich-with-ai-audit-review). | Findings it hides as false hits, up to eight new findings that cite the page outline (suggestions that are not grounded in the page are dropped), reworded findings and a short brief. |
 
 > [!IMPORTANT]
@@ -58,20 +59,40 @@ The panel tells you what it dropped by adding a note to the brief, such as `2 AI
 
 If the digest cannot be produced (the page does not answer within 9 seconds, or it errors), Enrich still runs, but it can only hide, reword and write the brief: every added finding is dropped because nothing can be grounded, and the brief says how many. Hidden rows behave like **Suppress**: they stay selected, so they are still counted and filed with the selection (see [Linear](linear.md#what-the-issue-body-contains)). A rescan replaces the list, so added rows and the brief go away and Enrich has to be run again.
 
-## Choose a provider
+## Choose a provider & switch models on the fly
 
-Pixelpush uses the **active provider**, chosen with the radio button on each card. If none is chosen it falls back to the first enabled provider. Pressing **Test connection** also makes that provider the active one.
+Pixelpush uses the **active provider**, chosen with the radio button on each card in Settings, or switched directly from the **AI Quick Switcher** dropdown embedded inside the **Design** (`Instructions`), **Audit**, and **Issue** tabs. If none is chosen it falls back to the first enabled provider. Pressing **Test connection** also makes that provider the active one.
 
-| | OpenAI compatible | Bedrock Mantle | Bedrock Runtime | Local CLI |
-| --- | --- | --- | --- | --- |
-| You supply | Base URL, model, API key | Region, model, Bedrock API key | Region, model, Bedrock API key | CLI profile or absolute binary path |
-| Defaults | `https://api.openai.com/v1`, `gpt-4.1-mini` | `us-east-1`, `openai.gpt-6.1-terra` | `us-east-1`, `us.openai.gpt-6.1-terra` | Profile `claude`, 60,000 ms timeout |
-| Models | Any text you enter | 3 in a menu | 10 in a menu | Whatever the CLI uses |
-| Request goes to | Your base URL, ending in `/chat/completions` | `bedrock-mantle.<region>.api.aws` | `bedrock-runtime.<region>.amazonaws.com` | A bridge on `127.0.0.1` |
-| Wire format | Chat Completions | Anthropic Messages for Claude, OpenAI Responses for GPT 6.1 | Anthropic Messages for Claude, Chat Completions for GPT 6.1 and Kimi K3 | Defined by the bridge |
-| Auth | `Authorization: Bearer <key>` | `Authorization: Bearer <key>` | `Authorization: Bearer <key>` | `Authorization: Bearer <session token>` from the bridge |
-| Needs in AWS | n/a | `bedrock-mantle:CreateInference` | `bedrock:InvokeModel` | n/a |
-| In this repo | Yes | Yes | Yes | Client side only. The bridge is not included. |
+You can configure multiple providers at once and star your favorite models (`☆ Favorite` → `★ Favorited`) on any provider card. Starred models appear at the top of the **AI Quick Switcher** (`★ Favorites` group) and in the **★ Favorite Models (1-Click Switch)** bar in Settings so you can switch both provider and model in a single click.
+
+| | OpenAI compatible | Cloudflare Workers AI | Bedrock Mantle | Bedrock Runtime | Local CLI |
+| --- | --- | --- | --- | --- | --- |
+| You supply | Base URL, model, API key | Account ID (or custom Base URL), `@cf/...` model, API token | Region, model, Bedrock API key | Region, model, Bedrock API key | CLI profile or absolute binary path |
+| Defaults | `https://api.openai.com/v1`, `gpt-4.1-mini` | `@cf/moonshotai/kimi-k2.5` | `us-east-1`, `openai.gpt-6.1-terra` | `us-east-1`, `us.openai.gpt-6.1-terra` | Profile `claude`, 60,000 ms timeout |
+| Models | Any text you enter | 8 curated `@cf/...` presets + any custom `@cf/...` ID | 3 in a menu | 10 in a menu | Whatever the CLI uses |
+| Request goes to | Your base URL, ending in `/chat/completions` | `api.cloudflare.com/client/v4/accounts/<accountId>/ai/v1/chat/completions` | `bedrock-mantle.<region>.api.aws` | `bedrock-runtime.<region>.amazonaws.com` | A bridge on `127.0.0.1` |
+| Wire format | Chat Completions | Chat Completions (with automatic `response_format` fallback) | Anthropic Messages for Claude, OpenAI Responses for GPT 6.1 | Anthropic Messages for Claude, Chat Completions for GPT 6.1 and Kimi K3 | Defined by the bridge |
+| Auth | `Authorization: Bearer <key>` | `Authorization: Bearer <token>` | `Authorization: Bearer <key>` | `Authorization: Bearer <key>` | `Authorization: Bearer <session token>` from the bridge |
+| Needs in AWS | n/a | n/a | `bedrock-mantle:CreateInference` | `bedrock:InvokeModel` | n/a |
+| In this repo | Yes | Yes | Yes | Yes | Client side only. The bridge is not included. |
+
+## Cloudflare Workers AI
+
+Use this for serverless inference on Cloudflare's global edge network via the OpenAI-compatible Workers AI endpoint.
+
+**Fields.** Cloudflare Account ID, Base URL (optional override), Model (dropdown of curated `@cf/...` models plus free-text custom model input), and Cloudflare API Token (requires Workers AI Read/Run permission).
+
+**Curated models.**
+- `@cf/moonshotai/kimi-k2.5` — Kimi K2.5 (default)
+- `@cf/zai-org/glm-4.7-flash` — GLM 4.7 Flash
+- `@cf/qwen/qwq-32b` — Qwen QwQ 32B Reasoning
+- `@cf/qwen/qwen2.5-coder-32b-instruct` — Qwen 2.5 Coder 32B
+- `@cf/deepseek-ai/deepseek-r1-distill-qwen-32b` — DeepSeek R1 Distill Qwen 32B
+- `@cf/meta/llama-3.3-70b-instruct-fp8-fast` — Llama 3.3 70B Instruct FP8 Fast
+- `@cf/meta/llama-4-scout-17b-16e-instruct` — Llama 4 Scout 17B 16E
+- `@cf/google/gemma-3-12b-it` — Gemma 3 12B IT
+
+**Endpoint and fallbacks.** When you enter your 32-character Cloudflare Account ID, Pixelpush automatically constructs `https://api.cloudflare.com/client/v4/accounts/<accountId>/ai/v1/chat/completions` (or you can paste a full custom/gateway URL into Base URL). If a Workers AI model does not support `response_format: { "type": "json_object" }` and returns HTTP 400, Pixelpush automatically strips `response_format` and retries once, and also extracts JSON from `reasoning_content` when reasoning models emit structured output there.
 
 ### Which request path each provider takes
 

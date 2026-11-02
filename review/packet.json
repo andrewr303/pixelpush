@@ -1,0 +1,39 @@
+{
+  "run_id": "20261102-pixelpush-afs-v1.1",
+  "mode": "cross",
+  "tier": "DEEP",
+  "git_status": "dirty",
+  "scope": {
+    "base_ref": "HEAD",
+    "target_ref": "WORKTREE",
+    "files": [
+      { "path": "extension/manifest.json", "status": "M" },
+      { "path": "extension/schema/annotation.v1.1.json", "status": "A" },
+      { "path": "extension/content-scripts/inspector.js", "status": "M" },
+      { "path": "extension/background.js", "status": "M" },
+      { "path": "extension/panel/panel.js", "status": "M" },
+      { "path": "extension/panel/pixelpush.css", "status": "M" },
+      { "path": "skills/pixelpush-self-driving/SKILL.md", "status": "A" },
+      { "path": "research/agentation-re-2026-11/claim-ledger.json", "status": "A" },
+      { "path": "research/agentation-re-2026-11/decision-report.md", "status": "A" },
+      { "path": "README.md", "status": "M" },
+      { "path": "docs/features.md", "status": "M" },
+      { "path": "docs/ai-providers.md", "status": "M" },
+      { "path": "docs/architecture.md", "status": "M" }
+    ]
+  },
+  "consultants": [
+    {
+      "id": "qwen3.8-max",
+      "provider": "qwen-token-plan",
+      "model": "qwen-token-plan/qwen3.8-max",
+      "effort": "xhigh"
+    },
+    {
+      "id": "grok-4.7",
+      "provider": "xai",
+      "model": "grok-4.7",
+      "effort": "xhigh"
+    }
+  ]
+}

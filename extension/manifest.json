@@ -49,7 +49,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "audit/detect.js"
+        "audit/detect.js",
+        "schema/annotation.v1.1.json"
       ],
       "matches": [
         "<all_urls>"

@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentation.com/schemas/annotation.v1.1.json",
+  "title": "Annotation Format Schema (AFS) v1.1+ (Pixelpush Unified Edition)",
+  "description": "Standardized format for visual UI feedback, layout annotations, direct style/content edits, and design audit findings. Compatible with AFS v1.1 and extended for Pixelpush.",
+  "type": "object",
+  "required": ["id", "comment", "elementPath", "timestamp", "x", "y", "element"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique annotation identifier."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["feedback", "comment", "edit", "placement", "rearrange", "drawing", "audit", "self-driving-critique"],
+      "default": "feedback",
+      "description": "Discriminator for annotation type. Defaults to 'feedback' when omitted."
+    },
+    "comment": {
+      "type": "string",
+      "description": "User feedback, element instructions, critique note, or description of the annotation."
+    },
+    "element": {
+      "type": "string",
+      "description": "Human-readable element name (e.g., 'button \"Submit\"', 'heading \"Welcome\"', 'Placed button')."
+    },
+    "elementPath": {
+      "type": "string",
+      "description": "CSS selector path to the target element."
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Unix epoch timestamp in milliseconds when the annotation was created."
+    },
+    "x": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Horizontal position as percentage (0-100) of viewport width."
+    },
+    "y": {
+      "type": "number",
+      "description": "Vertical position in pixels from top of document (or viewport if isFixed is true)."
+    },
+    "boundingBox": {
+      "$ref": "#/$defs/BoundingBox",
+      "description": "Bounding rectangle of the annotated element at capture time."
+    },
+    "selectedText": {
+      "type": "string",
+      "description": "Text selected by the user when creating a text-anchored annotation."
+    },
+    "nearbyText": {
+      "type": "string",
+      "description": "Surrounding text content providing context for element identification."
+    },
+    "cssClasses": {
+      "type": "string",
+      "description": "Cleaned CSS class names on the target element (module hashes stripped)."
+    },
+    "nearbyElements": {
+      "type": "string",
+      "description": "Summary of sibling and parent elements for structural context."
+    },
+    "computedStyles": {
+      "type": "string",
+      "description": "Key computed CSS properties formatted as a semicolon-separated string."
+    },
+    "forensicStyles": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Pixelpush extension: structured key-value map of forensic computed CSS properties."
+    },
+    "fullPath": {
+      "type": "string",
+      "description": "Full DOM ancestry path from root to the target element."
+    },
+    "accessibility": {
+      "type": "string",
+      "description": "ARIA roles, labels, descriptions, and accessibility attributes."
+    },
+    "isMultiSelect": {
+      "type": "boolean",
+      "description": "Whether this annotation was created via multi-element or area drag selection."
+    },
+    "isFixed": {
+      "type": "boolean",
+      "description": "Whether the target element has fixed or sticky positioning."
+    },
+    "reactComponents": {
+      "type": "string",
+      "description": "React/framework component hierarchy path (e.g., 'App > Dashboard > Header > Button')."
+    },
+    "sourceFile": {
+      "type": "string",
+      "description": "Source file path and line number where the component is defined (e.g., 'src/components/Button.tsx:42')."
+    },
+    "attributes": {
+      "type": "string",
+      "description": "Stability-oriented HTML attributes such as data-testid, data-test, data-qa, data-cy, data-component."
+    },
+    "frame": {
+      "$ref": "#/$defs/FrameMetadata",
+      "description": "Same-origin iframe metadata when the annotated element is inside a nested browsing context."
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Page URL where the annotation was created."
+    },
+    "intent": {
+      "type": "string",
+      "enum": ["fix", "change", "question", "approve"],
+      "description": "Categorized intent of the annotation."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["blocking", "important", "suggestion"],
+      "description": "Priority level of the annotation."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "acknowledged", "resolved", "dismissed"],
+      "description": "Lifecycle status of the annotation."
+    },
+    "thread": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ThreadMessage" },
+      "description": "Conversation thread of follow-up messages between human and implementation assistant."
+    },
+    "sessionId": {
+      "type": "string",
+      "description": "Session identifier grouping related annotations."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp from server sync."
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last update."
+    },
+    "resolvedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the annotation was resolved."
+    },
+    "resolvedBy": {
+      "type": "string",
+      "enum": ["human", "agent"],
+      "description": "Who resolved the annotation."
+    },
+    "placement": {
+      "$ref": "#/$defs/PlacementData",
+      "description": "Present when kind === 'placement'. Describes a new UI component placed onto the page."
+    },
+    "rearrange": {
+      "$ref": "#/$defs/RearrangeData",
+      "description": "Present when kind === 'rearrange'. Describes a moved or resized existing page element."
+    },
+    "spatialContext": {
+      "$ref": "#/$defs/SpatialContext",
+      "description": "Pixelpush extension: layout reference frame (parent container, flex/grid flow, nearest neighbors, overlaps)."
+    },
+    "edits": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/StyleContentEdit" },
+      "description": "Pixelpush extension: direct visual CSS, text, or SVG icon edits recorded on this element."
+    },
+    "proposedEdits": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ProposedEdit" },
+      "description": "Pixelpush extension: AI-proposed CSS or text changes attached to this annotation."
+    },
+    "auditFinding": {
+      "$ref": "#/$defs/AuditFindingLink",
+      "description": "Pixelpush extension: linked design/accessibility/slop audit finding."
+    },
+    "drawingStroke": {
+      "$ref": "#/$defs/DrawingStrokeData",
+      "description": "Pixelpush extension: freehand SVG stroke coordinates when kind === 'drawing'."
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "panel-note",
+        "page-marker",
+        "multi-select",
+        "area-select",
+        "layout-place",
+        "layout-rearrange",
+        "drawing",
+        "audit-finding",
+        "self-driving",
+        "manual",
+        "style-edit",
+        "ui-placement",
+        "rearrange",
+        "audit",
+        "ai-proposal"
+      ],
+      "description": "Pixelpush extension: surface that created the annotation."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "kind": { "const": "placement" } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["placement"] }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "rearrange" } },
+        "required": ["kind"]
+      },
+      "then": { "required": ["rearrange"] }
+    }
+  ],
+  "$defs": {
+    "BoundingBox": {
+      "type": "object",
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": { "type": "number", "description": "Left edge in pixels relative to viewport." },
+        "y": { "type": "number", "description": "Top edge in pixels relative to document (or viewport if fixed)." },
+        "width": { "type": "number", "minimum": 0, "description": "Width in pixels." },
+        "height": { "type": "number", "minimum": 0, "description": "Height in pixels." }
+      },
+      "additionalProperties": false
+    },
+    "FrameMetadata": {
+      "type": "object",
+      "required": ["depth", "framePath"],
+      "properties": {
+        "depth": { "type": "integer", "minimum": 1 },
+        "src": { "type": "string" },
+        "title": { "type": "string" },
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "framePath": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "ThreadMessage": {
+      "type": "object",
+      "required": ["id", "role", "content", "timestamp"],
+      "properties": {
+        "id": { "type": "string" },
+        "role": { "type": "string", "enum": ["human", "agent"] },
+        "content": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "PlacementData": {
+      "type": "object",
+      "required": ["componentType", "x", "y", "width", "height", "scrollY"],
+      "properties": {
+        "componentType": {
+          "type": "string",
+          "enum": [
+            "button",
+            "input",
+            "text",
+            "card",
+            "image",
+            "section",
+            "nav",
+            "modal",
+            "badge",
+            "divider",
+            "avatar",
+            "toggle"
+          ]
+        },
+        "label": { "type": "string" },
+        "text": { "type": "string" },
+        "x": { "type": "number", "minimum": 0, "maximum": 100 },
+        "y": { "type": "number" },
+        "width": { "type": "number", "minimum": 0 },
+        "height": { "type": "number", "minimum": 0 },
+        "scrollY": { "type": "number" },
+        "nearElement": { "type": "string" },
+        "nearElementPath": { "type": "string" },
+        "parentComponent": { "type": "string" },
+        "insertRelation": { "type": "string" },
+        "relatedSelector": { "type": "string" },
+        "extra": {
+          "type": "object",
+          "properties": {
+            "heading": { "type": "string" },
+            "items": { "type": "array", "items": { "type": "string" } },
+            "aspectRatio": { "type": "string" },
+            "columns": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "RearrangeData": {
+      "type": "object",
+      "required": ["selector", "label", "originalRect", "currentRect"],
+      "properties": {
+        "selector": { "type": "string" },
+        "label": { "type": "string" },
+        "originalRect": { "$ref": "#/$defs/BoundingBox" },
+        "currentRect": { "$ref": "#/$defs/BoundingBox" },
+        "deltaX": { "type": "number" },
+        "deltaY": { "type": "number" },
+        "spatialAfter": { "type": "string" },
+        "reactComponents": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "SpatialContext": {
+      "type": "object",
+      "properties": {
+        "container": {
+          "type": "object",
+          "properties": {
+            "element": { "type": "string" },
+            "selector": { "type": "string" },
+            "layout": { "type": "string" },
+            "gap": { "type": "string" },
+            "rect": { "$ref": "#/$defs/BoundingBox" },
+            "reactComponents": { "type": "string" }
+          }
+        },
+        "nearestBefore": { "type": "string" },
+        "nearestAfter": { "type": "string" },
+        "overlaps": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "StyleContentEdit": {
+      "type": "object",
+      "properties": {
+        "prop": { "type": "string" },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "property": { "type": "string" },
+        "before": { "type": "string" },
+        "after": { "type": "string" },
+        "unit": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "DrawingStrokeData": {
+      "type": "object",
+      "required": ["points"],
+      "properties": {
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["x", "y"],
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "color": { "type": "string" },
+        "strokeWidth": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "ProposedEdit": {
+      "type": "object",
+      "required": ["prop", "value"],
+      "properties": {
+        "prop": { "type": "string" },
+        "value": { "type": "string" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "AuditFindingLink": {
+      "type": "object",
+      "required": ["ruleId", "category", "severity", "message"],
+      "properties": {
+        "ruleId": { "type": "string" },
+        "category": { "type": "string" },
+        "severity": { "type": "string" },
+        "metric": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}
