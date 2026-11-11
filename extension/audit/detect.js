@@ -1009,7 +1009,10 @@ function checkColors(opts) {
       }
 
       // Low contrast (WCAG AA) — worst case across all bg stops
-      const ratios = bgs.map(b => contrastRatio(textColor, b));
+      const seenText = (b) => (DETECTOR_IS_BROWSER && textColor.a != null && textColor.a >= 0.1 && textColor.a < 1)
+        ? { r: Math.round(textColor.r * textColor.a + b.r * (1 - textColor.a)), g: Math.round(textColor.g * textColor.a + b.g * (1 - textColor.a)), b: Math.round(textColor.b * textColor.a + b.b * (1 - textColor.a)) }
+        : textColor;
+      const ratios = bgs.map(b => contrastRatio(seenText(b), b));
       let worstIdx = 0;
       for (let i = 1; i < ratios.length; i++) if (ratios[i] < ratios[worstIdx]) worstIdx = i;
       const ratio = ratios[worstIdx];
@@ -1028,7 +1031,7 @@ function checkColors(opts) {
         // like `text-paper/60` on `bg-ink` sections are the FP pattern.
         const isAlphaFallbackFP = !DETECTOR_IS_BROWSER && !effectiveBg && (textColor.a != null && textColor.a < 1);
         if (!isAlphaFallbackFP) {
-          findings.push({ id: 'low-contrast', snippet: `${ratio.toFixed(1)}:1 (need ${threshold}:1) — text ${colorToHex(textColor)} on ${colorToHex(bgs[worstIdx])}` });
+          findings.push({ id: 'low-contrast', snippet: `${ratio.toFixed(1)}:1 (need ${threshold}:1) — text ${colorToHex(seenText(bgs[worstIdx]))} on ${colorToHex(bgs[worstIdx])}` });
         }
       }
     }
@@ -1621,6 +1624,13 @@ function resolveBackground(el, win, customPropMap) {
     }
 
     if (bg && bg.a > 0.1) {
+      if (DETECTOR_IS_BROWSER && bg.a < 1 && !hasGradientOrUrl) {
+        // A translucent surface is not the colour the reader sees: blend it over what sits behind it.
+        const under = resolveBackground(current.parentElement, win, customPropMap);
+        if (!under) return null;
+        const mix = (top, bottom) => Math.round(top * bg.a + bottom * (1 - bg.a));
+        return { r: mix(bg.r, under.r), g: mix(bg.g, under.g), b: mix(bg.b, under.b), a: 1 };
+      }
       if (DETECTOR_IS_BROWSER || bg.a >= 0.5) return bg;
     }
     // No solid bg-color at this level. If THIS level has a gradient/url
@@ -3557,6 +3567,14 @@ if (IS_BROWSER) {
   const EXTENSION_MODE = (_myScript && _myScript.dataset.auditExtension === 'true')
     || document.documentElement.dataset.auditExtension === 'true';
 
+  // A re-injected bridge (after an extension update or reload) loads this file again. Keep one instance:
+  // the first keeps its listeners, and the new bridge only needs to hear that a detector is ready.
+  if (window.__auditDetectorLoaded) {
+    if (EXTENSION_MODE) window.postMessage({ source: 'audit-ready' }, '*');
+    return;
+  }
+  window.__auditDetectorLoaded = true;
+
   // Kinpaku gold — pinned to the site's brand token (see
   // site/styles/kinpaku-tokens.css --ks-kinpaku). Keep this in sync with
   // the picker's C.brand in skill/scripts/live-browser.js and the kit's
@@ -3676,7 +3694,21 @@ if (IS_BROWSER) {
       display: none !important;
     }
   `;
-  (document.head || document.documentElement).appendChild(styleEl);
+  let adoptedSheet = null;
+  function attachAuditStyles() {
+    if (!styleEl.isConnected) (document.head || document.documentElement).appendChild(styleEl);
+    if (styleEl.sheet) return;
+    // A page CSP without 'unsafe-inline' in style-src blocked the <style>. A constructed sheet is not governed by CSP.
+    try {
+      if (!adoptedSheet) { adoptedSheet = new CSSStyleSheet(); adoptedSheet.replaceSync(styleEl.textContent); }
+      if (!document.adoptedStyleSheets.includes(adoptedSheet)) document.adoptedStyleSheets = [...document.adoptedStyleSheets, adoptedSheet];
+    } catch { adoptedSheet = null; }
+  }
+  function detachAuditStyles() {
+    styleEl.remove();
+    if (adoptedSheet) document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== adoptedSheet);
+  }
+  attachAuditStyles();
 
   // Spotlight backdrop element (created lazily on first use)
   let spotlightBackdrop = null;
@@ -4568,7 +4600,11 @@ if (IS_BROWSER) {
     const bgImage = style.backgroundImage || '';
     if (bgImage && bgImage !== 'none') {
       if (/gradient/i.test(bgImage)) {
-        const color = pickWorstContrastColor(textColor, parseGradientColors(bgImage));
+        const stops = parseGradientColors(bgImage);
+        // A gradient that fades to transparent is a glow over the colour beneath it: its strongest
+        // stop is not what sits behind the text, so leave it to the solid colour underneath.
+        const fades = stops.some(c => c.a != null && c.a < 0.05) && stops.some(c => c.a == null || c.a > 0.5);
+        const color = fades ? null : pickWorstContrastColor(textColor, stops);
         if (color) return { status: 'sampled', color, method: 'analytic-gradient' };
       }
       if (/url\s*\(/i.test(bgImage)) {
@@ -4785,9 +4821,18 @@ if (IS_BROWSER) {
     const results = [];
     const shouldScrollOffscreen = options.scrollOffscreen === true;
     const restoreScroll = { x: window.scrollX, y: window.scrollY };
+    // scrollIntoView also moves inner scroll panes (app shells), so remember and restore those too.
+    const movedPanes = new Map();
+    const restoreAllScroll = () => {
+      let moved = false;
+      for (const [pane, pos] of movedPanes) {
+        if (pane.scrollTop !== pos.top || pane.scrollLeft !== pos.left) { pane.scrollTo({ top: pos.top, left: pos.left, behavior: 'instant' }); moved = true; }
+      }
+      if (window.scrollX !== restoreScroll.x || window.scrollY !== restoreScroll.y) { window.scrollTo({ left: restoreScroll.x, top: restoreScroll.y, behavior: 'instant' }); moved = true; }
+      return moved;
+    };
     for (const candidate of candidates) {
-      if (shouldScrollOffscreen && (window.scrollX !== restoreScroll.x || window.scrollY !== restoreScroll.y)) {
-        window.scrollTo(restoreScroll.x, restoreScroll.y);
+      if (shouldScrollOffscreen && restoreAllScroll()) {
         await waitForVisualPaint();
       }
       let result = await analyzeVisualContrastCandidate(candidate);
@@ -4799,6 +4844,9 @@ if (IS_BROWSER) {
           el = null;
         }
         if (el && typeof el.scrollIntoView === 'function') {
+          for (let pane = el.parentElement; pane; pane = pane.parentElement) {
+            if (pane !== document.documentElement && !movedPanes.has(pane) && (pane.scrollHeight > pane.clientHeight || pane.scrollWidth > pane.clientWidth)) movedPanes.set(pane, { top: pane.scrollTop, left: pane.scrollLeft });
+          }
           el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
           await waitForVisualPaint();
           result = await analyzeVisualContrastCandidate(candidate);
@@ -4806,9 +4854,7 @@ if (IS_BROWSER) {
       }
       results.push(result);
     }
-    if (shouldScrollOffscreen && (window.scrollX !== restoreScroll.x || window.scrollY !== restoreScroll.y)) {
-      window.scrollTo(restoreScroll.x, restoreScroll.y);
-    }
+    if (shouldScrollOffscreen) restoreAllScroll();
     return results;
   }
 
@@ -5420,6 +5466,7 @@ if (IS_BROWSER) {
 
   let firstScanDone = false;
   const scan = function(options = {}) {
+    attachAuditStyles();
     clearOverlays();
     const generation = scanGeneration;
     const collected = collectBrowserFindings();
@@ -5599,6 +5646,9 @@ if (IS_BROWSER) {
     if (labelledby) return labelledby;
     const al = (el.getAttribute('aria-label') || '').trim();
     if (al) return al;
+    // <label for> and wrapping labels name labelable elements (button, input, select, textarea, meter, progress, output).
+    const lab = el.labels && el.labels.length ? [...el.labels].map(l => l.textContent || '').join(' ').replace(/\s+/g, ' ').trim() : '';
+    if (lab) return lab;
     let text = '';
     const walk = (node) => {
       for (const c of node.childNodes) {
@@ -6116,6 +6166,7 @@ if (IS_BROWSER) {
       const card = h.parentElement;
       const row = card && card.parentElement;
       if (!row || cardSeen.has(row)) continue;
+      cardSeen.add(row); // every check below depends on the row alone, so one visit per row is enough
       const kids = [...row.children].filter(k => !isElementHidden(k));
       if (kids.length < 3 || kids.length > 4) continue;
       const sig = elementStructureSignature(kids[0]);
@@ -6249,7 +6300,7 @@ if (IS_BROWSER) {
     };
 
     if (!settleOrigin || settleOrigin.scroller !== scroller) {
-      settleOrigin = { scroller, top: getTop(), left: isDocument ? window.scrollX : scroller.scrollLeft };
+      settleOrigin = { scroller, top: getTop(), left: isDocument ? window.scrollX : scroller.scrollLeft, htmlBehavior: document.documentElement.style.scrollBehavior, scrollerBehavior: scroller.style.scrollBehavior };
     }
     const startTop = settleOrigin.top;
     const startLeft = settleOrigin.left;
@@ -6264,8 +6315,9 @@ if (IS_BROWSER) {
 
     // Smooth scrolling would turn every step into an animation; force instant jumps.
     const htmlEl = document.documentElement;
-    const savedHtmlBehavior = htmlEl.style.scrollBehavior;
-    const savedScrollerBehavior = scroller.style.scrollBehavior;
+    // Read from the origin, not the live style: an overlapping pass has already forced 'auto' on these.
+    const savedHtmlBehavior = settleOrigin.htmlBehavior;
+    const savedScrollerBehavior = settleOrigin.scrollerBehavior;
     htmlEl.style.scrollBehavior = 'auto';
     if (!isDocument) scroller.style.scrollBehavior = 'auto';
 
@@ -6353,9 +6405,9 @@ if (IS_BROWSER) {
           else { scroller.scrollTop = startTop; scroller.scrollLeft = startLeft; }
         }
         settleOrigin = null;
+        htmlEl.style.scrollBehavior = savedHtmlBehavior;
+        if (!isDocument) scroller.style.scrollBehavior = savedScrollerBehavior;
       }
-      htmlEl.style.scrollBehavior = savedHtmlBehavior;
-      if (!isDocument) scroller.style.scrollBehavior = savedScrollerBehavior;
       await auditPause(450);
     }
     stats.heightAfter = totalHeight();
@@ -6677,8 +6729,9 @@ if (IS_BROWSER) {
         window.postMessage({ source: 'audit-overlays-toggled', visible: !visible }, '*');
       }
       if (e.data.action === 'remove') {
+        activeScanToken++; // cancel a scan that is still in its scroll pass
         clearOverlays();
-        styleEl.remove();
+        detachAuditStyles();
         if (spotlightBackdrop) { spotlightBackdrop.remove(); spotlightBackdrop = null; }
         document.body.classList.remove('audit-hidden');
       }
