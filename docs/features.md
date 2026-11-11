@@ -149,7 +149,7 @@ When design mode is active, Pixelpush renders a floating bottom-right toolbar (`
 - **Copy Tailwind** puts one `<!-- selector path -->` comment per element followed by one line of utility classes. A note becomes a `<!-- note: … -->` comment.
 - **AFS v1.1+ Export & MCP Sync** lets you choose a Markdown verbosity level (**Compact**, **Standard**, **Detailed**, or **Forensic**), **Copy AFS Markdown**, **Copy AFS JSON** (each item of `annotations` conforms to `extension/schema/annotation.v1.1.json`), or **Sync to MCP** to push the session's annotations to an MCP server (default `http://localhost:4747`). The push reports an error when the server stores fewer annotations than were sent.
 - **AFS v1.1+ Annotations List** shows every in-page pin, placed UI wireframe, rearranged element, freehand drawing, and Self-Drive critique with its `#N` badge, `intent`, `severity`, `status`, thread replies, and a one-click **Apply Proposed Fix** button when an AI fix is attached.
-- **Reset all** clears the tracked list, including your Instructions notes and AFS pins, and shows `Changes cleared`.
+- **Reset all** puts every edited style and text back to its original value on the page, then clears the tracked list, including your Instructions notes and AFS pins, and shows `Changes & pins cleared`.
 
 ```css
 body > main > h1#title {
@@ -168,7 +168,7 @@ pt-[24px] text-[32px]
 **Limits.**
 
 - Text edits (changing the visible text of an element) are tracked but are not part of the Copy CSS or Copy Tailwind output. They do appear in the issue.
-- As written, **Reset all** clears Pixelpush's list. It does not send anything to the page, so reload the page to drop the inline styles themselves, or use the per-field undo in Design to restore one value live.
+- **Reset all** restores each edited property by writing its original value back as an inline style, the same way the per-field undo does, so reload the page to drop those inline styles entirely. Icon swaps are not reverted.
 - Edits are per panel session. They are cleared after you file an issue and when the page reloads.
 
 ## Audit
