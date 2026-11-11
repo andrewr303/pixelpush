@@ -11,7 +11,7 @@ The hub for everything about Pixelpush: installing it, using the panel, connecti
 | Install the extension and make a first fix | [Getting started](getting-started.md) | Load the unpacked extension, open the side panel and change your first value. |
 | Understand what each tab does | [Features](features.md) | The Design, Inspect, Colors, Issue, Changes and Audit tabs, one at a time. |
 | Understand how the design audit works | [Audit](audit.md) | How a scan runs, the page scroll, the 72 rules, and how an AI review is checked. |
-| Connect an AI model | [AI providers](ai-providers.md) | The four providers, the models and endpoints behind them, and how to test a connection. |
+| Connect an AI model | [AI providers](ai-providers.md) | The five provider types, the models and endpoints behind them, and how to test a connection. |
 | File issues to Linear | [Linear](linear.md) | Connecting a personal API key, app origins, and how an issue is built and filed. |
 | Understand privacy and permissions | [Privacy and permissions](privacy-and-permissions.md) | Which network requests the extension makes, what it stores and where, and why it asks for each permission. |
 | Understand how it is built | [Architecture](architecture.md) | The service worker, content scripts and side panel, and how they work together. |

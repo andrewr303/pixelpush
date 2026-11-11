@@ -15,7 +15,7 @@
     "node": ">=22.2"
   },
   "scripts": {
-    "verify": "node scripts/verify.mjs && node scripts/contrast.mjs",
+    "verify": "node scripts/verify.mjs && node scripts/contracts.mjs && node scripts/contrast.mjs",
     "package": "npm run verify && node scripts/package.mjs",
     "preview": "node tools/preview/serve.mjs",
     "icons": "node scripts/icons.mjs"

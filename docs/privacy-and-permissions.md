@@ -63,7 +63,7 @@ Copying to the clipboard uses `navigator.clipboard.writeText`, with a hidden-tex
 ### Web-accessible resource
 
 ```json
-"web_accessible_resources": [{ "resources": ["audit/detect.js"], "matches": ["<all_urls>"] }]
+"web_accessible_resources": [{ "resources": ["audit/detect.js", "schema/annotation.v1.1.json"], "matches": ["<all_urls>"] }]
 ```
 
 The audit bridge loads the detector with a `<script src>` pointing into the extension, which requires the file to be web accessible. The side effect is that any web page can request `chrome-extension://<extension id>/audit/detect.js`, and a page that does so learns that Pixelpush is installed. The detector is loaded from the extension package, never from a server; no code in Pixelpush is fetched from the network at run time.
@@ -113,7 +113,7 @@ The code never reads `document.cookie`, `localStorage`, `sessionStorage` or Inde
 
 ## Network matrix
 
-Every request below comes from code in this repository. Nothing else in the extension calls `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket` or `EventSource`. The one other way code here causes requests is the detector's image loading for the contrast check, in row 10.
+Every request below comes from code in this repository. Nothing else in the extension calls `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket` or `EventSource`. The one other way code here causes requests is the detector's image loading for the contrast check, in row 10. Row 11 is the only request that goes to an address you type outside the provider settings.
 
 | # | Request | Made by | Trigger | Destination | What it carries | Credential |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -121,18 +121,20 @@ Every request below comes from code in this repository. Nothing else in the exte
 | 2 | Load teams | Side panel | The Issue tab opens with a connected workspace (cached for 5 minutes, then refreshed in the background) | same | Query `teams` with projects, labels, members and the active cycle | same |
 | 3 | List and search issues | Side panel | The Issue tab opens, you change the **My issues**, **Active cycle** or **Team** view, you type in the search box (after a 280 ms pause), or you file an issue (the list refreshes) | same | Queries for assigned issues, the active cycle's issues, a team's issues (50 each) or `issueSearch` (30), carrying the team id or the search term you typed | same |
 | 4 | Create an issue | Side panel | You press **Create Linear issue** on the Issue tab | same | Mutation `issueCreate` with `teamId`, `title`, `description`, `priority` and, if chosen, `projectId` | same |
-| 5 | AI job | Service worker | You press **Rewrite with AI**, **Propose edits** or **Enrich with AI** | The provider endpoint (see below) | A fixed system prompt and the job as JSON (see [What the AI request contains](#what-the-ai-request-contains)) | `Authorization: Bearer <your AI key>` |
+| 5 | AI job | Service worker | You press **Rewrite with AI**, **Propose edits**, **Enrich with AI** or, with a provider configured, **Self-Drive** | The provider endpoint (see below) | A fixed system prompt and the job as JSON (see [What the AI request contains](#what-the-ai-request-contains)) | `Authorization: Bearer <your AI key>` |
 | 6 | AI connection test | Service worker | You press **Test connection** in Settings | The provider endpoint | A fixed ping prompt, no page data. Aborted after 5 seconds | Your AI key |
 | 7 | Local bridge session | Service worker | A Local CLI job, or **Test connection** on a Local CLI provider | `GET http://127.0.0.1:<port>/api/ai/session`, trying the configured port first, then 58932 and 58933 | Nothing | None |
 | 8 | Local bridge job | Service worker | A Local CLI job | `POST http://127.0.0.1:<port>/api/ai` | The job, plus the provider's `binary`, `args` and `timeoutMs` | `Authorization: Bearer <session token>` from request 7 |
 | 9 | Rule catalog | Side panel | The panel starts | `chrome.runtime.getURL("audit/antipatterns.json")` | Nothing. This is a file inside the extension | None |
 | 10 | Images for the contrast check | Detector, in the page | An audit scan, for up to 30 text elements over a CSS background image or an `<img>`. With the scroll setting off, also when such text is later scrolled into view | The image URLs the page already references | Nothing from Pixelpush. It is an ordinary image load; images from another origin use `crossOrigin = "anonymous"` | None added by Pixelpush |
+| 11 | MCP sync | Service worker | You press **Push to MCP** on the Changes tab | The address in the **MCP Sync** field (default `http://localhost:4747`): `POST <endpoint>/sessions`, then `POST <endpoint>/sessions/<id>/annotations` once per annotation, then `GET <endpoint>/sessions/<id>`. Plain `http` is accepted only for `localhost`, `127.0.0.1` and `[::1]`; any other host must be `https`, and private-network IP addresses are refused | The page URL and each annotation record (at most 200): its comment, selector path, element name, nearby and selected text, computed styles, bounding box and any proposed edits. There is no confirmation dialog for this request | None |
 
 AI endpoints for rows 5 and 6, by provider:
 
 | Provider | Endpoint |
 | --- | --- |
 | OpenAI compatible | `<base URL>/chat/completions` when the base URL ends in `/v1`, otherwise `<base URL>/v1/chat/completions`. A trailing slash is trimmed. A base URL that already ends in `/chat/completions` or `/responses` is used as typed. |
+| Cloudflare Workers AI | `https://api.cloudflare.com/client/v4/accounts/<accountId>/ai/v1/chat/completions`, or the card's Base URL when one is set (it must be `https`, or `http` on `localhost` / `127.0.0.1`). The Account ID must be 32 hexadecimal characters |
 | Bedrock Mantle, Claude models | `https://bedrock-mantle.<region>.api.aws/anthropic/v1/messages` |
 | Bedrock Mantle, GPT 6.1 models | `https://bedrock-mantle.<region>.api.aws/openai/v1/responses` |
 | Bedrock Runtime, Claude models (Anthropic Messages route) | `https://bedrock-runtime.<region>.amazonaws.com/anthropic/v1/messages` |
@@ -175,6 +177,7 @@ The panel sends the service worker `{ type: "AI_COMPLETE", job }`, where `job` i
 | `rewrite_issue` | `page`, `product`, `selection` (if an element is selected), `styles`, `edits`, `tokens` | `rawTitle` and `rawBody` (the generated issue draft, which can contain the page URL, selectors, the edit table and any audit findings you selected), and `notes` (your per-element notes) |
 | `propose_edits` | `page`, `product`, `selection`, `styles`, `edits`, `tokens` | `note` (the instruction you typed) and `allowlistedStyles` (the same style map as `styles`) |
 | `enrich_audit` | `page`, `product`, `audit` (every current finding), `tokens`, `digest` | `findingKeys` (an empty list) |
+| `self_driving_critique` | `page`, `product`, `tokens`, and a `digest` of `{ candidates, viewport }` (see below) | `focus` (a fixed sentence) and `allowlist` (the 35 property names a proposed fix may use) |
 
 The fields of `pack`:
 
@@ -183,7 +186,7 @@ The fields of `pack`:
 | `page` | `url` (for Rewrite and Propose, the tab URL exactly as Chrome reports it, query string and fragment included; for Enrich with AI, only the origin and path), `host`, `pathname`, `title` (the tab title as Chrome reports it, not masked), `capturedAt`, and a `viewport` that is always `{ w: 0, h: 0 }` |
 | `product` | `appOriginMatch` (whether the host is in your app origins) and `knownAppOrigins` (your whole app-origins list) |
 | `selection` | `hook` (a compact selector), `selectorFull` (the full selector path, cut at 500 characters), `tag`, `component`, `componentLikelyMinified`, and `textSnippet` (the first 200 characters of the element's text) |
-| `styles` | The computed values the inspector returned for the 29 editable properties, strings only. For an element that holds only text this includes `textContent` |
+| `styles` | The computed values the inspector returned for the AI allowlist (34 CSS properties plus `textContent`), strings only. For an element that holds only text this includes `textContent` |
 | `edits` | One entry per change: `hook`, `prop`, `from`, `to`, and `note` if present. An element with a note but no change gets one entry with `prop: "note"` |
 | `audit` | One entry per finding: `key`, `ruleId`, `category`, `severity`, `detail` and `hook`. `detail` is written by the detector and is not masked. Some rules quote short snippets of page text (a heading word, link text, an input's placeholder, a sentence fragment, or up to 80 characters of an element's text for the contrast rule), and the `broken-image`, `missing-alt` and `stock-avatars` rules quote the first characters of an image address or file name |
 | `tokens` | Up to 40 colour tokens from the page's readable stylesheets, as `{ name, value }`: colour custom properties, plus colours defined by `.bg-*` and `.text-*` classes |
@@ -192,6 +195,21 @@ The fields of `pack`:
 The pack is capped at 40 KiB of JSON. If it is larger, the panel drops things in this order and stops as soon as it fits: the `digest` (the pack then carries `digestDropped: true` if that alone was enough), all `tokens` (and sets `truncated: true`), `selection.selectorFull`, then `audit` beyond its first 30 entries. If it still does not fit, no request is made. **Propose edits** and **Enrich with AI** show "The capture is too large to send. Select fewer findings or edits."; **Rewrite with AI** shows only "The capture is too large to send." The cap applies to `pack`, not to `input`.
 
 **What is not in the pack:** cookies, raw page HTML, form values, link URLs, a screenshot, any API key or Linear credential, or the element tree. The dialogs say as much, and the code that builds the pack contains no path for them. Text you edited, text in a selected element, the digest's copy excerpts and the quotes in finding details can still be page content, and for Rewrite and Propose the tab URL can carry a token in its query string (Enrich with AI sends the origin and path only), so look at the page you are on before you press an AI button.
+
+### The Self-Drive candidates
+
+With no provider configured, **Self-Drive** runs a heuristic sweep inside the page and sends nothing. With a provider configured, it asks for confirmation the first time (stored as `<kind>:self-drive`), then asks the page for its candidate elements with `collect-self-driving-candidates` and sends them as `pack.digest.candidates`. There are at most 28 candidates, and each one holds:
+
+| Field | Content |
+| --- | --- |
+| `selectorPath`, `tag`, `category` | The element's selector path, tag name and the group it was picked for (for example hero, visuals or hierarchy) |
+| `element` | A readable name built from the tag and a short text or label |
+| `text` | The first 140 characters of the element's text |
+| `boundingBox`, `fontSizePx`, `lineHeightRatio`, `approxMeasureCh` | Position, size and three type measurements |
+| `computedStyles`, `forensicStyles` | A fixed set of computed style values |
+| `contrastRatio`, `effectiveBackground` | The text contrast against the nearest opaque background colour, when it can be computed |
+
+Before the request leaves the panel, email addresses, runs of 28 or more token characters and long digit runs in `text` and `element` are replaced with `[email]`, `[token]` and `[number]`. Selector paths and style values are sent as they are.
 
 ### The page digest
 

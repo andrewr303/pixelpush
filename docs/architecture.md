@@ -132,6 +132,7 @@ All messages are plain objects with a `type` string. Nothing here is a public AP
 | `AI_COMPLETE` | `job` (`id`, `kind`, `createdAt`, `pack`, `input`) | `{ ok: true, result }` or `{ ok: false, error }` |
 | `AI_ABORT` | `id` of the job | `{ ok: true, aborted: true }` |
 | `AI_TEST` | `providerId` | `{ ok, latencyMs, model }` or `{ ok: false, error }` |
+| `AFS_SYNC_SERVER` | `endpoint`, `action` (`push`, `sync_session`, `health`, `pending`, `list_sessions`, `update_status`), `payload` | `{ ok: true, sessionId, syncedCount }` or `{ ok: false, error }`. Accepted only from the side panel |
 | port `sidepanel:<tabId>` | none | Opened while the panel is attached to a tab. Its disconnect is the signal to leave design mode |
 
 ### Page to service worker
@@ -355,15 +356,15 @@ type Group = {
 
 `to` is `var(--token)` when a custom property was chosen, the token name when it is not a custom property, and the current value otherwise. Elements with neither a change nor a note are dropped, and groups are keyed by component name.
 
-The editable property set is an allowlist of 50 camelCase names covering layout (`display`, `position`, `top`, `right`, `bottom`, `left`, `zIndex`, `flexDirection`, `flexWrap`, `justifyContent`, `alignItems`, `alignSelf`, `gap`, `rowGap`, `columnGap`, `gridTemplateColumns`, `gridTemplateRows`), box model (`padding*`, `margin*`, `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`, `boxSizing`), visual styling (`borderRadius`, `backgroundColor`, `borderColor`, `borderWidth`, `borderStyle`, `opacity`, `overflow`, `boxShadow`, `backdropFilter`), typography (`fontFamily`, `fontSize`, `fontWeight`, `lineHeight`, `letterSpacing`, `textAlign`, `textTransform`, `textDecoration`, `whiteSpace`, `color`), motion (`transform`, `transition`), and content (`textContent`). The worker normalizes kebab-case aliases and drops any AI-proposed property outside this list, with a warning.
+There are two property lists, and they are not the same. AI proposals accept 34 CSS properties plus `textContent`: `display`, `flexDirection`, `justifyContent`, `alignItems`, `gap`, `rowGap`, `columnGap`, the four `padding*` and four `margin*` sides, `width`, `height`, `maxWidth`, `minHeight`, `borderRadius`, `backgroundColor`, `borderColor`, `borderWidth`, `borderStyle`, `opacity`, `overflow`, `fontFamily`, `fontSize`, `fontWeight`, `lineHeight`, `letterSpacing`, `textAlign`, `color` and `boxShadow`. The list is the `q` array in `background.js`, mirrored by `jye` in `panel.js`. The worker normalizes kebab-case aliases and drops any AI-proposed property outside it, with a warning. The inspector applies a `set-style` message only for the 51 names in `AFS_ALLOWED_PROPS`, which are those 34 plus `justifyItems`, `flexWrap`, `gridTemplateColumns`, `gridTemplateRows`, `gridAutoFlow`, `minWidth`, `maxHeight`, the `padding` and `margin` shorthands, the four border-side widths and the four corner radii. Text is changed through `set-text`, not `set-style`.
 
 ### Annotation Format Schema (AFS v1.1+)
 
-Pixelpush implements an extended superset of the **Annotation Format Schema (AFS v1.1+)** validated by [`extension/schema/annotation.v1.1.json`](../extension/schema/annotation.v1.1.json). Every in-page annotation pin, sidebar `Instructions` note, live property edit, placed UI wireframe (`uiPlacement`), dragged element rearrangement (`rearrangeSpec`), freehand SVG stroke (`drawingStroke`), Audit pin, and `Self-Drive` AI critique shares a single unified annotation record:
+Pixelpush implements an extended superset of the **Annotation Format Schema (AFS v1.1+)** validated by [`extension/schema/annotation.v1.1.json`](../extension/schema/annotation.v1.1.json). Every in-page annotation pin, sidebar `Instructions` note, live property edit, placed UI wireframe (`placement`), dragged element rearrangement (`rearrange`), freehand SVG stroke (`drawingStroke`), Audit pin, and `Self-Drive` AI critique shares a single unified annotation record:
 
-- **Core identity & target**: `id`, `schemaVersion` (`"1.1"`), `comment`, `element`, `elementPath`, `timestamp`, `x` (% of viewport width), `y` (px from document top), `boundingBox` (`{ x, y, width, height }`), `isFixed`, `isMultiSelect`.
-- **Rich DOM & framework telemetry**: `fullPath`, `cssClasses`, `nearbyText`, `selectedText`, `accessibility` (`role`, `ariaLabel`, `ariaDescribedBy`, `ariaExpanded`, `tabIndex`, `focusable`), `computedStyles`, `nearbyElements`, `reactComponents` (detected across React Fiber, Vue 3/2, Svelte, and Angular), `sourceFile`, `innerDom`, and `frameChain`.
-- **Workflow & collaboration**: `intent` (`fix` | `change` | `question` | `approve`), `severity` (`blocking` | `important` | `suggestion`), `status` (`pending` | `acknowledged` | `resolved` | `dismissed`), `thread` (chronological User/Agent/AI messages), `source` (`manual` | `style-edit` | `ui-placement` | `rearrange` | `drawing` | `audit` | `ai-proposal` | `self-driving`), `ruleId`, `styleDiffs`, `proposedEdits`, `uiPlacement`, `rearrangeSpec`, and `drawingStroke`.
+- **Core identity & target**: `id`, `comment`, `element`, `elementPath`, `timestamp`, `x` (% of viewport width), `y` (px from document top), `boundingBox` (`{ x, y, width, height }`), `isFixed`, `isMultiSelect`.
+- **Rich DOM & framework telemetry**: `fullPath`, `cssClasses`, `nearbyText`, `selectedText`, `accessibility` (a one-line summary string of role, label and focus state), `computedStyles`, `nearbyElements`, `reactComponents` (detected across React Fiber, Vue 3/2, Svelte, and Angular), and `sourceFile`.
+- **Workflow & collaboration**: `intent` (`fix` | `change` | `question` | `approve`), `severity` (`blocking` | `important` | `suggestion`), `status` (`pending` | `acknowledged` | `resolved` | `dismissed`), `thread` (chronological User/Agent/AI messages), `source` (the values the extension writes are `panel-note`, `style-edit`, `multi-select`, `layout-place`, `layout-rearrange`, `drawing`, `audit` and `self-driving`), `auditRuleId`, `edits`, `proposedEdits`, `placement`, `rearrange`, and `drawingStroke`.
 - **Export & MCP Sync**: Formatted by the panel into 4 Markdown verbosity levels (`Compact`, `Standard`, `Detailed`, `Forensic`), full AFS v1.1+ JSON payloads, Linear issue sections, or synced live to an Agentation-compatible MCP HTTP server (`http://localhost:4747/sessions`).
 
 ### The element tree
@@ -407,8 +408,8 @@ The repository ships the extension exactly as Chrome loads it. There is no `src/
 | `extension/panel/pixelpush.css` | Readable | The design layer. Loaded after `tailwind.css`, unlayered, so it wins. Edit directly |
 | `extension/audit/detect.js`, `extension/audit/antipatterns.json` | Readable, vendored | Edit directly, and keep [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md) accurate |
 | `extension/panel/panel.js` (about 1.0 MB) | Compiled and minified | Identifiers are mangled to one or two letters. UI strings, message types and storage keys are intact, so search for those |
-| `extension/background.js` (about 29 KB) | Compiled and minified | A few very long lines. The AI router and the message relay are in here |
-| `extension/content-scripts/inspector.js` (about 714 KB) | Compiled and minified | Mostly bundled library code. Pixelpush's own code is at the start of the file and from `main(){` to the end |
+| `extension/background.js` (about 40 KB) | Compiled and minified | A few very long lines. The AI router and the message relay are in here |
+| `extension/content-scripts/inspector.js` (about 780 KB) | Compiled and minified | Mostly bundled library code. Pixelpush's own code is at the start of the file and from `main(){` to the end |
 | `extension/content-scripts/audit.js` (about 7 KB) | Compiled and minified | The bridge |
 | `extension/panel/tailwind.css` | Compiled | Tailwind utilities that the panel bundle already uses. There is no Tailwind build here, so a utility class that is not already in the file has no styles |
 

@@ -11,7 +11,7 @@ Pixelpush does not host a model and ships with none configured. AI is off until 
 | Feature | Where | What it does | What you get back |
 | --- | --- | --- | --- |
 | **Rewrite with AI** | Issue tab | Turns the raw draft (including AFS v1.1+ annotations, wireframes, rearrangements, drawings, and threads) into a cleaner Linear issue. | A new title and body that replace the composer text. **Show raw draft** restores the original. |
-| **Propose edits** | Design tab, Edit mode | Suggests CSS across 50 layout, typography, spacing, and visual properties for the selected element from the note you wrote in **Instructions**, enriched with AFS v1.1+ box-model and spatial telemetry. | A list of property edits applied live to the element. **Undo AI proposal** reverts them. |
+| **Propose edits** | Design tab, Edit mode | Suggests CSS across 34 layout, typography, spacing, and visual properties (plus the element's text) for the selected element from the note you wrote in **Instructions**. | A list of property edits applied live to the element. **Undo AI proposal** reverts them. |
 | **Self-Drive** | Design tab, Audit tab, and in-page toolbar | Autonomously inspects candidate elements on the page (`self_driving_critique`), spotlights each element in the viewport, and evaluates typography, rhythm, hierarchy, contrast, and polish. | Structured AFS v1.1+ annotations pinned to the page (`source: "self-driving"`), each with a 2–3 sentence design critique and one-click `proposedEdits` CSS/text fixes. |
 | **Enrich with AI** | Audit tab | An AI design review on top of the detector. It does not replace the detector. See [Enrich with AI](#enrich-with-ai-audit-review). | Findings it hides as false hits, up to eight new findings that cite the page outline (suggestions that are not grounded in the page are dropped), reworded findings and a short brief. |
 
@@ -33,7 +33,7 @@ Every AI job sends a **context pack**, not the page's HTML. Before the first Rew
 | Page | URL (for Enrich with AI, without its query string and fragment), host, path, title and capture time. |
 | App origins | Whether the page's host matches your app origins, and the list itself. |
 | Selected element | Compact selector, full selector path (first 500 characters), tag, component name and a text snippet (first 200 characters). |
-| Styles | Computed values for a fixed allowlist of 29 properties (display, flex alignment, gap, padding, margin, width, height, radius, colours, border, opacity, overflow, font family, size and weight, text content). |
+| Styles | Computed values for a fixed allowlist of up to 35 names, 34 CSS properties plus the text content, of which only those present on the element are sent (display, flex alignment, gap, padding, margin, width, height, radius, colours, border, opacity, overflow, font family, size and weight, text content). |
 | Edits and notes | Each recorded property with its `from` and `to`, and your Instructions notes. |
 | Audit findings | Enrich only: key, rule id, category, severity, detail and compact selector for every finding in the list, selected or not. |
 | Page digest | Enrich only: a compact outline of the page. See [Enrich with AI](#enrich-with-ai-audit-review). |
@@ -68,8 +68,8 @@ You can configure multiple providers at once and star your favorite models (`☆
 | | OpenAI compatible | Cloudflare Workers AI | Bedrock Mantle | Bedrock Runtime | Local CLI |
 | --- | --- | --- | --- | --- | --- |
 | You supply | Base URL, model, API key | Account ID (or custom Base URL), `@cf/...` model, API token | Region, model, Bedrock API key | Region, model, Bedrock API key | CLI profile or absolute binary path |
-| Defaults | `https://api.openai.com/v1`, `gpt-4.1-mini` | `@cf/moonshotai/kimi-k2.5` | `us-east-1`, `openai.gpt-6.1-terra` | `us-east-1`, `us.openai.gpt-6.1-terra` | Profile `claude`, 60,000 ms timeout |
-| Models | Any text you enter | 8 curated `@cf/...` presets + any custom `@cf/...` ID | 3 in a menu | 10 in a menu | Whatever the CLI uses |
+| Defaults | `https://api.openai.com/v1`, `gpt-4.1-mini` | `@cf/moonshotai/kimi-k2.7-code` (Account ID starts empty) | `us-east-1`, `openai.gpt-6.1-terra` | `us-east-1`, `us.openai.gpt-6.1-terra` | Profile `claude`, 60,000 ms timeout |
+| Models | Any text you enter | 22 curated `@cf/...` presets + any custom `@cf/...` ID | 3 in a menu | 10 in a menu | Whatever the CLI uses |
 | Request goes to | Your base URL, ending in `/chat/completions` | `api.cloudflare.com/client/v4/accounts/<accountId>/ai/v1/chat/completions` | `bedrock-mantle.<region>.api.aws` | `bedrock-runtime.<region>.amazonaws.com` | A bridge on `127.0.0.1` |
 | Wire format | Chat Completions | Chat Completions (with automatic `response_format` fallback) | Anthropic Messages for Claude, OpenAI Responses for GPT 6.1 | Anthropic Messages for Claude, Chat Completions for GPT 6.1 and Kimi K3 | Defined by the bridge |
 | Auth | `Authorization: Bearer <key>` | `Authorization: Bearer <token>` | `Authorization: Bearer <key>` | `Authorization: Bearer <key>` | `Authorization: Bearer <session token>` from the bridge |
@@ -83,14 +83,17 @@ Use this for serverless inference on Cloudflare's global edge network via the Op
 **Fields.** Cloudflare Account ID, Base URL (optional override), Model (dropdown of curated `@cf/...` models plus free-text custom model input), and Cloudflare API Token (requires Workers AI Read/Run permission).
 
 **Curated models.**
-- `@cf/moonshotai/kimi-k2.5` — Kimi K2.5 (default)
-- `@cf/zai-org/glm-4.7-flash` — GLM 4.7 Flash
-- `@cf/qwen/qwq-32b` — Qwen QwQ 32B Reasoning
-- `@cf/qwen/qwen2.5-coder-32b-instruct` — Qwen 2.5 Coder 32B
-- `@cf/deepseek-ai/deepseek-r1-distill-qwen-32b` — DeepSeek R1 Distill Qwen 32B
-- `@cf/meta/llama-3.3-70b-instruct-fp8-fast` — Llama 3.3 70B Instruct FP8 Fast
-- `@cf/meta/llama-4-scout-17b-16e-instruct` — Llama 4 Scout 17B 16E
-- `@cf/google/gemma-3-12b-it` — Gemma 3 12B IT
+The card offers 22 presets, and the first is the default:
+
+- Moonshot: `@cf/moonshotai/kimi-k2.7-code` (default), `@cf/moonshotai/kimi-k2.6`, `@cf/moonshotai/kimi-k2.5`
+- DeepSeek: `@cf/deepseek-ai/deepseek-v4-pro-0813`, `@cf/deepseek-ai/deepseek-v4.1-flash-1017`, `@cf/deepseek-ai/deepseek-r1-distill-qwen-32b`
+- Qwen: `@cf/qwen/qwen3.8-27b`, `@cf/qwen/qwq-32b`, `@cf/qwen/qwen2.5-coder-32b-instruct`, `@cf/qwen/qwen3-30b-a3b-fp8`
+- Z.ai: `@cf/zai-org/glm-5.3`, `@cf/zai-org/glm-5.3-flash`, `@cf/zai-org/glm-5.2`, `@cf/zai-org/glm-4.7-flash`
+- NVIDIA: `@cf/nvidia/nemotron-3-120b-a12b`
+- Google: `@cf/google/gemma-4-26b-a4b-it`, `@cf/google/gemma-3-12b-it`
+- Meta: `@cf/meta/llama-3.3-70b-instruct-fp8-fast`, `@cf/meta/llama-4-scout-17b-16e-instruct`
+- Mistral: `@cf/mistralai/mistral-small-3.1-24b-instruct`
+- OpenAI open weights: `@cf/openai/gpt-oss-120b`, `@cf/openai/gpt-oss-20b`
 
 **Endpoint and fallbacks.** When you enter your 32-character Cloudflare Account ID, Pixelpush automatically constructs `https://api.cloudflare.com/client/v4/accounts/<accountId>/ai/v1/chat/completions` (or you can paste a full custom/gateway URL into Base URL). If a Workers AI model does not support `response_format: { "type": "json_object" }` and returns HTTP 400, Pixelpush automatically strips `response_format` and retries once, and also extracts JSON from `reasoning_content` when reasoning models emit structured output there.
 
