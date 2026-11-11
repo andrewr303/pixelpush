@@ -244,7 +244,7 @@ brand/                     Icon sources: icon.svg (512 px PNG master), mark.svg 
 docs/                      Documentation, design system notes, banner and screenshots
 research/                  Research records: sources, claim ledgers, decision reports
 review/                    Cross-model review of the AFS integration: report, evidence, consult transcripts
-scripts/                   verify, contrast, package, icons
+scripts/                   verify, contracts, contrast, package, icons
 tools/preview/             Browser preview harness for the side panel, plus audit fixtures
 licenses/                  Full license texts for bundled third-party code
 ```

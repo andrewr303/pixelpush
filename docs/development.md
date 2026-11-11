@@ -30,7 +30,7 @@ Then load the extension in Chrome (see [Load it unpacked](#load-it-unpacked-and-
 
 | Script | Runs | What it does | Writes files? |
 | --- | --- | --- | --- |
-| `npm run verify` | `node scripts/verify.mjs && node scripts/contrast.mjs` | Static checks on the unpacked extension, then the colour-contrast check. Stops at the first failing step | No |
+| `npm run verify` | `node scripts/verify.mjs && node scripts/contracts.mjs && node scripts/contrast.mjs` | Static checks on the unpacked extension, the cross-file contract check, then the colour-contrast check. Stops at the first failing step | No |
 | `npm run package` | `npm run verify && node scripts/package.mjs` | Runs `verify`, then writes `dist/pixelpush-<version>.zip` | `dist/` |
 | `npm run preview` | `node tools/preview/serve.mjs` | Serves the side panel in a normal browser tab with stubbed `chrome.*` APIs | No |
 | `npm run icons` | `node scripts/icons.mjs` | Re-renders `extension/icons/icon-{16,32,48,128}.png` from `brand/icon.svg` | `extension/icons/` |
@@ -59,6 +59,12 @@ verify: ok (17 files, manifest v2.1.0)
 ```
 
 On failure it prints `verify: N problem(s)` and one line per problem. The file count changes when files are added to `extension/`.
+
+`scripts/contracts.mjs` runs next. The bundles have no source tree, so some lists and names are written by hand in more than one file, and this script fails when the copies disagree. It checks four things: the AI property allowlist is the same in `panel.js` and `background.js`; every CSS property in that allowlist is one the inspector will apply; every annotation `source` and `kind` the inspector writes is in `extension/schema/annotation.v1.1.json`; and the rule table inside `audit/detect.js` matches `audit/antipatterns.json` by id, name, category and description. A check that cannot find the text it looks for fails as well, so a renamed identifier shows up as a failure. With the current tree it prints:
+
+```text
+contracts: ok (4 checks)
+```
 
 ### `contrast`
 
