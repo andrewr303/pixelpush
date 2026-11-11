@@ -65,7 +65,7 @@ to the AI provider you configure.
 | **Audit** | By default scrolls the page first so lazy-loaded sections exist, then runs 72 checks in two groups, 41 AI tells and 31 quality issues (contrast, tiny text, cramped padding, overused patterns, missing labels and more), highlights each finding on the page, lets you **Pin to AFS**, and supports **Self-Drive** autonomous AI design walkthroughs. How it works: [docs/audit.md](docs/audit.md). |
 
 AI features are optional and off until you add a provider. **Rewrite with AI** turns the
-raw capture (including AFS v1.1+ annotations, wireframes, and threads) into a clean issue, **Propose edits** suggests CSS across 50 layout/typography/visual properties for the selected element from
+raw capture (including AFS v1.1+ annotations, wireframes, and threads) into a clean issue, **Propose edits** suggests CSS across 34 layout, typography and visual properties (plus the element's text) for the selected element from
 a note you write, **Self-Drive** autonomously walks the page to attach structured AFS v1.1+ design critiques with one-click CSS/text fix proposals, and **Enrich with AI** reviews the audit: it can hide false hits and add
 findings, and the panel drops any suggestion it cannot tie back to the page outline it sent
 (see [How suggestions are checked](docs/audit.md#how-suggestions-are-checked)). You can sign in to multiple AI providers at once, star **Favorite Models (`★`)**, and switch providers or models on the fly from the **AI Quick Switcher** directly inside the Design, Audit, and Issue tabs. The
@@ -242,7 +242,8 @@ skills/
   pixelpush-self-driving/  Autonomous visual critique & AFS v1.1+ annotation skill
 brand/                     Icon sources: icon.svg (512 px PNG master), mark.svg (vector glyph)
 docs/                      Documentation, design system notes, banner and screenshots
-research/                  Audit research record: sources, claim ledger, decision report
+research/                  Research records: sources, claim ledgers, decision reports
+review/                    Cross-model review of the AFS integration: report, evidence, consult transcripts
 scripts/                   verify, contrast, package, icons
 tools/preview/             Browser preview harness for the side panel, plus audit fixtures
 licenses/                  Full license texts for bundled third-party code
@@ -259,7 +260,7 @@ The [documentation hub](docs/README.md) lists every page by what you are trying 
 | [Getting started](docs/getting-started.md) | Install the extension, open the panel and make a first fix. |
 | [Features](docs/features.md) | Every tab and control, one tab at a time. |
 | [Audit](docs/audit.md) | How a scan runs, the page scroll, the 72 rules and how an AI review is checked. |
-| [AI providers](docs/ai-providers.md) | The four providers: what each needs, which models and endpoints it uses, and how to test it. |
+| [AI providers](docs/ai-providers.md) | The five provider types: what each needs, which models and endpoints it uses, and how to test it. |
 | [Linear](docs/linear.md) | Connecting a personal API key, app origins and filing an issue. |
 | [Privacy and permissions](docs/privacy-and-permissions.md) | Network requests, stored data and the permissions the extension asks for. |
 | [Architecture](docs/architecture.md) | The service worker, content scripts and side panel, and how they work together. |

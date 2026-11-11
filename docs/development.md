@@ -55,7 +55,7 @@ There is no `test`, `lint` or `build` script.
 With the current tree it prints:
 
 ```text
-verify: ok (16 files, manifest v2.1.0)
+verify: ok (17 files, manifest v2.1.0)
 ```
 
 On failure it prints `verify: N problem(s)` and one line per problem. The file count changes when files are added to `extension/`.
