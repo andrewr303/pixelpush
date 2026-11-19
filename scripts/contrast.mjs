@@ -1,13 +1,14 @@
 // WCAG 2 contrast for the colour pairs the side panel renders, measured against
-// the worst case behind the glass. Tokens are read from extension/panel/pixelpush.css.
-// It handles:
+// the worst case behind its translucent surfaces. Tokens are read from
+// extension/panel/pixelpush.css. It handles:
 //   - oklch(L C H / A) and color-mix(..., transparent) alpha,
 //   - browser-style compositing (premultiplied "over" in gamma-encoded sRGB),
-//   - the body::before light field (geometry mirrors the stylesheet), sampled
-//     across three panel sizes, plus an upper bound with every glow stacked at
-//     its peak alpha (the value used for pass/fail),
-//   - backdrop-filter saturate() applied to the backdrop of blurred glass.
-// Every stack is also composited over pure black.
+//   - the graphite base (--pp-bg) and the optional body::before light field
+//     painted over it (geometry mirrors the stylesheet), sampled across many
+//     panel sizes; the brightest of those is the "bright" backdrop,
+//   - an upper bound with every glow stacked at its peak alpha (info only).
+// Every stack is also composited over pure black. Nothing in the panel uses
+// backdrop-filter, so surfaces are plain composites of their backdrop.
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
@@ -71,18 +72,11 @@ const lum = (rgb) => { const [r, g, b] = rgb.map(toLin); return 0.2126 * r + 0.7
 const ratio = (fgCol, bgRgb) => { const top = over(fgCol, bgRgb); const [h, l] = [lum(top), lum(bgRgb)].sort((x, y) => y - x); return (h + 0.05) / (l + 0.05) }
 const brighter = (...rgbs) => rgbs.reduce((x, y) => (lum(y) > lum(x) ? y : x))
 
-// saturate(s), Filter Effects matrix, in gamma space and in linear space.
-function saturate(rgb, s, linear) {
-  const v = linear ? rgb.map(toLin) : rgb
-  const m = [[0.213 + 0.787 * s, 0.715 - 0.715 * s, 0.072 - 0.072 * s], [0.213 - 0.213 * s, 0.715 + 0.285 * s, 0.072 - 0.072 * s], [0.213 - 0.213 * s, 0.715 - 0.715 * s, 0.072 + 0.928 * s]]
-  const o = m.map((row) => clamp(row[0] * v[0] + row[1] * v[1] + row[2] * v[2]))
-  return linear ? o.map(toGam) : o
-}
-const backdrop = (rgb, s) => brighter(rgb, saturate(rgb, s, false), saturate(rgb, s, true))
-const satOf = (tok) => +tokens[tok].match(/saturate\(([\d.]+)%\)/)[1] / 100
+// No surface blurs or saturates what is behind it.
+const backdrop = (rgb) => rgb
 
-// ---- light field (mirrors body::before) ---------------------------------------
-const voidC = c("--void")
+// ---- base and optional light field (mirrors html[data-light-field="on"] body::before)
+const voidC = c("--pp-bg")
 const L = { indigo: c("--glow-indigo"), violet: c("--glow-violet"), plum: c("--glow-plum"), sheen: c("--glow-sheen"), sheen2: c("--glow-sheen-2"), vig: c("--vignette") }
 function radialT(x, y, W, H, [rx, ry, px, py]) { return Math.hypot((x - px * W) / (rx * W), (y - py * H) / (ry * H)) }
 function fieldAt(x, y, W, H) {
@@ -110,7 +104,7 @@ const BLACK = [0, 0, 0]
 const WHITE = [1, 1, 1]
 
 // ---- surfaces: functions of the backdrop ------------------------------------------
-const S1 = satOf("--glass-blur"), S2 = satOf("--glass-blur-soft")
+const S1 = 1, S2 = 1
 const sheenTop = c("--sheen-top"), sheenLow = c("--sheen-low")
 const W = (a) => ({ rgb: [1, 1, 1], a })
 const ok = (s) => resolve(s)
@@ -156,7 +150,23 @@ const surf = {
   sticky: () => stack(WHITE, ok("oklch(0.15 0.03 290 / 0.82)")),
   resetHover: (b) => stack(surf.utilCard(b), ok("color-mix(in oklab, var(--coral-500) 12%, transparent)")),
   pageWhite: () => WHITE,
-  pageBlack: () => BLACK
+  pageBlack: () => BLACK,
+  // Ultraviolet, filtered: theme surfaces
+  ppCard: (b) => stack(b, c("--pp-surface")),
+  ppSolid: () => c("--pp-surface-solid").rgb,
+  ppField: (b) => brighter(stack(b, c("--pp-field")), stack(surf.ppCard(b), c("--pp-field"))),
+  ppFieldFocus: (b) => brighter(stack(b, c("--pp-field-focus")), stack(surf.ppCard(b), c("--pp-field-focus"))),
+  ppEdited: (b) => stack(surf.ppField(b), c("--pp-edited-fill")),
+  ppPressed: (b) => brighter(stack(b, c("--pp-pressed")), stack(surf.ppCard(b), c("--pp-pressed"))),
+  ppHairline: (b) => brighter(stack(b, c("--pp-hairline")), stack(surf.ppCard(b), c("--pp-hairline"))),
+  ppSelected: (b) => stack(b, c("--pp-selected")),
+  ppFooter: (b) => stack(surf.ppCard(b), c("--pp-footer")),
+  ppColorOpen: (b) => stack(b, ok("oklch(0.2 0.032 290 / 0.6)")),
+  ppToast: () => c("--pp-toast").rgb,
+  ppPopover: () => stack(WHITE, c("--pp-popover")),
+  ppRaised: () => stack(WHITE, c("--pp-surface-raised")),
+  ppAmber: () => c("--pp-amber").rgb,
+  ppAccent: () => stack(c("--pp-accent-a").rgb, W(0.05))
 }
 
 const TEXT = 4.5, UI = 3
@@ -230,6 +240,49 @@ const pairs = [
   ["--color-white", "popover", TEXT, "toast text over white page content"],
   ["--fg", "sticky", TEXT, "sticky header text over white content"],
   ["--meta", "sendDisabled", 0, "disabled primary label (exempt; info only)"],
+  // Ultraviolet, filtered
+  ["--pp-label", "body", TEXT, "field labels (13px/600 white) on the base"],
+  ["--pp-label", "ppCard", TEXT, "field labels on cards"],
+  ["--pp-text", "ppField", TEXT, "values in fields"],
+  ["--pp-text", "ppFieldFocus", TEXT, "values in a focused field"],
+  ["--pp-text", "ppEdited", TEXT, "values in an edited field"],
+  ["--pp-text-subtle", "ppField", TEXT, "placeholders in fields"],
+  ["--pp-text-subtle", "body", TEXT, "hints on the base"],
+  ["--pp-text-subtle", "ppCard", TEXT, "hints and counts on cards"],
+  ["--pp-text-subtle", "ppFooter", TEXT, "subtle text in the composer footer"],
+  ["--pp-text-muted", "body", TEXT, "captions and inactive labels on the base"],
+  ["--pp-text-muted", "ppCard", TEXT, "captions on cards"],
+  ["--pp-text-muted", "ppSolid", TEXT, "captions on the opaque Changes toolbar"],
+  ["--pp-text-body", "ppColorOpen", TEXT, "details in an open colour row"],
+  ["--pp-text-body", "ppHairline", TEXT, "text on a hairline-tinted chip"],
+  ["--pp-text-strong", "ppPressed", TEXT, "label on a pressed toggle"],
+  ["--pp-text-strong", "ppAccent", TEXT, "label on the accent gradient"],
+  ["--pp-text", "ppSelected", TEXT, "tag name on a selected tree row"],
+  ["--pp-jade", "ppSelected", TEXT, "class names on a selected tree row"],
+  ["--pp-text", "ppToast", TEXT, "toast text"],
+  ["--pp-text", "ppPopover", TEXT, "colour popover text over white page content"],
+  ["--pp-text", "ppRaised", TEXT, "sticky toolbar text over white content"],
+  ["--pp-on-amber", "ppAmber", TEXT, "count on the amber Changes badge"],
+  ["--pp-accent-text", "body", TEXT, "links on the base"],
+  ["--pp-accent-text", "ppCard", TEXT, "links and text buttons on cards"],
+  ["--pp-accent-text", "ppFooter", TEXT, "Element chip and links in the composer footer"],
+  ["--pp-accent-text", "ppHairline", TEXT, "pin chip on change cards"],
+  ["--pp-jade", "body", TEXT, "AAA/AA badge, Done, low severity on the base"],
+  ["--pp-jade", "ppCard", TEXT, "AAA/AA badge on cards"],
+  ["--pp-amber", "body", TEXT, "AA Large badge, In Progress, medium severity"],
+  ["--pp-amber", "ppCard", TEXT, "medium severity on cards"],
+  ["--pp-coral", "body", TEXT, "Fail badge, errors, Reset all on the base"],
+  ["--pp-coral", "ppCard", TEXT, "errors and high severity on cards"],
+  ["--pp-coral", "ppSolid", TEXT, "Reset all on the Changes toolbar"],
+  ["--pp-focus", "ppField", UI, "focused field ring"],
+  ["--pp-focus", "body", UI, "selection ring (palette strip) on the base"],
+  ["--pp-edited-ring", "ppField", UI, "edited field ring"],
+  ["--pp-pressed-ring", "ppCard", UI, "pressed toggle ring on cards"],
+  ["--pp-outline", "body", UI, "outline buttons on the base"],
+  ["--pp-outline", "ppSolid", UI, "outline buttons on the Changes toolbar"],
+  ["--pp-amber", "body", UI, "edited dot on tree rows and change lines"],
+  ["--pp-field-border-hover", "ppField", 0, "hovered field ring (info; the well itself marks the field)"],
+  ["--pp-field-border", "ppField", 0, "resting field ring (info; the well itself marks the field)"],
   // Non-text: control outlines, focus, state indicators (3:1)
   ["--border", "card", UI, "field and control outlines on cards"],
   ["--border", "body", UI, "control outlines on the field"],
@@ -270,7 +323,7 @@ for (const [fg, s, min, label] of pairs) {
 }
 const pad = (s, n) => String(s).padEnd(n)
 console.log(`light field: upper bound (all glows stacked) L*=${(srgbToOklab(upper)[0]).toFixed(3)} Y=${lum(upper).toFixed(4)}; brightest sampled point L=${srgbToOklab(sampled.rgb)[0].toFixed(3)} Y=${lum(sampled.rgb).toFixed(4)} at ${sampled.at}`)
-console.log(`backdrop saturate: chrome ${S1}, cards ${S2}; worst of gamma/linear/unsaturated used`)
+console.log(`base --pp-bg L=${srgbToOklab(voidC.rgb)[0].toFixed(3)}; no backdrop-filter, surfaces composite their backdrop directly`)
 console.log(`\n${pad("", 5)} ${pad("bright", 7)} ${pad("black", 7)} ${pad("stack*", 7)} min  pair     (*all glows stacked: unreachable bound, info only)`)
 for (const r of rows) console.log(`${r.pass ? "pass" : "FAIL"}  ${r.rw.toFixed(2).padStart(5)}  ${r.rb.toFixed(2).padStart(5)}  ${r.ru.toFixed(2).padStart(5)}${r.ru < r.min ? "!" : " "}  ${String(r.min).padEnd(3)}  ${r.fg} on ${r.s} - ${r.label}`)
 if (gamutNotes.size) console.log(`\nout-of-sRGB-gamut tokens (clipped in linear light): ${[...gamutNotes.keys()].join(", ")}`)

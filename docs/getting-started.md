@@ -47,7 +47,7 @@ What you are looking at:
 | --- | --- |
 | Header | The Pixelpush mark and name, the **selection mode** button (cursor icon), **Settings** (gear), a link to share feedback on GitHub, and, once Linear is connected, a workspace dropdown. |
 | Tab strip | Design, Inspect, Colors, Issue, Changes, Audit. The Changes tab shows how many edits you have made and the Audit tab how many findings it found. |
-| Send bar | Shows `Linear · <workspace>` or `Not connected to Linear — open the Issue tab to connect`, the main action button, and a copy button. |
+| Send bar | On Design, Inspect, Colors and Changes: the Linear connection state, the main action button, and a copy button. The Issue and Audit tabs carry their own buttons instead. |
 
 ## First fix in two minutes
 
@@ -86,8 +86,8 @@ body > main > h1#title {
 Filing is two steps: build a draft, then create the issue.
 
 1. **Connect Linear once.** Open the **Issue** tab, paste a personal API key (it starts with `lin_api_`) and press **Connect**. [Linear](linear.md) walks through creating the key and explains where it is stored.
-2. **Build a draft.** Go back to **Changes** (or **Design**) and press **Create Linear issue** in the send bar. This does not file anything yet. It writes a title and description from your edits and notes, then switches to the **Issue** tab.
-3. **Review and file.** Check the title and description, pick a **Team**, optionally a **Project**, set a **Priority**, and press **Create Linear issue** again. When it succeeds you get a toast such as `Created <identifier>` and a link to open the issue in Linear.
+2. **Build a draft.** Go back to **Changes** (or **Design**) and press **Create Linear issue** in the send bar, or press **Draft from changes** in the Issue composer. This does not file anything yet. It writes a title and description from your edits and notes, then switches to the **Issue** tab.
+3. **Review and file.** Check the title and description, pick a **Team**, optionally a **Project**, set a **Priority**, and press **Create Linear issue** in the composer footer. When it succeeds you get a toast such as `Created <identifier>` and a link to open the issue in Linear.
 
 ```mermaid
 flowchart LR

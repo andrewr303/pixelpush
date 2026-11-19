@@ -16,7 +16,7 @@ The hub for everything about Pixelpush: installing it, using the panel, connecti
 | Understand privacy and permissions | [Privacy and permissions](privacy-and-permissions.md) | Which network requests the extension makes, what it stores and where, and why it asks for each permission. |
 | Understand how it is built | [Architecture](architecture.md) | The service worker, content scripts and side panel, and how they work together. |
 | Contribute or run the scripts | [Development](development.md) | The helper scripts, the browser preview harness and packaging. |
-| Understand the design system | [Design system](DESIGN.md) | The palette, type, glass, shape and motion rules, plus the layers brand mark. |
+| Understand the design system | [Design system](DESIGN.md) | The theme tokens, type, shared states, shape and motion rules, plus the layers brand mark. |
 
 ## Panel tour
 

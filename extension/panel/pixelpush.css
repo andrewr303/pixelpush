@@ -3,22 +3,23 @@
  *
  * Loaded after tailwind.css and deliberately unlayered, so it wins over the
  * compiled utilities. It does three jobs:
- *   1. defines the brand primitives and the role tokens components use,
+ *   1. defines the theme tokens (--pp-*) and the role tokens components use,
  *   2. re-points Tailwind's palette variables at those roles, which restyles
  *      the utility-built parts of the panel (style editor, tree, audit list),
  *   3. styles the panel's own component classes.
  *
- * Identity: a near-black canvas lit from behind by a slow indigo-to-violet
- * light field with a faint conic sheen. Chrome, cards, the send bar, the tab
- * track and fields are liquid glass: translucent fills, backdrop blur and
- * saturation, a bright specular top edge and a soft violet refraction along
- * the inner bottom edge. One violet accent marks what you can act on; the
- * selected tab is a lit amethyst pill. The pixel survives in square status
- * dots and the selection-handle marquee.
+ * Theme: Ultraviolet, filtered. A near-neutral graphite base under violet-
+ * tinted chrome, cards and wells, all on one hue (290). Surfaces are
+ * translucent tints with a specular top edge; nothing uses backdrop-filter.
+ * The indigo-to-violet light field is opt-in (Settings > Background glow,
+ * html[data-light-field="on"]). One violet accent marks what you can act on;
+ * the selected tab is a lit amethyst pill. Pressed toggles share one
+ * treatment (--pp-pressed), and a field whose value differs from the page's
+ * original wears an amber ring. The pixel survives in square status dots and
+ * the selection-handle marquee.
  *
- * Contrast is measured against the worst case behind the glass: every
- * translucent surface composited over the brightest point of the light field
- * (all glows stacked) as well as over pure black. scripts/contrast.mjs mirrors
+ * Contrast is measured over the graphite base, over the brightest point of
+ * the optional light field and over pure black. scripts/contrast.mjs mirrors
  * the body::before light field, so update both together.
  */
 
@@ -43,58 +44,105 @@
 :root {
   color-scheme: dark;
 
-  /* Primitives. Components never use these directly. */
+  /* Theme: Ultraviolet, filtered. One violet hue (290), no frosted glass, and
+     the light field off unless the user turns it on in Settings. The panel
+     base is a near-neutral graphite; fields, cards and popovers keep their
+     violet tint, so wells read as recessed below it. Status hues (jade,
+     amber, coral) are the same in every theme. Components use these. */
+  --pp-bg: oklch(0.22 0.005 290);
+  --pp-text: oklch(0.97 0.006 290);
+  --pp-text-strong: oklch(0.985 0.007 290);
+  --pp-label: #ffffff;
+  --pp-text-body: oklch(0.9 0.014 290);
+  --pp-text-muted: oklch(0.82 0.02 290);
+  --pp-text-subtle: oklch(0.76 0.024 290);
+  --pp-accent-a: oklch(0.5 0.245 290);
+  --pp-accent-b: oklch(0.44 0.235 290);
+  --pp-accent-text: oklch(0.83 0.09 290);
+  --pp-focus: oklch(0.77 0.125 290);
+  --pp-surface: oklch(0.2 0.032 290 / 0.5);
+  --pp-surface-solid: oklch(0.2 0.032 290);
+  --pp-surface-raised: oklch(0.15 0.03 290 / 0.82);
+  --pp-popover: oklch(0.15 0.03 290 / 0.95);
+  --pp-hairline: oklch(0.36 0.05 290 / 0.36);
+  --pp-field: oklch(0.09 0.016 290 / 0.72);
+  --pp-field-focus: oklch(0.13 0.024 290 / 0.9);
+  --pp-field-border: oklch(0.42 0.045 290 / 0.6);
+  --pp-field-border-hover: oklch(0.56 0.06 290 / 0.8);
+  --pp-pressed: oklch(0.48 0.07 290 / 0.6);
+  --pp-outline: oklch(0.68 0.035 290);
+  --pp-jade: oklch(0.84 0.11 160);
+  --pp-amber: oklch(0.8 0.13 75);
+  --pp-coral: oklch(0.78 0.125 22);
 
-  /* Canvas: black with a trace of violet. */
-  --void: oklch(0.115 0.014 288);
+  /* Derived from the theme tokens above. */
+  --pp-well: oklch(0.06 0.016 290 / 0.5);
+  --pp-footer: oklch(0.075 0.018 290 / 0.4);
+  --pp-selected: oklch(0.5 0.245 290 / 0.3);
+  --pp-selected-ring: oklch(0.77 0.125 290 / 0.45);
+  --pp-pressed-ring: oklch(0.77 0.125 290 / 0.6);
+  --pp-focus-halo: oklch(0.77 0.125 290 / 0.22);
+  --pp-edited-ring: oklch(0.8 0.13 75 / 0.85);
+  --pp-edited-fill: oklch(0.8 0.13 75 / 0.08);
+  --pp-on-amber: oklch(0.2 0.03 75);
+  --pp-toast: oklch(0.22 0.04 290);
+  --pp-toast-ring: oklch(0.77 0.125 290 / 0.4);
+  --pp-field-inset: inset 0 1px 1px oklch(0 0 0 / 0.4);
+  --pp-ring-focus: inset 0 0 0 1px var(--pp-focus), 0 0 0 3px var(--pp-focus-halo);
+  --pp-ring-pressed: inset 0 0 0 1px var(--pp-pressed-ring);
+  --pp-accent-fill: linear-gradient(180deg, var(--pp-accent-a), var(--pp-accent-b));
 
-  /* Light field painted on body::before, behind every glass surface. */
-  --glow-indigo: oklch(0.44 0.19 272 / 0.5);
-  --glow-violet: oklch(0.43 0.2 298 / 0.5);
-  --glow-plum: oklch(0.38 0.18 308 / 0.52);
-  --glow-sheen: oklch(0.86 0.08 300 / 0.06);
-  --glow-sheen-2: oklch(0.8 0.1 278 / 0.045);
-  --vignette: oklch(0.05 0.01 288 / 0.5);
+  /* Primitives. Older component rules still read these; they point at the theme. */
 
-  /* Glass tints, darkest to most lit. Translucent by design. */
-  --glass-0: oklch(0.075 0.018 290 / 0.55);
+  /* Canvas */
+  --void: var(--pp-bg);
+
+  /* The optional light field painted on body::before (Settings > Background glow). */
+  --glow-indigo: oklch(0.44 0.19 290 / 0.5);
+  --glow-violet: oklch(0.43 0.2 290 / 0.5);
+  --glow-plum: oklch(0.38 0.18 290 / 0.52);
+  --glow-sheen: oklch(0.86 0.08 290 / 0.06);
+  --glow-sheen-2: oklch(0.8 0.1 290 / 0.045);
+  --vignette: oklch(0.05 0.01 290 / 0.5);
+
+  /* Tints, darkest to most lit. Translucent, but never blurred. */
+  --glass-0: var(--pp-field);
   --glass-1: oklch(0.15 0.03 290 / 0.6);
-  --glass-2: oklch(0.2 0.032 290 / 0.5);
-  --glass-3: oklch(0.36 0.05 292 / 0.36);
-  --glass-4: oklch(0.48 0.07 292 / 0.34);
-  --glass-pop: oklch(0.17 0.03 290 / 0.9);
+  --glass-2: var(--pp-surface);
+  --glass-3: var(--pp-hairline);
+  --glass-4: oklch(0.48 0.07 290 / 0.34);
+  --glass-pop: var(--pp-popover);
 
-  /* Glass edges */
+  /* Edges */
   --edge-top: oklch(1 0 0 / 0.2);
-  --edge-side: oklch(0.92 0.03 295 / 0.09);
-  --edge-bottom: oklch(0.76 0.14 295 / 0.18);
-  --refract: oklch(0.66 0.2 294 / 0.32);
+  --edge-side: oklch(0.92 0.03 290 / 0.09);
+  --edge-bottom: oklch(0.76 0.14 290 / 0.18);
+  --refract: oklch(0.66 0.2 290 / 0.32);
   --sheen-top: oklch(1 0 0 / 0.075);
-  --sheen-low: oklch(0.7 0.17 295 / 0.06);
+  --sheen-low: oklch(0.7 0.17 290 / 0.06);
 
-  /* Neutrals, tinted toward the accent hue. */
-  --mist-10: oklch(0.97 0.006 295);
-  --mist-9: oklch(0.9 0.014 295);
-  --mist-8: oklch(0.82 0.02 295);
-  --mist-7: oklch(0.76 0.024 294);
-  --mist-6: oklch(0.68 0.035 293);
-  --mist-5: oklch(0.85 0.03 295 / 0.13);
+  /* Neutrals */
+  --mist-10: var(--pp-text);
+  --mist-9: var(--pp-text-body);
+  --mist-8: var(--pp-text-muted);
+  --mist-7: var(--pp-text-subtle);
+  --mist-6: var(--pp-outline);
+  --mist-5: oklch(0.85 0.03 290 / 0.13);
 
   /* Ultraviolet */
-  --uv-200: oklch(0.88 0.065 296);
-  --uv-300: oklch(0.83 0.09 294);
-  --uv-400: oklch(0.77 0.125 292);
+  --uv-200: oklch(0.88 0.065 290);
+  --uv-300: var(--pp-accent-text);
+  --uv-400: var(--pp-focus);
   --uv-500: oklch(0.58 0.24 290);
-  --uv-600: oklch(0.5 0.245 290);
-  --uv-700: oklch(0.44 0.235 293);
-  --grape-600: oklch(0.45 0.235 304);
-  --uv-950: oklch(0.985 0.007 295);
+  --uv-600: var(--pp-accent-a);
+  --uv-700: var(--pp-accent-b);
+  --uv-950: var(--pp-text-strong);
 
   /* Status and syntax. No cyan: class names read in jade, components in orchid. */
-  --mint-500: oklch(0.83 0.13 165);
-  --amber-500: oklch(0.84 0.14 78);
-  --coral-500: oklch(0.78 0.125 22);
-  --jade-400: oklch(0.84 0.11 160);
+  --mint-500: var(--pp-jade);
+  --amber-500: var(--pp-amber);
+  --coral-500: var(--pp-coral);
+  --jade-400: var(--pp-jade);
   --teal-400: var(--jade-400);
   --orchid-400: oklch(0.84 0.115 338);
 
@@ -102,8 +150,8 @@
   --surface: var(--void);
   --bg: var(--glass-2);
   --surface-warm: var(--glass-3);
-  --field: var(--glass-0);
-  --well: oklch(0.06 0.016 290 / 0.5);
+  --field: var(--pp-field);
+  --well: var(--pp-well);
 
   /* Text */
   --fg: var(--mist-10);
@@ -124,17 +172,16 @@
   --accent-on: var(--uv-950);
   --accent-tint: color-mix(in oklab, var(--uv-500) 22%, transparent);
   --accent-line: color-mix(in oklab, var(--uv-400) 80%, transparent);
-  --accent-gloss:
-    linear-gradient(180deg, oklch(1 0 0 / 0.14) 0%, oklch(1 0 0 / 0.04) 46%, oklch(1 0 0 / 0) 54%),
-    linear-gradient(165deg, var(--uv-600) 0%, var(--uv-700) 58%, var(--grape-600) 100%);
+  --accent-gloss: var(--pp-accent-fill);
 
   /* Status */
-  --success: var(--mint-500);
-  --warn: var(--amber-500);
-  --danger: var(--coral-500);
+  --success: var(--pp-jade);
+  --warn: var(--pp-amber);
+  --danger: var(--pp-coral);
 
-  --focus: var(--uv-300);
-  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus);
+  /* Keyboard focus outlines use the accent text colour; field and selection rings use --pp-focus. */
+  --focus: var(--pp-accent-text);
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--pp-focus);
 
   /* Type */
   --font-body: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
@@ -178,9 +225,7 @@
   --motion-base: 200ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  /* Glass material */
-  --glass-blur: blur(28px) saturate(190%);
-  --glass-blur-soft: blur(18px) saturate(160%);
+  /* Material: a sheen and specular edges, never a backdrop blur. */
   --glass-sheen: linear-gradient(180deg, var(--sheen-top) 0%, oklch(1 0 0 / 0.02) 36%, oklch(1 0 0 / 0) 62%, var(--sheen-low) 100%);
   --spec: inset 0 1px 0 var(--edge-top);
   --refraction: inset 0 -1px 0 var(--edge-bottom), inset 0 -14px 16px -16px var(--refract);
@@ -317,9 +362,10 @@ body,
   background: transparent;
 }
 
-/* The light field: three soft glows, a faint conic sheen and a vignette.
-   Static on purpose, so the blurred glass above it never has to re-render. */
-body::before {
+/* The canvas is the graphite base. The light field (three soft glows, a faint
+   conic sheen and a vignette) is opt-in: Settings > Background glow sets
+   html[data-light-field="on"]. Static on purpose, so nothing above re-renders. */
+html[data-light-field="on"] body::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -417,8 +463,6 @@ kbd {
   flex: none;
   border-radius: var(--radius-slab);
   background: var(--glass-sheen), var(--glass-1);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
   box-shadow: var(--elev-glass);
 }
 
@@ -603,15 +647,21 @@ kbd {
   outline-offset: -2px;
 }
 
-.tabs .seg .badge {
-  min-width: 18px;
-  justify-content: center;
-}
-
+/* Count badges on tabs (Changes) are amber in every state. */
+.tabs .seg .badge,
 .tabs .seg button[aria-selected="true"] .badge {
-  color: var(--accent-on);
-  background: oklch(0 0 0 / 0.28);
+  justify-content: center;
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--pp-amber);
   box-shadow: none;
+  color: var(--pp-on-amber);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Six tabs still fit at Chrome's narrowest side panel width with count badges
@@ -746,15 +796,10 @@ kbd {
   min-height: 38px;
   padding: 8px 16px;
   border-radius: var(--radius-lg);
-  background: var(--accent-gloss);
-  color: var(--accent-on);
+  background: var(--pp-accent-fill);
+  color: var(--pp-text-strong);
   font-size: var(--text-sm);
-  box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 0.34),
-    inset 0 0 0 1px oklch(1 0 0 / 0.08),
-    inset 0 -1px 0 oklch(0.24 0.14 300 / 0.5),
-    0 1px 2px oklch(0 0 0 / 0.55),
-    0 4px 12px -6px oklch(0.5 0.25 293 / 0.5);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.28), 0 1px 2px oklch(0 0 0 / 0.55);
 }
 
 .btn-pill::before {
@@ -769,15 +814,6 @@ kbd {
 }
 
 @media (hover: hover) {
-  .btn-pill:hover:not([disabled]) {
-    box-shadow:
-      inset 0 1px 0 oklch(1 0 0 / 0.4),
-      inset 0 0 0 1px oklch(1 0 0 / 0.1),
-      inset 0 -1px 0 oklch(0.24 0.14 300 / 0.5),
-      0 1px 2px oklch(0 0 0 / 0.55),
-      0 5px 14px -6px oklch(0.5 0.25 293 / 0.55);
-  }
-
   .btn-pill:hover:not([disabled])::before {
     opacity: 1;
   }
@@ -785,11 +821,7 @@ kbd {
 
 /* Pressed: the glass sinks, its highlight dims and the drop shadow tightens. */
 .btn-pill:active:not([disabled]) {
-  box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 0.18),
-    inset 0 0 0 1px oklch(1 0 0 / 0.06),
-    inset 0 2px 4px oklch(0.12 0.08 292 / 0.35),
-    0 1px 1px oklch(0 0 0 / 0.5);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.18), inset 0 2px 4px oklch(0.12 0.08 290 / 0.35), 0 1px 1px oklch(0 0 0 / 0.5);
 }
 
 .btn-pill:active:not([disabled])::before {
@@ -797,10 +829,9 @@ kbd {
   opacity: 1;
 }
 
+/* Disabled buttons of every kind fade to 45% and refuse the pointer. */
 .btn-pill[disabled] {
-  background: var(--glass-3);
-  color: var(--meta);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.08), inset 0 0 0 1px var(--border-soft);
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -834,11 +865,7 @@ kbd {
 
 @media (hover: hover) {
   .btn-ghost:hover:not([disabled]) {
-    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.12), inset 0 0 0 1px var(--mist-7);
-  }
-
-  .btn-ghost:hover:not([disabled])::before {
-    opacity: 1;
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.12), inset 0 0 0 1px var(--pp-text-subtle);
   }
 }
 
@@ -847,8 +874,7 @@ kbd {
 }
 
 .btn-ghost[disabled] {
-  color: var(--meta);
-  box-shadow: inset 0 0 0 1px var(--border-soft);
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -980,41 +1006,51 @@ kbd {
 
 /* ---------------------------------------------------------------- fields */
 
-/* Fields are dark glass wells: a shade below whatever they sit on. */
+/* Large fields (color filter, API key, add origin, search): a recessed well
+   with a real 1px border. Same hover and focus as the small editor fields. */
 .input,
 .textarea,
 .select-wrap select {
   width: 100%;
-  padding: 8px 11px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--field);
-  color: var(--fg);
+  padding: 8px 12px;
+  border: 1px solid var(--pp-field-border);
+  border-radius: 8px;
+  background: var(--pp-field);
+  color: var(--pp-text);
   font: inherit;
-  font-size: var(--text-sm);
-  box-shadow: inset 0 1px 2px oklch(0 0 0 / 0.3);
+  font-size: 13px;
+  line-height: 20px;
+  box-shadow: var(--pp-field-inset);
+  transition:
+    border-color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease,
+    background-color var(--motion-fast) ease;
 }
 
 @media (hover: hover) {
   .input:hover,
   .textarea:hover,
   .select-wrap select:hover {
-    border-color: var(--mist-7);
+    border-color: var(--pp-field-border-hover);
   }
 }
 
 .input:focus,
 .textarea:focus,
 .select-wrap select:focus {
-  border-color: var(--focus);
+  outline: none;
+  border-color: var(--pp-focus);
+  background-color: var(--pp-field-focus);
+  box-shadow: 0 0 0 3px var(--pp-focus-halo);
 }
 
 .input::placeholder,
 .textarea::placeholder {
-  color: var(--meta);
+  color: var(--pp-text-subtle);
 }
 
-.input.input-error {
+.input.input-error,
+.input[aria-invalid="true"] {
   border-color: var(--danger);
   box-shadow: 0 0 0 1px var(--danger);
 }
@@ -1078,12 +1114,13 @@ kbd {
   margin-top: var(--space-3);
 }
 
-/* Field labels read like a spec sheet. */
+/* Field labels: 13px / 600 white, the same everywhere. */
 .f > span {
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: 500;
+  color: var(--pp-label);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
 }
 
 .f-grid {
@@ -1127,8 +1164,6 @@ kbd {
   border-bottom-color: var(--edge-bottom);
   border-radius: var(--radius-card);
   background: var(--glass-sheen), var(--bg);
-  -webkit-backdrop-filter: var(--glass-blur-soft);
-  backdrop-filter: var(--glass-blur-soft);
   box-shadow: inset 0 -12px 16px -16px var(--refract), var(--shadow-tight);
 }
 
@@ -1636,19 +1671,6 @@ button:disabled.dark\:text-electricblue-300 {
   }
 }
 
-/* "Reset all" discards work, so it stays quiet instead of being the loudest fill. */
-button.dark\:bg-white.dark\:text-slate-900 {
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--border);
-  color: var(--danger);
-}
-
-@media (hover: hover) {
-  button.dark\:bg-white.dark\:text-slate-900:hover:not(:disabled) {
-    background: color-mix(in oklab, var(--coral-500) 12%, transparent);
-  }
-}
-
 /* Colours the old build referenced but never compiled. */
 .bg-mintfresh-600 {
   background: var(--success);
@@ -1702,19 +1724,11 @@ button.dark\:bg-white.dark\:text-slate-900 {
 .z-50.dark\:bg-slate-800,
 .animate-fade-in.dark\:bg-slate-700 {
   background-color: var(--glass-pop);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
   box-shadow: var(--elev-glass);
 }
 
 .animate-fade-in.dark\:bg-slate-700 {
   z-index: 30;
-}
-
-.sticky.backdrop-blur {
-  background-color: oklch(0.15 0.03 290 / 0.82);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
 }
 
 /* Utility-built inputs have no border, so give their focus a ring. */
@@ -1740,14 +1754,11 @@ select.border-0:focus-visible,
   .finding,
   .provider-card,
   .z-50.dark\:bg-slate-800,
-  .animate-fade-in.dark\:bg-slate-700,
-  .sticky.backdrop-blur {
+  .animate-fade-in.dark\:bg-slate-700 {
     background: oklch(0.19 0.025 290);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
   }
 
-  body::before {
+  html[data-light-field="on"] body::before {
     background: var(--void);
   }
 }
@@ -1783,7 +1794,7 @@ select.border-0:focus-visible,
     outline-offset: -2px;
   }
 
-  body::before {
+  html[data-light-field="on"] body::before {
     display: none;
   }
 }
@@ -1823,16 +1834,6 @@ select.border-0,
 /* Tree metadata stays readable on a selected row. */
 .dark\:bg-electricblue-900\/40 .dark\:text-slate-500 {
   color: var(--muted);
-}
-
-/* The Changes toolbar wraps whole buttons, never their labels. */
-.sticky.backdrop-blur,
-.sticky.backdrop-blur > .ml-auto {
-  flex-wrap: wrap;
-}
-
-.sticky.backdrop-blur button {
-  white-space: nowrap;
 }
 
 @media (hover: hover) {
@@ -1880,8 +1881,27 @@ button[aria-busy="true"]:not(.btn-ghost)::after {
   outline-offset: -2px;
 }
 
-.tree-row[aria-selected="true"] {
-  box-shadow: inset 2px 0 0 var(--accent-hi);
+/* The selected row: a violet tint and a focus-coloured inset ring. */
+.tree-row[aria-selected="true"],
+.tree-row.dark\:bg-electricblue-900\/40 {
+  background-color: var(--pp-selected);
+  box-shadow: inset 0 0 0 1px var(--pp-selected-ring);
+}
+
+@media (hover: hover) {
+  .tree-row:not([aria-selected="true"]):hover {
+    background-color: oklch(0.36 0.05 290 / 0.3);
+  }
+}
+
+/* Edited elements carry a 6px amber dot at the end of their row. */
+.pp-edited-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-inline-start: auto;
+  border-radius: 50%;
+  background: var(--pp-amber);
 }
 
 .tree-chev,
@@ -2002,37 +2022,6 @@ button[aria-busy="true"]:not(.btn-ghost)::after {
   line-height: 1.6;
 }
 
-.pp-color-row {
-  position: relative;
-  isolation: isolate;
-  min-height: 28px;
-  font-variant-numeric: tabular-nums;
-}
-
-.pp-color-row::before {
-  content: "";
-  position: absolute;
-  inset: -8px -12px;
-  z-index: -1;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  transition: background-color var(--motion-fast) var(--ease-standard);
-}
-
-@media (hover: hover) {
-  .pp-color-row:hover::before {
-    background: oklch(1 0 0 / 0.05);
-  }
-}
-
-.pp-color-row:active::before {
-  background: oklch(1 0 0 / 0.09);
-}
-
-.pp-color-row:focus-visible {
-  outline-offset: 4px;
-}
-
 .pp-swatch {
   border-radius: min(var(--radius-sm), 30%);
   box-shadow: 0 0 0 1px var(--border);
@@ -2098,31 +2087,40 @@ button[aria-busy="true"]:not(.btn-ghost)::after {
   padding: 0 var(--space-2);
 }
 
-/* Toasts sit above the send bar. */
+/* One shared toast, centred 16px above the bottom of the panel. */
 .pp-toast-region {
   position: absolute;
-  right: var(--space-3);
-  bottom: 60px;
-  left: var(--space-3);
-  z-index: 40;
+  bottom: 16px;
+  left: 50%;
+  z-index: 50;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
 .pp-toast {
-  max-width: 616px;
-  margin-inline: auto;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-lg);
-  background: var(--glass-pop);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-  box-shadow: var(--elev-glass);
-  color: var(--fg);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  line-height: 1.4;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--pp-toast);
+  box-shadow: inset 0 0 0 1px var(--pp-toast-ring), 0 8px 24px -8px oklch(0 0 0 / 0.6);
+  color: var(--pp-text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
   overflow-wrap: anywhere;
-  animation: fade-in var(--motion-base) var(--ease-standard);
+  animation: pp-toast-in 160ms ease-out;
+}
+
+@keyframes pp-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Test-connection result: pinned to the bottom of Settings, with a non-colour cue. */
@@ -2185,8 +2183,6 @@ button[aria-busy="true"]:not(.btn-ghost)::after {
   .pp-toast,
   .settings-view > .test-result {
     background: oklch(0.19 0.025 290);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
   }
 }
 
@@ -2299,7 +2295,6 @@ button[aria-busy="true"]:not(.btn-ghost)::after {
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   background: var(--glass-pop);
-  backdrop-filter: var(--glass-blur-soft);
   box-shadow: var(--elev-glass);
 }
 
@@ -2338,7 +2333,6 @@ button[aria-busy="true"]:not(.btn-ghost)::after {
 @media (prefers-reduced-transparency: reduce) {
   .afs-options {
     background: oklch(0.19 0.025 290);
-    backdrop-filter: none;
   }
 }
 
@@ -2401,3 +2395,1713 @@ button[aria-busy="true"]:not(.btn-ghost)::after {
   color: oklch(0.88 0.15 85);
 }
 
+
+/* ------------------------------------- Ultraviolet, filtered: shared parts */
+
+/* Field labels in the style editor: 13px / 600 white. The amber dot and the
+   undo control stay beside the label. */
+.pp-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--pp-label);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.pp-label > button {
+  color: var(--pp-text-subtle);
+}
+
+@media (hover: hover) {
+  .pp-label > button:hover {
+    color: var(--pp-amber);
+  }
+}
+
+/* The small field, used for every style-editor value. Icon fields put the
+   well on the wrapper, so :focus-within lights the whole box. */
+.pp-field {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background-color: var(--pp-field);
+  color: var(--pp-text);
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  box-shadow: var(--pp-field-inset), inset 0 0 0 1px var(--pp-field-border);
+  transition:
+    box-shadow var(--motion-fast) ease,
+    background-color var(--motion-fast) ease;
+}
+
+.pp-field-mono,
+.pp-field-icon .pp-field-input {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+}
+
+.pp-field::placeholder,
+.pp-field-input::placeholder {
+  color: var(--pp-text-subtle);
+}
+
+@media (hover: hover) {
+  .pp-field:hover {
+    box-shadow: var(--pp-field-inset), inset 0 0 0 1px var(--pp-field-border-hover);
+  }
+}
+
+input.pp-field:focus,
+textarea.pp-field:focus,
+select.pp-field:focus,
+.pp-field-icon:focus-within {
+  outline: none;
+  background-color: var(--pp-field-focus);
+  box-shadow: var(--pp-ring-focus);
+}
+
+/* The value differs from the page's original. Focus wins while typing. */
+.pp-field[data-edited="true"]:not(:focus):not(:focus-within) {
+  background-color: var(--pp-edited-fill);
+  box-shadow: inset 0 0 0 1px var(--pp-edited-ring);
+}
+
+.pp-field-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pp-field-glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--pp-text-muted);
+}
+
+.pp-field-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  outline: none;
+}
+
+.pp-field-input:focus-visible {
+  outline: none;
+}
+
+.pp-field-note {
+  min-height: 52px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* Native selects in the editor get the same well. */
+select.border-0 {
+  border-radius: 6px;
+  background-color: var(--pp-field);
+  box-shadow: var(--pp-field-inset), inset 0 0 0 1px var(--pp-field-border);
+}
+
+/* Pressed toggles: flow, alignment, text-align, Clip content, auto flow,
+   segment options, size/corner/side toggles, intent and severity pills,
+   favourites and filters. One treatment, always paired with aria-pressed. */
+.pp-pressable[aria-pressed="true"],
+button.dark\:bg-electricblue-800[aria-pressed="true"] {
+  background-color: var(--pp-pressed);
+  color: var(--pp-text-strong);
+  box-shadow: var(--pp-ring-pressed);
+}
+
+/* Segmented wells (flow, auto flow, text-align, alignment grid). */
+.flex.w-full.rounded-lg.dark\:bg-slate-700,
+.flex.w-full.rounded-lg.dark\:bg-mintfresh-800,
+.grid.grid-cols-3.gap-px.dark\:bg-slate-700,
+.grid.grid-cols-3.gap-px.dark\:bg-mintfresh-800 {
+  background-color: var(--pp-hairline);
+  box-shadow: none;
+}
+
+.flex.w-full.rounded-lg.dark\:bg-mintfresh-800,
+.grid.grid-cols-3.gap-px.dark\:bg-mintfresh-800 {
+  box-shadow: inset 0 0 0 1px var(--pp-edited-ring);
+}
+
+/* Intent and severity: single-select pills that can be cleared. */
+.pp-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.pp-pill-label {
+  margin-inline-end: 2px;
+  color: var(--pp-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.pp-pill {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--pp-hairline);
+  color: var(--pp-text-body);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  transition: background-color var(--motion-fast) ease;
+}
+
+@media (hover: hover) {
+  .pp-pill:hover:not([aria-pressed="true"]) {
+    background-color: oklch(0.42 0.05 290 / 0.5);
+  }
+}
+
+.pp-annot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid var(--pp-hairline);
+  border-radius: 12px;
+  background: var(--pp-surface);
+}
+
+/* Cards, popovers and small buttons on the theme tokens. */
+.pp-card {
+  padding: 12px;
+  border: 1px solid var(--pp-hairline);
+  border-radius: 12px;
+  background: var(--pp-surface);
+}
+
+.pp-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 5px 12px;
+  border-radius: 10px;
+  background: var(--pp-accent-fill);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.28), 0 1px 2px oklch(0 0 0 / 0.55);
+  color: var(--pp-text-strong);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.pp-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border: 1px solid var(--pp-outline);
+  border-radius: 10px;
+  color: oklch(0.93 0.012 290);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .pp-btn-outline:hover:not(:disabled) {
+    background-color: var(--pp-hairline);
+  }
+}
+
+.pp-btn-primary:disabled,
+.pp-btn-outline:disabled,
+.pp-btn:disabled,
+.link-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pp-link-btn {
+  color: var(--pp-accent-text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+@media (hover: hover) {
+  .pp-link-btn:hover:not(:disabled) {
+    text-decoration-line: underline;
+  }
+}
+
+/* The proposed fix: AI edits wait here until you apply or dismiss them. */
+.pp-proposal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid oklch(0.77 0.125 290 / 0.5);
+  border-radius: 12px;
+  background: var(--pp-surface);
+}
+
+.pp-proposal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pp-proposal-head > span:last-child,
+.pp-proposal-reason {
+  color: var(--pp-text-subtle);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.pp-proposal-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.pp-proposal-line > b {
+  font-weight: 600;
+}
+
+.pp-from {
+  color: var(--pp-text-subtle);
+  text-decoration-line: line-through;
+}
+
+.pp-arrow {
+  color: var(--pp-text-subtle);
+}
+
+.pp-to {
+  color: var(--pp-jade);
+}
+
+.pp-proposal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* The toast clears the send bar when one is showing. */
+.send-bar ~ .pp-toast-region {
+  bottom: 72px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-field,
+  .pp-pill,
+  .input,
+  .textarea,
+  .select-wrap select {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .pp-field,
+  .pp-field-icon {
+    outline: 1px solid FieldText;
+    outline-offset: -1px;
+  }
+
+  .pp-field[data-edited="true"] {
+    outline: 2px dashed Highlight;
+  }
+
+  .pp-pressable[aria-pressed="true"],
+  button.dark\:bg-electricblue-800[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
+/* ------------------------------------------------------------- box model */
+
+/* Developer-tools style: margin > border > padding > content, each layer a
+   30px | 1fr | 30px grid with its values on all four sides. */
+.pp-bm-card {
+  padding: 8px;
+  border: 1px solid var(--pp-hairline);
+  border-radius: 12px;
+  background: var(--pp-surface);
+  user-select: none;
+}
+
+.pp-bm-title {
+  margin-bottom: 8px;
+  color: var(--pp-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 18px;
+}
+
+.pp-bm-layer {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 30px;
+  align-items: center;
+  padding: 2px 0;
+  border-radius: 6px;
+}
+
+.pp-bm-margin {
+  border: 1px dashed rgba(246, 178, 107, 0.55);
+  background-color: rgba(246, 178, 107, 0.1);
+}
+
+.pp-bm-border {
+  border: 1px solid oklch(0.8 0.13 75 / 0.5);
+  background-color: oklch(0.8 0.13 75 / 0.12);
+}
+
+.pp-bm-padding {
+  border: 1px dashed rgba(166, 207, 152, 0.5);
+  background-color: rgba(166, 207, 152, 0.12);
+}
+
+.pp-bm-top {
+  display: grid;
+  grid-column: 1 / 4;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 6px;
+}
+
+.pp-bm-bottom {
+  display: flex;
+  grid-column: 1 / 4;
+  justify-content: center;
+}
+
+.pp-bm-name {
+  color: var(--pp-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  line-height: 16px;
+}
+
+.pp-bm-v {
+  overflow: hidden;
+  color: oklch(0.93 0.012 290);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pp-bm-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px 4px;
+  border: 1px solid oklch(0.77 0.125 290 / 0.55);
+  border-radius: 4px;
+  background-color: oklch(0.5 0.245 290 / 0.2);
+  color: var(--pp-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------- colors */
+
+.pp-colors-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--pp-hairline);
+  background: var(--pp-surface);
+}
+
+.pp-colors-bar .input {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.pp-colors-empty {
+  padding: 32px 12px;
+  color: var(--pp-text-muted);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+}
+
+/* The page palette: one segment per colour, as wide as its usage. */
+.pp-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 12px 10px;
+}
+
+.pp-palette-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pp-palette-title {
+  color: var(--pp-label);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.pp-palette-meta {
+  color: var(--pp-text-subtle);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+}
+
+.pp-palette-strip {
+  display: flex;
+  gap: 3px;
+  height: 28px;
+}
+
+.pp-palette-seg {
+  flex-basis: 0;
+  min-width: 14px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.14);
+  transition: box-shadow var(--motion-fast) ease;
+}
+
+.pp-palette-seg[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--pp-bg), 0 0 0 4px var(--pp-focus);
+}
+
+/* Rows */
+.pp-color-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px 16px;
+}
+
+.pp-color-item {
+  border-radius: 12px;
+  transition: background-color var(--motion-fast) ease;
+}
+
+.pp-color-item[data-open="true"] {
+  background-color: oklch(0.2 0.032 290 / 0.6);
+  box-shadow: inset 0 0 0 1px var(--pp-field-border);
+}
+
+.pp-color-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 12px;
+  text-align: start;
+}
+
+@media (hover: hover) {
+  .pp-color-row:hover {
+    background-color: oklch(0.36 0.05 290 / 0.22);
+  }
+}
+
+.pp-color-row:focus-visible {
+  outline-offset: -2px;
+}
+
+.pp-color-swatch,
+.pp-aa-tile {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.pp-color-swatch {
+  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.14), 0 1px 2px oklch(0 0 0 / 0.35);
+}
+
+.pp-color-main {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pp-color-hexline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.pp-color-hex {
+  color: var(--pp-text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 16px;
+}
+
+.pp-color-count {
+  color: var(--pp-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+}
+
+.pp-color-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.pp-role {
+  padding: 1px 7px;
+  border: 1px solid var(--pp-field-border);
+  border-radius: 999px;
+  color: oklch(0.86 0.02 290);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+}
+
+.pp-color-grade {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.pp-wcag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 14px;
+}
+
+.pp-wcag-pass {
+  color: var(--pp-jade);
+}
+
+.pp-wcag-mid {
+  color: var(--pp-amber);
+}
+
+.pp-wcag-fail {
+  color: var(--pp-coral);
+}
+
+.pp-color-ratio {
+  color: var(--pp-text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 14px;
+}
+
+/* "Aa" in the colour on white: contrast is always measured against #ffffff. */
+.pp-aa-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pp-color-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 8px 10px 60px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.pp-color-dl {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  row-gap: 6px;
+}
+
+.pp-dt {
+  color: var(--pp-text-subtle);
+}
+
+.pp-dd {
+  min-width: 0;
+  color: oklch(0.93 0.012 290);
+  overflow-wrap: anywhere;
+}
+
+.pp-usedby {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pp-usedby > span {
+  overflow: hidden;
+  color: oklch(0.88 0.016 290);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pp-color-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 352px) {
+  .pp-color-detail {
+    padding-left: 8px;
+  }
+}
+
+@media (forced-colors: active) {
+  .pp-palette-seg,
+  .pp-color-swatch {
+    forced-color-adjust: none;
+  }
+
+  .pp-palette-seg[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+/* ----------------------------------------------------------------- issue */
+
+/* Alerts written as hints are errors: coral, 12px. */
+.hint[role="alert"] {
+  color: var(--pp-coral);
+}
+
+.pp-issue {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* The view scrolls; its blocks keep their height (the composer clips its own
+   overflow, which would otherwise let flex shrink it). */
+.pp-issue > * {
+  flex: none;
+  width: 100%;
+}
+
+.pp-lin-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pp-lin-ws {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--pp-text-body);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.pp-lin-ws > span:last-child {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pp-lin-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pp-jade);
+  box-shadow: 0 0 0 3px oklch(0.84 0.11 160 / 0.25);
+}
+
+.pp-issue-ai {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pp-issue-ai-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.pp-issue-ai-actions .btn-ghost {
+  margin-top: 0;
+}
+
+/* The composer: one card, nothing may push it wider than the panel. */
+.pp-composer {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--edge-side);
+  border-top-color: var(--edge-top);
+  border-bottom-color: var(--edge-bottom);
+  border-radius: var(--radius-card);
+  background: var(--glass-sheen), var(--pp-surface);
+  box-shadow: inset 0 -12px 16px -16px var(--refract), var(--shadow-tight);
+}
+
+.pp-composer:focus-within {
+  border-color: var(--accent-line);
+}
+
+.pp-composer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px 0;
+}
+
+.pp-composer-title {
+  color: var(--pp-text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.pp-composer-team {
+  flex: none;
+  color: var(--pp-text-subtle);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.pp-composer-body {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 14px 0;
+}
+
+.pp-composer-input,
+.pp-composer-desc {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  outline: none;
+}
+
+.pp-composer-input {
+  padding: 6px 0;
+  color: var(--pp-text-strong);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.pp-composer-desc {
+  min-height: 120px;
+  padding: 4px 0 10px;
+  color: var(--pp-text-body);
+  font-size: 13px;
+  line-height: 20px;
+  resize: vertical;
+}
+
+.pp-composer-input::placeholder,
+.pp-composer-desc::placeholder {
+  color: var(--pp-text-subtle);
+}
+
+/* The borderless title and description show focus with the accent caret and
+   a faint underline, since the card already lights up around them. */
+.pp-composer-input:focus-visible,
+.pp-composer-desc:focus-visible {
+  outline: none;
+  box-shadow: inset 0 -1px 0 var(--pp-focus);
+}
+
+.pp-composer-props {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 14px;
+  border-top: 1px solid var(--pp-hairline);
+}
+
+.pp-prop-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 3px 4px 3px 10px;
+  border: 1px solid var(--pp-field-border);
+  border-radius: 999px;
+  background: oklch(0.09 0.016 290 / 0.6);
+  font-size: 12px;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .pp-prop-pill:hover {
+    border-color: var(--pp-field-border-hover);
+  }
+}
+
+.pp-prop-k {
+  color: var(--pp-text-subtle);
+}
+
+.pp-prop-pill select {
+  min-width: 0;
+  max-width: 150px;
+  padding: 1px 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--pp-text);
+  font: inherit;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.pp-prop-pill select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--pp-focus);
+}
+
+.pp-prop-pill select option {
+  background: var(--pp-surface-solid);
+  color: var(--pp-text);
+}
+
+.pp-el-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px 10px;
+  border: 1px solid oklch(0.77 0.125 290 / 0.4);
+  border-radius: 999px;
+  background: oklch(0.5 0.245 290 / 0.16);
+  color: var(--pp-text-body);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.pp-el-chip-k {
+  flex: none;
+  color: var(--pp-accent-text);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pp-el-chip-v {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pp-composer-gate,
+.pp-composer-note {
+  margin: 0;
+  padding: 0 14px 10px;
+}
+
+/* The footer wraps: ghosts on the left, Create grows to fill and goes full
+   width when it drops to its own line. */
+.pp-composer-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 10px 8px 6px;
+  border-top: 1px solid var(--pp-hairline);
+  background: var(--pp-footer);
+}
+
+.pp-composer-ghosts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pp-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--pp-text-body);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .pp-ghost:hover:not(:disabled) {
+    background: var(--pp-hairline);
+  }
+}
+
+.pp-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-pill.pp-create {
+  flex-grow: 1;
+  max-width: 100%;
+  min-height: 34px;
+  margin-inline-start: auto;
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+/* Recent issues */
+.pp-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.pp-recent-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pp-recent-title {
+  color: var(--pp-label);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.pp-recent-count {
+  color: var(--pp-text-subtle);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+}
+
+.pp-segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--pp-hairline);
+}
+
+.pp-segmented > button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 5px 10px;
+  border-radius: 8px;
+  color: var(--pp-text-body);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.pp-segmented > button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pp-segmented > button:focus-visible {
+  outline-offset: -2px;
+}
+
+.pp-recent .search-wrap .input {
+  padding-block: 6px;
+}
+
+.pp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.pp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--pp-field-border);
+  border-radius: 999px;
+  color: var(--pp-text-body);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+@media (hover: hover) {
+  .pp-chip:hover:not([aria-pressed="true"]) {
+    background: var(--pp-hairline);
+  }
+}
+
+.pp-chip-n {
+  color: var(--pp-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pp-chip[aria-pressed="true"] .pp-chip-n {
+  color: inherit;
+}
+
+.pp-issue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pp-issue-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .pp-issue-row:hover {
+    background: oklch(0.36 0.05 290 / 0.25);
+    text-decoration: none;
+  }
+}
+
+.pp-issue-row.linked {
+  box-shadow: inset 0 0 0 1px var(--pp-accent-text);
+}
+
+.pp-issue-row:focus-visible {
+  outline-offset: -2px;
+}
+
+.pp-issue-id {
+  flex: none;
+  width: 58px;
+  overflow: hidden;
+  color: var(--pp-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+}
+
+.pp-issue-title {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  color: oklch(0.95 0.008 290);
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pp-issue-state {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+/* State circles: Backlog dashed, Todo outlined, In Progress half amber, Done filled jade. */
+.pp-state {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.pp-state-backlog,
+.pp-st-backlog {
+  color: var(--pp-text-subtle);
+}
+
+.pp-state-backlog {
+  border-style: dashed;
+}
+
+.pp-state-todo,
+.pp-st-todo {
+  color: var(--pp-text-body);
+}
+
+.pp-state-progress,
+.pp-st-progress {
+  color: var(--pp-amber);
+}
+
+.pp-state-progress {
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+
+.pp-state-done,
+.pp-st-done {
+  color: var(--pp-jade);
+}
+
+.pp-state-done {
+  background: currentColor;
+}
+
+.pp-issue-empty {
+  padding: 16px 0;
+  color: var(--pp-text-subtle);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+@media (forced-colors: active) {
+  .pp-composer,
+  .pp-prop-pill,
+  .pp-chip,
+  .pp-segmented {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+
+  .pp-chip[aria-pressed="true"],
+  .pp-segmented > button[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+  }
+}
+
+/* --------------------------------------------------------------- changes */
+
+/* The toolbar is a self-contained, opaque card so rows never show through. */
+.pp-changes-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--pp-hairline);
+  border-radius: 12px;
+  background: var(--pp-surface-solid);
+}
+
+.pp-changes-count {
+  color: var(--pp-text-body);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pp-changes-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+
+.pp-mini-select {
+  padding: 4px 8px;
+  border: 1px solid var(--pp-field-border);
+  border-radius: 6px;
+  background: var(--pp-field);
+  box-shadow: var(--pp-field-inset);
+  color: oklch(0.93 0.012 290);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    border-color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
+}
+
+@media (hover: hover) {
+  .pp-mini-select:hover {
+    border-color: var(--pp-field-border-hover);
+  }
+}
+
+.pp-mini-select:focus-visible {
+  outline: none;
+  border-color: var(--pp-focus);
+  background-color: var(--pp-field-focus);
+  box-shadow: 0 0 0 3px var(--pp-focus-halo);
+}
+
+.pp-btn-outline.pp-danger {
+  color: var(--pp-coral);
+}
+
+.pp-mcp-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--pp-hairline);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.pp-mcp-label {
+  color: var(--pp-label);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pp-mcp-row .pp-field {
+  flex: 1 1 140px;
+  width: auto;
+  padding: 4px 8px;
+}
+
+.pp-mcp-row .pp-field[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 1px var(--pp-coral);
+}
+
+.pp-mcp-error {
+  flex-basis: 100%;
+  color: var(--pp-coral);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.pp-changes > .flex.flex-col.gap-4 {
+  padding: 8px 0 0;
+}
+
+.pp-change-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pp-change-group-name {
+  color: var(--pp-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 18px;
+}
+
+.pp-change-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--pp-hairline);
+  border-radius: 12px;
+  background: var(--pp-surface);
+  cursor: pointer;
+  transition: border-color var(--motion-fast) ease;
+}
+
+@media (hover: hover) {
+  .pp-change-card:hover {
+    border-color: var(--pp-field-border-hover);
+  }
+}
+
+.pp-change-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pp-change-sel {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--pp-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pp-pin-chip {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--pp-hairline);
+  color: var(--pp-accent-text);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.pp-change-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.pp-change-note {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.pp-change-note .pp-dot-amber {
+  margin-top: 5px;
+}
+
+.pp-dot-amber {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pp-amber);
+}
+
+.pp-change-prop {
+  color: oklch(0.93 0.012 290);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.pp-change-note .pp-change-prop {
+  font-family: var(--font-body);
+}
+
+.pp-change-line .pp-from,
+.pp-change-to {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.pp-change-to {
+  color: oklch(0.93 0.012 290);
+}
+
+.pp-change-quote {
+  min-width: 0;
+  color: var(--pp-text-body);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+@media (forced-colors: active) {
+  .pp-changes-bar,
+  .pp-change-card {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+}
+
+/* ----------------------------------------------------------------- audit */
+
+/* The header is one inset card; only the findings list below it scrolls. */
+#view-audit > .pp-audit {
+  flex: 1 1 auto;
+  height: auto;
+}
+
+.pp-audit-head {
+  flex: none;
+  margin: 12px 12px 0;
+  border: 1px solid var(--pp-hairline);
+  border-radius: 12px;
+  background: var(--pp-surface);
+}
+
+.pp-audit-row + .pp-audit-row {
+  border-top: 1px solid var(--pp-hairline);
+}
+
+.pp-audit-title-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 6px 6px 12px;
+}
+
+.pp-audit-title {
+  display: flex;
+  flex: 1 1 0;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pp-audit-name {
+  color: var(--pp-text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.pp-audit-count {
+  overflow: hidden;
+  color: var(--pp-text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pp-icon-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--pp-text-muted);
+  transition:
+    background-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+@media (hover: hover) {
+  .pp-icon-toggle:hover {
+    background-color: var(--pp-hairline);
+    color: var(--pp-text);
+  }
+}
+
+.pp-icon-toggle[aria-expanded="true"] {
+  background-color: var(--pp-pressed);
+  color: var(--pp-text-strong);
+  box-shadow: var(--pp-ring-pressed);
+}
+
+.pp-icon-toggle:focus-visible {
+  outline-offset: -2px;
+}
+
+.pp-audit-ai {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 40px;
+  padding: 4px 6px 4px 12px;
+}
+
+.pp-audit-provider {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.pp-audit-ai-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: auto;
+}
+
+/* Finding cards: rule name 13px / 700. */
+.pp-audit h3.text-xs {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.pp-audit-sel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 8px 8px 12px;
+}
+
+.pp-audit-selcount {
+  color: var(--pp-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.pp-audit-sel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+
+/* Scanning: the scroll pass shows a 160px progress bar under its status. */
+.pp-scan {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.pp-scan-bar {
+  display: block;
+  width: 160px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--pp-hairline);
+}
+
+.pp-scan-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pp-focus);
+  transition: width 200ms ease;
+}
+
+/* Audit settings: a bounded, scrolling panel under the header card. */
+.pp-audit > .max-h-\[45\%\] {
+  margin: 8px 12px 0;
+  border: 1px solid var(--pp-hairline);
+  border-radius: 12px;
+  background: var(--pp-surface);
+}
+
+.pp-audit > .max-h-\[45\%\] legend {
+  color: var(--pp-label);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pp-audit > .max-h-\[45\%\] label {
+  color: var(--pp-text-body);
+  font-size: 12px;
+}
+
+.pp-audit .sm\:grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pp-audit .seg button[aria-pressed="true"] {
+  background-color: var(--pp-pressed);
+  color: var(--pp-text-strong);
+  box-shadow: var(--pp-ring-pressed);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-scan-bar > span,
+  .pp-icon-toggle {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------- color popover */
+
+.pp-color-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: start;
+}
+
+.pp-color-btn:focus-visible {
+  outline: none;
+  background-color: var(--pp-field-focus);
+  box-shadow: var(--pp-ring-focus);
+}
+
+.pp-popover {
+  border: 1px solid var(--pp-field-border);
+  border-radius: 10px;
+  background: var(--pp-popover);
+  box-shadow: 0 12px 32px -12px oklch(0 0 0 / 0.7);
+}
+
+.pp-popover-tabs {
+  padding: 10px 10px 0;
+}
+
+.pp-popover .pp-segmented > button {
+  padding-block: 4px;
+}

@@ -33,13 +33,13 @@ flowchart LR
 
 ## The send bar
 
-The bar along the bottom is shared by all tabs.
+The bar along the bottom is shared by Design, Inspect, Colors and Changes. The Issue tab carries its own **Create Linear issue** button in the composer footer, and the Audit tab carries **File N findings** in its header, so the bar is hidden on those two tabs.
 
 - **Connection line.** `Linear · <workspace>`, or `Not connected to Linear — open the Issue tab to connect`.
-- **Main button.** On Design, Inspect, Colors and Changes it reads **Create Linear issue** with your change count. On Audit, once at least one finding is selected, it reads **File N findings** (or **File all N findings** when every finding is selected). On both, pressing it builds a draft and switches to the Issue tab. It does not file yet. On the Issue tab the same button files the issue and reads **Creating…** while the request runs. It is disabled when Linear is not connected or there is nothing to send. On the Issue tab it is also disabled until the title and team are set and, for a page outside your app origins, until you tick the confirmation.
+- **Main button.** It reads **Create Linear issue** with your change count. Pressing it builds a draft and switches to the Issue tab. It does not file yet. It is disabled when Linear is not connected or there is nothing to send. Audit's **File N findings** (or **File all N findings** when every finding is selected) does the same for the selected findings.
 - **Copy button.** Copies the issue as Markdown (`# title`, a blank line, then the body). If you have not typed a title or description it copies a freshly built draft.
 
-Pressing the main button from another tab again rebuilds the draft and replaces the text in the composer.
+Pressing the main button (or **Draft from changes** in the Issue composer) again rebuilds the draft and replaces the text in the composer.
 
 ## Design
 
@@ -49,12 +49,12 @@ Pressing the main button from another tab again rebuilds the draft and replaces 
 
 <p align="center"><em>Design: the tree on top, the editor below, and the grip between them.</em></p>
 
-**What it shows.** An element tree of the page (`body` down) with a draggable grip below it, and the editor for the selected element. Tree rows show the tag, `#id` and `.classes`, or the component name when one is detected (React, Vue, Angular and Svelte are recognised). Text nodes appear as quoted rows. A dot marks an edited element, and elements that are invisible on the page (opacity 0, `visibility: hidden`, `display: none` or `aria-hidden="true"`) are dimmed. An **Edit / Info** switch above the editor flips between the editor and the same card the Inspect tab shows.
+**What it shows.** An element tree of the page (`body` down, 148 px tall by default) with a draggable grip below it, and the editor for the selected element. Tree rows show the tag, `#id` and `.classes`, or the component name when one is detected (React, Vue, Angular and Svelte are recognised). Text nodes appear as quoted rows. An amber dot at the end of a row marks an edited element, and elements that are invisible on the page (opacity 0, `visibility: hidden`, `display: none` or `aria-hidden="true"`) are dimmed. An **Edit / Info** switch above the editor flips between the editor and the same card the Inspect tab shows.
 
 **How you use it.**
 
 1. Select an element by clicking it on the page (see [Selection mode](#selection-mode)) or by choosing a row in the tree. Hovering or focusing a row outlines that element on the page.
-2. Edit values. Single-line fields commit when you press <kbd>Enter</kbd> or click out of the field. Edited fields are highlighted, and the small undo control next to a label restores that one value on the page.
+2. Edit values. Single-line fields commit when you press <kbd>Enter</kbd> or click out of the field, and <kbd>Esc</kbd> puts the draft back to the current value. In numeric fields <kbd>↑</kbd> and <kbd>↓</kbd> nudge the value by 1 (10 with <kbd>Shift</kbd>; 0.1 for opacity and 100 for font weight) without committing it. A field whose value differs from the page's original wears an amber ring, and the small undo control next to its label restores that one value on the page.
 3. Optionally write what should change in **Instructions** at the top. It is a multi-line box, so <kbd>Enter</kbd> adds a line and the note is saved when you click out of it. The note travels with the element into Changes and the issue, and it is what **Propose edits** works from.
 
 The editor has these groups:
@@ -62,7 +62,7 @@ The editor has these groups:
 | Group | Controls |
 | --- | --- |
 | In-Page Floating Toolbar Bar | Controls for the in-page floating annotation toolbar (`Toolbar: On/Off`, `Annotate`, `Place UI`, `Rearrange`, `Draw`, `Self-Drive`, `Freeze`, `Pins: On/Off`, and `Clear AFS`). |
-| Instructions & AFS v1.1+ | A free-text note for the element, **AFS v1.1+ Intent** (`fix`, `change`, `question`, `approve`), **Severity** (`blocking`, `important`, `suggestion`), **Status** (`pending`, `acknowledged`, `resolved`, `dismissed`), an **AI Quick Switcher** + **Propose edits** button, a one-click **Apply Proposed Fix** banner when an AI/Self-Drive fix is attached, and an **AFS Thread** reply list. Saving a note or editing styles automatically creates or updates a numbered in-page AFS pin (`[data-annotation-marker]`). |
+| Instructions & AFS v1.1+ | A free-text note for the element, **AFS v1.1+ Intent** (`fix`, `change`, `question`, `approve`), **Severity** (`blocking`, `important`, `suggestion`) as single-select pills (press the selected pill again to clear it), **Status** (`pending`, `acknowledged`, `resolved`, `dismissed`), an **AI Quick Switcher** + **Propose edits** button, a **Proposed fix** card with **Apply proposed fix** and **Dismiss** when an AI or Self-Drive fix is attached, and an **AFS Thread** reply list. Saving a note or editing styles automatically creates or updates a numbered in-page AFS pin (`[data-annotation-marker]`). |
 | Layout | Flow (vertical, horizontal, grid) and alignment, width and height, an optional min and max size toggle, gap (row and column gap for grids, plus grid columns and rows), padding and margin (top, bottom, left, right), and **Clip content**. |
 | Appearance | Opacity, corner radius (with a toggle for the four corners). |
 | Fill | Colour, through a picker with **Custom** and **Tokens** tabs. **Tokens** lists the page's colour variables. A value picked there is recorded by token name. |
@@ -91,7 +91,7 @@ When design mode is active, Pixelpush renders a floating bottom-right toolbar (`
 - The content scripts run in the top frame only (the manifest does not set `all_frames`) and the tree walks `childNodes`, so iframe contents and shadow roots are not inspected.
 - A shadow with several layers, or an inset shadow, cannot be edited. The editor says so and, if you had already changed that shadow, offers **Revert**.
 - Selecting by clicking is only available while selection mode is on and the Audit tab is not open.
-- **Propose edits** needs a configured provider and a non-empty note. See [AI providers](ai-providers.md).
+- **Propose edits** needs a configured provider and a non-empty note. Its result waits in a **Proposed fix** card under the AI row, listing each `property from → to` with the model's reason. **Apply proposed fix** applies the edits as tracked changes (and **Undo AI proposal** takes them back); **Dismiss** drops them. See [AI providers](ai-providers.md).
 
 ## Inspect
 
@@ -116,12 +116,12 @@ When design mode is active, Pixelpush renders a floating bottom-right toolbar (`
 
 ## Colors
 
-**What it shows.** The colours in use on the page, most-used first. Each row has a swatch, the hex value, `N instances`, the roles it appears in (`background`, `border`, `text`), the raw computed value (for example `rgb(17, 24, 39)`), and a contrast badge against white (`#ffffff`).
+**What it shows.** A **Page palette** strip, one segment per colour sized by how often it is used, with `N colors · M uses`. Below it the colours in use on the page, most-used first. Each row has a swatch, the hex value in capitals with its count (`6×`), the roles it appears in (`background`, `border`, `text`), a WCAG grade (AAA, AA, AA Large or Fail) with the contrast ratio against white (`#ffffff`), and an "Aa" sample in the colour on a white tile.
 
 **How you use it.**
 
 - Type in **Filter hex / role…** to narrow the list by hex, raw value or role.
-- Click a row to expand it: roles, the contrast ratio against `#ffffff`, up to five example selectors, and **Copy hex** and **Copy raw** buttons.
+- Click a row, or its segment in the palette strip, to expand it: the raw computed value (for example `rgb(17, 24, 39)`), the contrast ratio against `#FFFFFF`, **Used by** with up to five selectors (the last two parts, the full path on hover), and **Copy hex**, **Copy raw** and, when an element is selected in Design, **Use as fill**, which sets that element's background colour as a tracked change.
 - **Export all** copies the filtered list as a `:root { --color-1: #…; }` block followed by a `/* palette (hex,count,roles) */` list.
 
 **Limits.**
@@ -130,7 +130,6 @@ When design mode is active, Pixelpush renders a floating bottom-right toolbar (`
 - Only values it can parse as `rgb()`, `rgba()` or hex are counted, and transparent values are skipped.
 - The palette is read when the panel opens and again after a page load. It does not refresh when the page changes in other ways, such as in-page navigation or your own edits.
 - The contrast badge is always against white, not against the colour the text sits on. Use Inspect for an element's real pair.
-- As written, the **highlight** buttons next to example selectors do not send anything to the page, so they do not highlight anything yet.
 
 ## Changes
 
@@ -144,10 +143,11 @@ When design mode is active, Pixelpush renders a floating bottom-right toolbar (`
 
 **How you use it.**
 
-- Click an element row (or focus it and press <kbd>Enter</kbd> or <kbd>Space</kbd>) to jump back to Design with that element selected.
+- Click an element card (or focus it and press <kbd>Enter</kbd> or <kbd>Space</kbd>) to jump back to Design with that element selected. A card shows the selector, a `#N · intent · severity` chip when the element has an AFS pin, each edit as `property old → new` with the old value struck through, and your note in quotes.
+- The toolbar stays at the top while you scroll. Its copy buttons and **Reset all** are disabled while there is nothing to copy or reset.
 - **Copy CSS** puts one rule per edited element on the clipboard. The selector is the element's full selector path, the declarations are the edited properties in kebab-case, and a note becomes a `/* note: … */` comment. A value you picked from the colour **Tokens** tab is written as `var(--token-name)`.
 - **Copy Tailwind** puts one `<!-- selector path -->` comment per element followed by one line of utility classes. A note becomes a `<!-- note: … -->` comment.
-- **AFS v1.1+ Export & MCP Sync** lets you choose a Markdown verbosity level (**Compact**, **Standard**, **Detailed**, or **Forensic**), **Copy AFS Markdown**, **Copy AFS JSON** (each item of `annotations` conforms to `extension/schema/annotation.v1.1.json`), or **Sync to MCP** to push the session's annotations to an MCP server (default `http://localhost:4747`). The push reports an error when the server stores fewer annotations than were sent.
+- **AFS v1.1+ Export & MCP Sync** lets you choose a Markdown verbosity level (**Compact**, **Standard**, **Detailed**, or **Forensic**), **Copy AFS Markdown**, **Copy AFS JSON** (each item of `annotations` conforms to `extension/schema/annotation.v1.1.json`), or **Push to MCP** to push the session's annotations to an MCP server (default `http://localhost:4747`). The address must start with `http://` or `https://`; the button reads **Pushing…** while the request runs, and a success shows `Synced N annotations`. The push reports an error when the server stores fewer annotations than were sent.
 - **AFS v1.1+ Annotations List** shows every in-page pin, placed UI wireframe, rearranged element, freehand drawing, and Self-Drive critique with its `#N` badge, `intent`, `severity`, `status`, thread replies, and a one-click **Apply Proposed Fix** button when an AI fix is attached.
 - **Reset all** puts every edited style and text back to its original value on the page, then clears the tracked list, including your Instructions notes and AFS pins, and shows `Changes & pins cleared`.
 
@@ -203,9 +203,9 @@ That is 72 rules in [`extension/audit/antipatterns.json`](../extension/audit/ant
 **How you use it.**
 
 1. Open the **Audit** tab. It scans the page every time you open it, and rescans after a page reload or in-page navigation while the tab is open. **Rescan page** (refresh icon) scans on demand. Every finding starts selected. By default the scan first scrolls the page (see below) and the status reads `Scrolling the page to load everything… N%` before it switches to `Scanning this page…`.
-2. Hover or click a row to scroll to and highlight that element on the page. **Hide overlays** and **Show overlays** toggle the highlight boxes.
+2. Hover or click a row to scroll to and highlight that element on the page. The overlays button in the header hides and shows the highlight boxes (it reads as pressed while they are hidden). The header card stays put while the findings list scrolls under it.
 3. Open **Audit settings** to choose **Strict · 80** or **Lax · 120** for the line-length rule, switch **Blur page outside highlighted findings** and **Scroll the page first so lazy-loaded sections are audited** on or off, and tick or untick individual **Detection rules**. These are saved in your Chrome profile settings and trigger a rescan.
-4. Use the checkboxes, **Select all** and **Clear** to choose findings. The `N selected` count feeds the main button, **File N findings**, which builds an issue from the selection. See [Linear](linear.md).
+4. Use the checkboxes, **Select all** and **Clear** to choose findings. **File N findings** (or **File all N findings**) in the header's selection bar builds an issue from the selection and switches to the Issue tab. See [Linear](linear.md).
 5. **Enrich with AI** runs an AI design review on top of the detector. Unless the provider is Local CLI, the first use with each provider type asks you to confirm. It sends the audit findings, the page's design tokens and a compact outline of the page (about 14 KB at most, with the URL stripped of its query string and fragment) to your provider, which can hide false hits, reword findings, add up to eight new findings and show a short brief. The panel checks every added finding against the outline: it must quote evidence found there and, unless it is page-level, cite elements that exist there. Ungrounded suggestions and restatements of detector findings are dropped, AI-tell suggestions are capped at medium severity (high is kept only for headings and calls to action), and a response in which at least half of three or more suggestions are ungrounded is ignored entirely. The brief area tells you how many suggestions were dropped, or that the whole output was ignored. See [AI review](audit.md#ai-review) for the details and [AI providers](ai-providers.md#enrich-with-ai-audit-review) for setup.
 
 Two row actions appear while AI features are enabled:
@@ -232,9 +232,9 @@ Two row actions appear while AI features are enabled:
 
 <p align="center"><em>Issue: compose, optionally rewrite with AI, and file to Linear.</em></p>
 
-**What it shows.** Before Linear is connected, a **Connect Linear** form for a personal API key. After that, a **Create Linear issue** composer (Title, Description / Notes, Team, Project, Priority, and a chip with the attached element's selector), then **Recent / matching issues** with a search box, a scope switch (**My issues**, **Active cycle**, **Team**) and **All / Active / Backlog / Done** filters.
+**What it shows.** Before Linear is connected, a **Connect Linear** form for a personal API key (it must start with `lin_api_`). After that, a status line (`Linear · <workspace>` and **Disconnect**), a **New issue** composer (a title, a description, **Team**, **Priority** and **Project** pills, and an **Element** chip with the attached element's selector) whose footer holds **Draft from changes**, **Copy Markdown**, **Clear** and **Create Linear issue**, then **Recent / matching issues** with an `N of M` count, a scope switch (**My issues**, **Active cycle**, **Team**), a search box and **All / Active / Backlog / Done** filter chips. Each issue row shows a state circle (dashed for backlog, outlined for to-do, half-filled amber for in progress, filled jade for done), its ID, its title and its state.
 
-**How you use it.** Build a draft from Changes or Audit with the main button, adjust it, pick the team, project and priority, and press **Create Linear issue**. If an AI provider is configured, **Rewrite with AI** replaces the draft with a cleaner version and **Show raw draft** brings the original back. If the captured page is not one of your app origins, tick the third-party confirmation first.
+**How you use it.** Build a draft with **Draft from changes**, the send bar's main button or Audit's **File N findings**, adjust it, pick the team, project and priority, and press **Create Linear issue** (it reads **Creating…** while the request runs). It is disabled until the title and team are set and, for a page outside your app origins, until you tick the confirmation. **Disconnect** removes the workspace's stored key from this browser profile. If an AI provider is configured, **Rewrite with AI** replaces the draft with a cleaner version and **Show raw draft** brings the original back. If the captured page is not one of your app origins, tick the third-party confirmation first.
 
 **Limits.** Pixelpush sends a team, project, priority, title and description. It does not set a status, label, assignee or cycle. Everything else about keys, workspaces, the body layout and errors is on [Linear](linear.md).
 
@@ -246,10 +246,11 @@ Two row actions appear while AI features are enabled:
 
 <p align="center"><em>Settings: the AI checkbox, app origins and providers.</em></p>
 
-**What it shows.** Open it with the gear icon in the header. It replaces the tab content and has three parts:
+**What it shows.** Open it with the gear icon in the header. It replaces the tab content and has these parts:
 
 - **Disable AI features.** One checkbox that turns off Rewrite, Propose, Enrich, and Self-Drive while keeping your saved keys.
-- **App origins.** The hosts that count as your own app, with **Add**, **Remove** and **Restore defaults**. Capturing any other host asks you to confirm before filing.
+- **Appearance → Background glow.** Paints the soft violet light field behind the panel. It is off by default and stored only in this browser profile.
+- **App origins.** The hosts that count as your own app, with **Add**, **Remove** and **Restore defaults**. Capturing any other host asks you to confirm before filing. **Add** strips a scheme, path and port, and refuses anything that is not a host name or address, and hosts already in the list, with a message under the field.
 - **Favorite Models (1-Click Switch).** A quick-switch pill bar at the top of the Providers section listing every model you starred (`★`) across all enabled providers. Clicking any favorite immediately switches the active provider and model.
 - **Providers.** Buttons to add **Bedrock Mantle**, **Bedrock Runtime**, **OpenAI-compat**, **Cloudflare Workers AI**, or **local CLI** providers, one card per provider, a **★ Favorited / ☆ Favorite** toggle next to the model selector on each card, and a **Test connection** button on each card.
 

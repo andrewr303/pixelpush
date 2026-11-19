@@ -286,6 +286,7 @@ This area stays in the browser profile.
 | `linearAuth` | `{ workspaces, activeOrgId }`. Each workspace holds `orgId`, `name` and a credential `{ kind: "apiKey", accessToken }` that is your Linear key |
 | `linearTeams_<orgId>` | A cached copy of the `teams` query result (team, project and label names, member names and display names, the active cycle) with a timestamp. Once it is older than 5 minutes it is refreshed in the background |
 | `reviewPrompt` | `successfulSendCount`, `status`, and `snoozedUntil` for the GitHub star prompt |
+| `pixelpushLightField` | `true` when **Settings → Background glow** is on. Missing or `false` means off |
 
 Pixelpush does not encrypt either key. They sit in Chrome's extension storage as plain strings.
 
@@ -316,7 +317,7 @@ Pixelpush writes to the clipboard when you press a copy button (CSS, Tailwind, a
 | Control which hosts count as yours | Settings, **App origins**. `localhost`, `127.0.0.1` and `[::1]` always count. For any other host, the Issue tab shows a checkbox you must tick before filing, and the AI pack records `appOriginMatch: false`. |
 | Stop the audit from scrolling the page | Audit tab, the **Audit settings** button, then untick **Scroll the page first so lazy-loaded sections are audited**. The contrast check then no longer scrolls text into view either. The setting is saved in `chrome.storage.sync` as `autoScroll`. |
 | Stop the local bridge | Stop the process you started. Pixelpush starts none. |
-| Disconnect Linear | This build has no disconnect button; nothing in the code removes `linearAuth`. Revoke the key in Linear (**Settings, API**), which is what actually ends its access. To also remove the stored copy, run `chrome.storage.local.remove("linearAuth")` in the side panel's DevTools console, or uninstall the extension. That command has not been exercised in a live browser. |
+| Disconnect Linear | Issue tab, **Disconnect** next to `Linear · <workspace>`. It removes the active workspace and its key from `linearAuth` in `chrome.storage.local`; the cached `linearTeams_<orgId>` entry is left to expire. Revoke the key in Linear (**Settings, API**) as well, which is what actually ends its access. |
 
 **Uninstalling** removes the extension and its storage from the profile. Delete your providers first if you want the keys gone from your own records, and revoke the Linear key in Linear. What Chrome does with the extension's synced data after an uninstall is Chrome's behaviour, and this repository cannot confirm it.
 
