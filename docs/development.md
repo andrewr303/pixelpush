@@ -68,7 +68,7 @@ contracts: ok (4 checks)
 
 ### `contrast`
 
-`scripts/contrast.mjs` checks that the side panel stays readable on its translucent glass. It reads the design tokens from the `:root { ... }` block of `extension/panel/pixelpush.css`, rebuilds the `body::before` light field in code, and composites each translucent surface over the brightest sampled point of that field and over pure black, the way the browser blends. It then measures 91 colour pairs against WCAG 2 AA: 4.5:1 for text, 3:1 for control outlines, focus rings and state indicators. One pair (the disabled primary label) has a minimum of 0 and is listed for information only. A third figure, with every glow stacked at once, is printed per row for information only; pass or fail uses the lower of the other two ratios (brightest sampled field point and pure black).
+`scripts/contrast.mjs` checks that the side panel stays readable on its translucent surfaces. It reads the design tokens from the `:root { ... }` block of `extension/panel/pixelpush.css`, rebuilds the optional `body::before` light field in code on top of the graphite base (`--pp-bg`), and composites each translucent surface over the brightest sampled point of that field and over pure black, the way the browser blends. Nothing in the panel uses `backdrop-filter`, so surfaces are plain composites of what is behind them. It then measures 133 colour pairs against WCAG 2 AA: 4.5:1 for text, 3:1 for control outlines, focus rings and state indicators. Three pairs have a minimum of 0 and are listed for information only: the disabled primary label, and the resting and hovered field rings (the darker well marks a field on its own). A third figure, with every glow stacked at once, is printed per row for information only; pass or fail uses the lower of the other two ratios (brightest sampled field point and pure black).
 
 ```sh
 node scripts/contrast.mjs                                # the shipped stylesheet
@@ -79,10 +79,10 @@ node scripts/contrast.mjs --md                           # also print a Markdown
 The last line of a passing run is:
 
 ```text
-contrast: all 91 pairs pass
+contrast: all 133 pairs pass
 ```
 
-A failing run ends with `contrast: N pair(s) below minimum` and exits with code 1. The script mirrors the `body::before` geometry by hand, so if you change the light field in `pixelpush.css`, change the script too (the comment at the top of the stylesheet says the same).
+A failing run ends with `contrast: N pair(s) below minimum` and exits with code 1. The script mirrors the `body::before` geometry by hand, so if you change the optional light field in `pixelpush.css`, change the script too (the comment at the top of the stylesheet says the same).
 
 ### `package`
 
@@ -300,7 +300,7 @@ If you rebuild the bundles from an upstream source tree, drop the new output int
 ## Release and packaging
 
 1. Choose the version. Set it in `extension/manifest.json` and in `package.json`. `package-lock.json` carries the version in two places as well; `verify` does not check the lockfile, so update it too.
-2. Run `npm run verify`. It must end with `contrast: all 91 pairs pass` (the count follows the number of pairs in the script).
+2. Run `npm run verify`. It must end with `contrast: all 133 pairs pass` (the count follows the number of pairs in the script).
 3. Run `npm run package` to create `dist/pixelpush-<version>.zip`.
 4. Smoke-test the archive: unzip it into an empty folder and load that folder with **Load unpacked**. The archive's root is the extension, with `LICENSE`, `THIRD_PARTY_NOTICES.md` and `licenses/` alongside.
 5. Upload the archive wherever you distribute it. `scripts/package.mjs` describes the archive as one "for the Chrome Web Store or manual installs", and the README says Pixelpush is not on the Chrome Web Store yet. Nothing in this repository describes a store submission process.

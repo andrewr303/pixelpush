@@ -395,6 +395,7 @@ Each element node has `nodeId`, `tag`, `id` (with a leading `#`), `classes` (wit
 | `local` | `linearAuth` | Linear workspaces and credentials |
 | `local` | `linearTeams_<orgId>` | Cached Linear teams, with a timestamp |
 | `local` | `reviewPrompt` | State of the GitHub star prompt |
+| `local` | `pixelpushLightField` | Whether the optional background glow is on |
 
 [Privacy and permissions](privacy-and-permissions.md#what-is-stored-and-where) explains each one, including one caveat about the synced provider list.
 

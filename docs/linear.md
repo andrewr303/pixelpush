@@ -57,7 +57,7 @@ Pixelpush trims the key and sends it as the value of the `Authorization` header,
 | Team and project list | `chrome.storage.local`, entry `linearTeams_<workspace id>`. Reused for five minutes. After that the cached list is shown while a fresh copy is fetched in the background. | No. |
 
 > [!IMPORTANT]
-> The key is saved as plain text in extension storage. Pixelpush does not encrypt it. There is no **Disconnect** or **Replace key** control in this build, and the key is only ever sent to `api.linear.app`.
+> The key is saved as plain text in extension storage. Pixelpush does not encrypt it, and the key is only ever sent to `api.linear.app`. **Disconnect**, next to `Linear · <workspace>` at the top of the Issue tab, removes the active workspace and its key from `linearAuth` (the cached team list stays until it expires). There is no **Replace key** control: disconnect, then connect again with the new key.
 
 ## Workspaces
 

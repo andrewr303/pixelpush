@@ -265,7 +265,7 @@ The [documentation hub](docs/README.md) lists every page by what you are trying 
 | [Privacy and permissions](docs/privacy-and-permissions.md) | Network requests, stored data and the permissions the extension asks for. |
 | [Architecture](docs/architecture.md) | The service worker, content scripts and side panel, and how they work together. |
 | [Development](docs/development.md) | Helper scripts, the preview harness and packaging. |
-| [Design system](docs/DESIGN.md) | The palette, type, glass, motion and the layers brand mark. |
+| [Design system](docs/DESIGN.md) | The Ultraviolet theme tokens, type, shared field and button states, motion and the layers brand mark. |
 | Assets | [`docs/assets/banner.svg`](docs/assets/banner.svg) and the [`docs/screenshots/`](docs/screenshots) folder. |
 
 ## License
