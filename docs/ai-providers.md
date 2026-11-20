@@ -1,6 +1,6 @@
 # AI providers
 
-How Pixelpush's three optional AI features work, which providers they can call, and exactly what each provider needs.
+How Pixelpush's four optional AI features work, which providers they can call, and exactly what each provider needs.
 
 **Docs:** [Home](README.md) · [Getting started](getting-started.md) · [Features](features.md) · [Audit](audit.md) · **AI providers** · [Linear](linear.md) · [Privacy and permissions](privacy-and-permissions.md) · [Architecture](architecture.md) · [Development](development.md) · [Design system](DESIGN.md)
 
@@ -16,7 +16,7 @@ Pixelpush does not host a model and ships with none configured. AI is off until 
 | **Enrich with AI** | Audit tab | An AI design review on top of the detector. It does not replace the detector. See [Enrich with AI](#enrich-with-ai-audit-review). | Findings it hides as false hits, up to eight new findings that cite the page outline (suggestions that are not grounded in the page are dropped), reworded findings and a short brief. |
 
 > [!IMPORTANT]
-> With no provider saved, the three buttons are visible but disabled (their tooltip reads `Add a provider in Settings`) and Pixelpush makes no AI request. With **Disable AI features** on, the three buttons are hidden, and in this build so are the Audit tab's **Suppress** and **Preview fix** row actions. The switch's own hint reads: `Formatter still runs. Keys stay saved. Rewrite, Propose, and Enrich turn off.`
+> With no provider saved, the AI buttons are visible but disabled (their tooltip reads `Add a provider in Settings`) and Pixelpush makes no AI request. With **Disable AI features** on, the AI buttons are hidden, and in this build so are the Audit tab's **Suppress** and **Preview fix** row actions. The switch's own hint reads: `Formatter still runs. Keys stay saved. Rewrite, Propose, Self-Drive, and Enrich turn off.`
 
 <p align="center">
   <img src="screenshots/settings.png" width="320" alt="Pixelpush Settings view: the Disable AI features switch, the App origins list and the Providers section with buttons to add a provider.">

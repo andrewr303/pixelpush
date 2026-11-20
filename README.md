@@ -289,6 +289,13 @@ The [documentation hub](docs/README.md) lists every page by what you are trying 
 | [Development](docs/development.md) | Helper scripts, the preview harness and packaging. |
 | [Design system](docs/DESIGN.md) | The Ultraviolet theme tokens, type, shared field and button states, motion and the layers brand mark. |
 
+## Contributing
+
+The repository has no `CONTRIBUTING.md`, CI configuration or test suite. Run `npm run verify`
+before you open a pull request, and read the conventions in
+[docs/development.md](docs/development.md#contributing). Bugs and doc mismatches go in
+[GitHub issues](https://github.com/andrewr303/pixelpush/issues).
+
 ## License
 
 Pixelpush is released under the [MIT License](LICENSE). It contains code from other

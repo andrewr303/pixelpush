@@ -300,6 +300,6 @@ Other details you can rely on:
 
 - [Design audit](audit.md): how a scan runs, the page scroll, the 72 rules and the AI review.
 - [Linear](linear.md): connecting, filing and the issue body.
-- [AI providers](ai-providers.md): the three AI features and the four provider types.
+- [AI providers](ai-providers.md): the four AI features and the five provider types.
 - [Privacy and permissions](privacy-and-permissions.md): what each permission is used for.
 - [Architecture](architecture.md): how the panel, service worker and content scripts fit together.
