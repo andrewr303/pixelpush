@@ -120,11 +120,9 @@ document.head.append(s)
 window.postMessage({ source: "audit-command", action: "scan", config: { scanId: "t", autoScroll: true } }, "*")
 ```
 
-Results arrive as `audit-results` messages on `window`. The research record logs 6 rule types on this page before the audit work and 29 after, scanned in extension mode in Chromium; treat that as a rough reference, because the count moves when rules change. The scroll pass does not run in a hidden tab, so keep the tab visible.
+Results arrive as `audit-results` messages on `window`. The scroll pass does not run in a hidden tab, so keep the tab visible.
 
 [`tools/preview/fixtures/clean.html`](../tools/preview/fixtures/clean.html) is the negative control: a plain, well-built page that should report little or nothing. Scan it after any rule change to catch false positives.
-
-The sources and reasoning behind the thresholds are in [`research/audit-2026-10/`](../research/audit-2026-10/outputs/audit-improvements-decision-report.md).
 
 ## Next
 

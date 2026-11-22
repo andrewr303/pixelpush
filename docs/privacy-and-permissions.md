@@ -320,7 +320,7 @@ Pixelpush writes to the clipboard when you press a copy button (CSS, Tailwind, a
 
 | To do this | Do this |
 | --- | --- |
-| Turn off every AI feature but keep your keys | Settings, then tick **Disable AI features**. The panel hides the three AI buttons, and the service worker refuses `AI_COMPLETE` (it answers "Add a provider in Settings.") while the box is ticked. **Test connection** in Settings is a manual action on a named provider and still contacts that provider if you press it. |
+| Turn off every AI feature but keep your keys | Settings, then tick **Disable AI features**. The panel hides the AI buttons, and the service worker refuses `AI_COMPLETE` (it answers "Add a provider in Settings.") while the box is ticked. **Test connection** in Settings is a manual action on a named provider and still contacts that provider if you press it. |
 | Never use AI | Do not add a provider. With none enabled, the AI buttons are disabled (their tooltip reads "Add a provider in Settings") and no job can be built. |
 | Stop one provider | Untick **Enabled** on its card. |
 | Remove a provider and its key | Press **Delete** on its card. It removes the provider from the synced list and the key from `chrome.storage.local`. |

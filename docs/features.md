@@ -134,7 +134,7 @@ When design mode is active, Pixelpush renders a floating bottom-right toolbar (`
 ## Changes
 
 <p align="center">
-  <img src="screenshots/changes.png" width="320" alt="Pixelpush Changes tab: a change count with Copy CSS, Copy Tailwind and Reset all buttons above edits grouped by element, each showing property, old value and new value.">
+  <img src="screenshots/changes.png" width="320" alt="Pixelpush Changes tab: an item count with AFS Markdown, AFS JSON, Copy CSS, Copy Tailwind and Reset all buttons, an MCP Sync field, and a list of annotations each showing intent, severity, status and the edit made.">
 </p>
 
 <p align="center"><em>Changes: every edit as a diff, ready to copy or file.</em></p>
@@ -174,7 +174,7 @@ pt-[24px] text-[32px]
 ## Audit
 
 <p align="center">
-  <img src="screenshots/audit.png" width="320" alt="Pixelpush Audit tab: a findings count, Enrich with AI, rescan, overlay and settings buttons, then findings grouped under AI tells and Quality issues with checkboxes, severity chips and Suppress controls.">
+  <img src="screenshots/audit.png" width="320" alt="Pixelpush Audit tab: a findings count with rescan, overlay and settings buttons, an AI model switcher with Enrich with AI and Self-Drive, a File all findings button, then findings grouped under AI tells and Quality issues with checkboxes, Pin to AFS and Suppress controls.">
 </p>
 
 <p align="center"><em>Audit: findings grouped by category, each highlighted on the page.</em></p>
@@ -227,7 +227,7 @@ Two row actions appear while AI features are enabled:
 ## Issue
 
 <p align="center">
-  <img src="screenshots/issue.png" width="320" alt="Pixelpush Issue tab: the Linear issue composer with title, description, team, project and priority fields, and a list of recent issues below.">
+  <img src="screenshots/issue.png" width="320" alt="Pixelpush Issue tab: the connected Linear workspace, an AI model switcher with Rewrite with AI, the issue composer with title, description, team, project and priority fields, and a list of recent issues below.">
 </p>
 
 <p align="center"><em>Issue: compose, optionally rewrite with AI, and file to Linear.</em></p>
@@ -300,6 +300,6 @@ Other details you can rely on:
 
 - [Design audit](audit.md): how a scan runs, the page scroll, the 72 rules and the AI review.
 - [Linear](linear.md): connecting, filing and the issue body.
-- [AI providers](ai-providers.md): the three AI features and the four provider types.
+- [AI providers](ai-providers.md): the four AI features and the five provider types.
 - [Privacy and permissions](privacy-and-permissions.md): what each permission is used for.
 - [Architecture](architecture.md): how the panel, service worker and content scripts fit together.

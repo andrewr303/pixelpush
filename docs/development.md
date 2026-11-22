@@ -173,21 +173,6 @@ What you see:
 
 If you leave out the `data-audit-extension` line, loading `detect.js` runs a single scan about 100 ms later, draws the overlays and prints a summary in the console. That path never runs the scroll pass, so the lazy section of `slop.html` stays unbuilt unless you scroll to the bottom first. Use it for a quick look, and extension mode to exercise the scroll pass.
 
-The research report records 6 rule types on `slop.html` before the audit work and 29 after, scanned in extension mode in Chromium. Treat those as a rough reference: the count moves when rules change, and nothing in the repository checks it automatically.
-
-### Audit research record
-
-`research/audit-2026-10/` is the evidence behind the October 2026 audit changes: the scroll pass, the 26 added rules, the page digest and the grounding gates. It is a record, not code. Nothing under `extension/` reads it, and `npm run verify` and `npm run package` do not touch it.
-
-| File | Holds |
-| --- | --- |
-| `outputs/audit-improvements-decision-report.md` | The decision report: root causes, a provenance map from each adopted idea to its source and to the Pixelpush code that implements it, licence decisions, rejected and deferred ideas, what was verified and what is still unresolved. Start here. |
-| `sources/sources.jsonl` | The 102 sources the four research arms read, one JSON object per line. |
-| `artifacts/claim_ledger.jsonl` | 13 claims (`clm_001` to `clm_013`) with their source ids. Executable claims carry the script and output that was run, and numeric ones a counter-search. |
-| `arms.json` | The notes of the four research arms: sources, proposals, gaps and rejected ideas. |
-
-The report says every adopted item is an idea, threshold or failure mode re-implemented from scratch, with no third-party code or text copied. It also lists what was not calibrated: all numeric thresholds for the added rules are starting values, and the AI review was tested only through its deterministic parts (digest, grounding gates, prompt text), never against a live model. Read it before changing a threshold.
-
 ## Repository layout
 
 ```text
@@ -228,8 +213,6 @@ pixelpush/
     fixtures/
       slop.html                 A deliberately flawed, AI-looking page (has a lazy section)
       clean.html                A well-built page: the audit's negative control
-  research/
-    audit-2026-10/              Sources, claim ledger and decision report behind the audit work
   licenses/                     Full texts: Apache-2.0 and the two OFL font licenses
   LICENSE                       MIT
   THIRD_PARTY_NOTICES.md        Notices for bundled third-party code
@@ -315,7 +298,7 @@ If you rebuild the bundles from an upstream source tree, drop the new output int
 The repository has no `CONTRIBUTING.md`, no CI configuration and no test suite, so these are the conventions the files themselves state.
 
 - **Report problems and ask for changes** at [github.com/andrewr303/pixelpush/issues](https://github.com/andrewr303/pixelpush/issues). The panel's feedback icon links there.
-- **Run `npm run verify`** before you share a change. It is the only automated check. It does not cover `tools/` or `research/`, and it does not run the audit, so after a change to a rule, scan the [audit fixtures](#run-a-scan-against-a-fixture) by hand.
+- **Run `npm run verify`** before you share a change. It is the only automated check. It does not cover `tools/`, and it does not run the audit, so after a change to a rule, scan the [audit fixtures](#run-a-scan-against-a-fixture) by hand.
 - **Follow `.editorconfig`:** UTF-8, LF line endings, a final newline, two-space indentation.
 - **Keep the licenses honest.** Pixelpush is MIT-licensed (`LICENSE`, copyright 2026 Andrew Rodriguez). Third-party code keeps its own license and needs an entry in `THIRD_PARTY_NOTICES.md`; the packager copies that file and `licenses/` into every archive.
 - **Keep design changes in step with their documentation.** `pixelpush.css` is the source of truth for the look; [DESIGN.md](DESIGN.md) explains the decisions behind it.
