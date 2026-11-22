@@ -180,10 +180,12 @@ Settings sync through your Chrome profile (`chrome.storage.sync`). API keys and 
 credential stay in local extension storage (`chrome.storage.local`) and never sync. The only
 trace of a saved key in synced settings is a short hint, its first three and last four
 characters. The content scripts are injected into every page (`<all_urls>`) so the inspector
-is ready as soon as you open the panel.
+is ready as soon as you open the panel. Chrome does not allow extensions on `chrome://` pages,
+other extensions' pages or the Web Store; on those tabs the panel says so instead of showing
+the inspector (see [Getting started](docs/getting-started.md#pages-pixelpush-cannot-open-on)).
 
 The extension asks Chrome for the `sidePanel`, `scripting`, `contextMenus` and `storage`
-permissions, plus access to all sites. See
+permissions, plus access to all sites (and to `chrome://` pages, which only matters when Chrome is started with a developer switch). See
 [docs/privacy-and-permissions.md](docs/privacy-and-permissions.md) for what each one is for.
 
 ## Develop

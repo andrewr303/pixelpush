@@ -49,6 +49,31 @@ What you are looking at:
 | Tab strip | Design, Inspect, Colors, Issue, Changes, Audit. The Changes tab shows how many edits you have made and the Audit tab how many findings it found. |
 | Send bar | On Design, Inspect, Colors and Changes: the Linear connection state, the main action button, and a copy button. The Issue and Audit tabs carry their own buttons instead. |
 
+## Pages Pixelpush cannot open on
+
+Chrome decides which pages an extension may script, and some are off limits. On those tabs the panel opens with a short note that names the reason, in place of the inspector.
+
+| Page | Result | What to do |
+| --- | --- | --- |
+| `chrome://` pages, such as `chrome://version` and Chrome's own New Tab page | Blocked | Open an http or https page. For testing, start Chrome with a switch (below). |
+| Another extension's pages, including a New Tab page an extension provides | Blocked, and no switch helps | If you build the page, serve it from a local dev server such as `http://localhost:5173` and open that address. |
+| The Chrome Web Store | Blocked | Use another page. |
+| A page your organization's policy blocks | Blocked | Ask your administrator, or use another page. |
+
+The note has a **Check again** button. The panel also switches back to the inspector by itself when the tab moves to a page Pixelpush can script.
+
+### Use it on chrome:// pages
+
+Quit Chrome completely, then start it with `--extensions-on-chrome-urls`:
+
+```sh
+open -a "Google Chrome" --args --extensions-on-chrome-urls   # macOS
+chrome.exe --extensions-on-chrome-urls                       # Windows
+google-chrome --extensions-on-chrome-urls                    # Linux
+```
+
+The manifest already asks for `chrome://*/*` access, so nothing else needs changing. In Chrome for Testing 153 the inspector then ran on Chrome's New Tab page and on `chrome://version`. Chrome has a feature that turns this switch off, so it can stop working in a release. It never opens another extension's pages, and the debugger is not an alternative: see [Architecture](architecture.md#flow-open-the-panel-on-a-page-pixelpush-cannot-script).
+
 ## First fix in two minutes
 
 ```mermaid

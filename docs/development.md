@@ -55,7 +55,7 @@ There is no `test`, `lint` or `build` script.
 With the current tree it prints:
 
 ```text
-verify: ok (17 files, manifest v2.1.0)
+verify: ok (20 files, manifest v2.1.0)
 ```
 
 On failure it prints `verify: N problem(s)` and one line per problem. The file count changes when files are added to `extension/`.
@@ -68,7 +68,7 @@ contracts: ok (4 checks)
 
 ### `contrast`
 
-`scripts/contrast.mjs` checks that the side panel stays readable on its translucent surfaces. It reads the design tokens from the `:root { ... }` block of `extension/panel/pixelpush.css`, rebuilds the optional `body::before` light field in code on top of the graphite base (`--pp-bg`), and composites each translucent surface over the brightest sampled point of that field and over pure black, the way the browser blends. Nothing in the panel uses `backdrop-filter`, so surfaces are plain composites of what is behind them. It then measures 133 colour pairs against WCAG 2 AA: 4.5:1 for text, 3:1 for control outlines, focus rings and state indicators. Three pairs have a minimum of 0 and are listed for information only: the disabled primary label, and the resting and hovered field rings (the darker well marks a field on its own). A third figure, with every glow stacked at once, is printed per row for information only; pass or fail uses the lower of the other two ratios (brightest sampled field point and pure black).
+`scripts/contrast.mjs` checks that the side panel stays readable on its translucent surfaces. It reads the design tokens from the `:root { ... }` block of `extension/panel/pixelpush.css`, rebuilds the optional `body::before` light field in code on top of the graphite base (`--pp-bg`), and composites each translucent surface over the brightest sampled point of that field and over pure black, the way the browser blends. Nothing in the panel uses `backdrop-filter`, so surfaces are plain composites of what is behind them. It then measures 134 colour pairs against WCAG 2 AA: 4.5:1 for text, 3:1 for control outlines, focus rings and state indicators. Three pairs have a minimum of 0 and are listed for information only: the disabled primary label, and the resting and hovered field rings (the darker well marks a field on its own). A third figure, with every glow stacked at once, is printed per row for information only; pass or fail uses the lower of the other two ratios (brightest sampled field point and pure black).
 
 ```sh
 node scripts/contrast.mjs                                # the shipped stylesheet
@@ -79,7 +79,7 @@ node scripts/contrast.mjs --md                           # also print a Markdown
 The last line of a passing run is:
 
 ```text
-contrast: all 133 pairs pass
+contrast: all 134 pairs pass
 ```
 
 A failing run ends with `contrast: N pair(s) below minimum` and exits with code 1. The script mirrors the `body::before` geometry by hand, so if you change the optional light field in `pixelpush.css`, change the script too (the comment at the top of the stylesheet says the same).
@@ -91,7 +91,7 @@ A failing run ends with `contrast: N pair(s) below minimum` and exits with code 
 - **Contents:** every file under `extension/` (skipping `.DS_Store`) with paths relative to `extension/`, so `manifest.json` is at the root of the archive. It also adds `LICENSE`, `THIRD_PARTY_NOTICES.md` and everything in `licenses/`.
 - **Order and compression:** entries are sorted by name, and each is deflated at level 9 unless that is not smaller.
 - **Reproducibility:** every entry gets the same fixed timestamp (1 January 2026), which the script says keeps the archive byte-for-byte reproducible.
-- **Output:** with the current tree, `package: dist/pixelpush-2.1.0.zip (21 files)`.
+- **Output:** with the current tree, `package: dist/pixelpush-2.1.0.zip (25 files)`.
 
 `dist/` and `*.zip` are in `.gitignore`.
 
@@ -195,9 +195,12 @@ pixelpush/
   extension/                    The loadable extension. No build step
     manifest.json               Manifest V3
     sidepanel.html              Side panel entry
+    restricted.html             Side panel view for tabs Pixelpush cannot script
     background.js               Service worker (compiled)
     panel/
       panel.js                  Side panel bundle (compiled)
+      guard.js                  Page check that runs before panel.js (source)
+      restricted.js             Behaviour for restricted.html (source)
       tailwind.css              Compiled Tailwind utilities
       pixelpush.css             Design system: tokens, palette, components (source)
       fonts/                    Instrument Sans and JetBrains Mono (woff2)
@@ -245,7 +248,8 @@ After you change a file under `extension/`:
 
 - Click the reload arrow on Pixelpush's card in `chrome://extensions`.
 - Close and reopen the side panel so it loads the new `panel.js` and CSS.
-- The service worker's install hook injects `inspector.js` and `audit.js` into open `http` and `https` tabs, but if the panel says it cannot reach the page after a reload, reload that tab.
+- The service worker's install hook injects `inspector.js` and `audit.js` into open `http` and `https` tabs, and it injects them again when the panel opens on a tab that does not answer. If the panel still shows the blocked view, Chrome refuses to script that page.
+- To see the blocked view without a blocked tab, open `chrome-extension://<extension id>/restricted.html?tabId=1&kind=chrome-page` in a tab. `kind` is `chrome-page`, `extension-page`, `web-store`, `policy` or `blocked`.
 - To see the service worker's console and network traffic, use the **service worker** link on the card. For the panel, right-click inside it and choose **Inspect**.
 
 ## Regenerate the icons
@@ -277,6 +281,7 @@ icons: extension/icons/icon-128.png
 | Permissions, content-script scope, version, icons | `extension/manifest.json` | Keep `version` equal to `package.json`; `verify` checks it |
 | Audit rules and detection | `extension/audit/detect.js`, `extension/audit/antipatterns.json` | Vendored from Impeccable under Apache-2.0. `detect.js` marks its own additions as "Pixelpush additions". The catalog and the `ANTIPATTERNS` array in `detect.js` list the same 72 rule ids. The panel reads the JSON for the rule names in Audit settings and the detector reads its own array, so change both together. After a change, scan both [audit fixtures](#audit-fixtures) and check that `clean.html` stays quiet. If you change the logic or the catalog, keep the "Changes from the upstream source" paragraph in `THIRD_PARTY_NOTICES.md` accurate |
 | Fonts | `extension/panel/fonts/` | Each font needs its OFL text in `licenses/` and a row in `THIRD_PARTY_NOTICES.md`, or `verify` fails |
+| The blocked view and the page check that opens it | `restricted.html`, `panel/guard.js`, `panel/restricted.js`; the worker side is `ppCheck` in `background.js` | Readable. Its styles are the "blocked page" section of `pixelpush.css` |
 | Panel behaviour, the AI router, the inspector, the audit bridge | `panel.js`, `background.js`, `inspector.js`, `audit.js` | Compiled, minified, single-letter identifiers. See below |
 
 ### Working with the compiled bundles
@@ -300,7 +305,7 @@ If you rebuild the bundles from an upstream source tree, drop the new output int
 ## Release and packaging
 
 1. Choose the version. Set it in `extension/manifest.json` and in `package.json`. `package-lock.json` carries the version in two places as well; `verify` does not check the lockfile, so update it too.
-2. Run `npm run verify`. It must end with `contrast: all 133 pairs pass` (the count follows the number of pairs in the script).
+2. Run `npm run verify`. It must end with `contrast: all 134 pairs pass` (the count follows the number of pairs in the script).
 3. Run `npm run package` to create `dist/pixelpush-<version>.zip`.
 4. Smoke-test the archive: unzip it into an empty folder and load that folder with **Load unpacked**. The archive's root is the extension, with `LICENSE`, `THIRD_PARTY_NOTICES.md` and `licenses/` alongside.
 5. Upload the archive wherever you distribute it. `scripts/package.mjs` describes the archive as one "for the Chrome Web Store or manual installs", and the README says Pixelpush is not on the Chrome Web Store yet. Nothing in this repository describes a store submission process.

@@ -32,7 +32,8 @@
     "storage"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "chrome://*/*"
   ],
   "content_scripts": [
     {
