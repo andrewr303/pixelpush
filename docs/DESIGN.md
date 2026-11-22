@@ -113,7 +113,7 @@ a white page and 4.39:1 on a black one.
 `npm run verify` runs [`scripts/contrast.mjs`](../scripts/contrast.mjs). It reads the
 tokens from the stylesheet, rebuilds the optional light field over the graphite base, and
 composites every translucent surface over both the brightest point of the field and pure
-black, the way the browser blends. It then measures 133 rendered pairs against WCAG 2 AA
+black, the way the browser blends. It then measures 134 rendered pairs against WCAG 2 AA
 (4.5:1 for text, 3:1 for outlines, focus and state indicators) and fails the build if any
 pair drops below its threshold. The script mirrors the `body::before` geometry by hand, so
 update both together.

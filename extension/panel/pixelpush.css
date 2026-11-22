@@ -4105,3 +4105,73 @@ button.dark\:bg-electricblue-800[aria-pressed="true"] {
 .pp-popover .pp-segmented > button {
   padding-block: 4px;
 }
+
+/* ------------------------------------------------------- blocked page */
+
+/* restricted.html: the panel's view of a tab Chrome will not let Pixelpush
+   script. One card on the theme tokens; the text, the command wells and the
+   action row reuse the sizes the panel already writes. */
+.pp-blocked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.pp-blocked-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pp-blocked-text {
+  color: var(--pp-text-body);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.pp-blocked-summary {
+  cursor: pointer;
+}
+
+.pp-blocked-dev {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.pp-blocked-dev > .pp-blocked-text {
+  margin-top: var(--space-2);
+}
+
+.pp-blocked-cmd {
+  display: block;
+  padding: 6px var(--space-2);
+  border: 1px solid var(--pp-field-border);
+  border-radius: 6px;
+  background: var(--pp-field);
+  box-shadow: var(--pp-field-inset);
+  color: var(--pp-text);
+  font-size: 12px;
+  line-height: 16px;
+  overflow-wrap: anywhere;
+  user-select: all;
+  white-space: pre-wrap;
+}
+
+.pp-blocked-flag {
+  white-space: nowrap;
+}
+
+.pp-blocked-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.pp-blocked-status {
+  color: var(--pp-text-subtle);
+  font-size: 12px;
+  line-height: 16px;
+}

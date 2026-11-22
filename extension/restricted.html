@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pixelpush</title>
+    <link rel="preload" href="/panel/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/panel/tailwind.css">
+    <link rel="stylesheet" href="/panel/pixelpush.css">
+    <script src="/panel/restricted.js" defer></script>
+  </head>
+  <body>
+    <!-- Shown in the side panel when Chrome will not let Pixelpush script the tab.
+         restricted.js keeps the paragraphs whose data-only list names the reason
+         the service worker reported, and removes the rest. -->
+    <main class="pp-blocked">
+      <section class="pp-card pp-blocked-card" aria-labelledby="pp-blocked-title">
+        <h1 id="pp-blocked-title" class="pp-composer-title">Pixelpush can't run on this page</h1>
+
+        <p class="pp-blocked-text" data-only="chrome-page">Chrome doesn't let extensions run on its own pages, which include the New Tab page and anything under chrome://.</p>
+        <p class="pp-blocked-text" data-only="extension-page">Chrome doesn't let one extension run inside another extension's pages, including a New Tab page that an extension provides.</p>
+        <p class="pp-blocked-text" data-only="web-store">Chrome doesn't let extensions run on the Chrome Web Store.</p>
+        <p class="pp-blocked-text" data-only="policy">A browser policy from your organization blocks extensions on this page.</p>
+        <p class="pp-blocked-text" data-only="blocked">Chrome refused to run Pixelpush on this page. Another extension's page or one of Chrome's own pages is the usual cause.</p>
+
+        <p class="pp-blocked-text" data-only="chrome-page">Open an http or https page to use Pixelpush. To test it on chrome:// pages, you can start Chrome with a developer switch.</p>
+        <p class="pp-blocked-text" data-only="extension-page">If you build this page, open it from a local dev server (for example http://localhost:5173). Pixelpush works on any http or https page.</p>
+        <p class="pp-blocked-text" data-only="web-store">Open any other http or https page to use Pixelpush.</p>
+        <p class="pp-blocked-text" data-only="policy">Ask your administrator to allow extensions on this site, or use a page the policy doesn't cover.</p>
+        <p class="pp-blocked-text" data-only="blocked">Open an http or https page to use Pixelpush, or reload this page and press Check again.</p>
+
+        <details class="pp-blocked-dev" data-only="chrome-page">
+          <summary class="pp-link-btn pp-blocked-summary">Developer switch for chrome:// pages</summary>
+          <p class="pp-blocked-text">Quit Chrome completely, then start it with <code><span class="pp-blocked-flag">--extensions-on-chrome-urls</span></code>. Pixelpush already asks for chrome:// access in its manifest. Chrome can turn this switch off in some releases, and it never opens other extensions' pages.</p>
+          <p class="hint">macOS</p>
+          <code class="pp-blocked-cmd">open -a "Google Chrome" --args <span class="pp-blocked-flag">--extensions-on-chrome-urls</span></code>
+          <p class="hint">Windows</p>
+          <code class="pp-blocked-cmd">chrome.exe <span class="pp-blocked-flag">--extensions-on-chrome-urls</span></code>
+          <p class="hint">Linux</p>
+          <code class="pp-blocked-cmd">google-chrome <span class="pp-blocked-flag">--extensions-on-chrome-urls</span></code>
+        </details>
+
+        <div class="pp-blocked-actions">
+          <button type="button" id="pp-recheck" class="pp-btn-outline">Check again</button>
+          <span id="pp-status" class="pp-blocked-status" role="status"></span>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

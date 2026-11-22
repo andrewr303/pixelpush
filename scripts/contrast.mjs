@@ -254,6 +254,7 @@ const pairs = [
   ["--pp-text-muted", "ppCard", TEXT, "captions on cards"],
   ["--pp-text-muted", "ppSolid", TEXT, "captions on the opaque Changes toolbar"],
   ["--pp-text-body", "ppColorOpen", TEXT, "details in an open colour row"],
+  ["--pp-text-body", "ppCard", TEXT, "paragraphs on the blocked-page card"],
   ["--pp-text-body", "ppHairline", TEXT, "text on a hairline-tinted chip"],
   ["--pp-text-strong", "ppPressed", TEXT, "label on a pressed toggle"],
   ["--pp-text-strong", "ppAccent", TEXT, "label on the accent gradient"],

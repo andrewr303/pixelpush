@@ -9,7 +9,7 @@ How Pixelpush is put together: which part runs where, what the parts say to each
 
 ## At a glance
 
-Pixelpush is a Manifest V3 extension with five runtime pieces, a rule catalog and a storage layer. It has no server of its own.
+Pixelpush is a Manifest V3 extension with seven runtime pieces, a rule catalog and a storage layer. It has no server of its own.
 
 | Piece | File | Runs in | Source or compiled |
 | --- | --- | --- | --- |
@@ -17,6 +17,8 @@ Pixelpush is a Manifest V3 extension with five runtime pieces, a rule catalog an
 | Service worker | `extension/background.js` | The extension's service worker | Compiled |
 | Page inspector | `extension/content-scripts/inspector.js` | Every page, in the content-script (isolated) world | Compiled |
 | Audit bridge | `extension/content-scripts/audit.js` | Every page, in the content-script (isolated) world | Compiled |
+| Panel guard | `extension/panel/guard.js` | The side panel page, before `panel.js` | Readable source |
+| Blocked-page view | `extension/restricted.html`, `extension/panel/restricted.js` | The side panel, for tabs Pixelpush cannot script | Readable source |
 | Detector | `extension/audit/detect.js` | The page's own JavaScript world, injected on the first scan | Readable source (Apache-2.0) |
 | Rule catalog | `extension/audit/antipatterns.json` | Read by the side panel | Readable data |
 | Storage | `chrome.storage.sync` and `chrome.storage.local` | Chrome | n/a |
@@ -69,7 +71,7 @@ What lives in the panel, as far as the bundle shows:
 - **The AI front end.** It builds the context pack, asks for confirmation the first time you use a provider kind (the audit review has its own confirmation, stored as `<kind>:audit-page`), sends `AI_COMPLETE` to the service worker and validates what comes back (see [AI providers](ai-providers.md)). For the audit review it also asks the page for a digest first and checks every AI-added finding against that digest before showing it (see [Flow: AI design review of the audit](#flow-ai-design-review-of-the-audit)).
 - **The capture formatter.** It turns edits, notes and selected audit findings into the issue title and Markdown body, and into the CSS and Tailwind copy formats.
 
-The panel opens per tab. The worker sets the side panel to disabled globally at start-up, then enables it for one tab and loads `sidepanel.html?tabId=<id>` when you click the toolbar icon or the **Design with Pixelpush** context-menu item. The panel reads `tabId` from its own URL.
+The panel opens per tab. The worker sets the side panel to disabled globally at start-up, then enables it for one tab and loads `sidepanel.html?tabId=<id>` when you click the toolbar icon or the **Design with Pixelpush** context-menu item. The panel reads `tabId` from its own URL. `sidepanel.html` loads `guard.js` first, a classic script that asks the worker whether the tab can be scripted and swaps in `restricted.html` when it cannot (see [Flow: open the panel on a page Pixelpush cannot script](#flow-open-the-panel-on-a-page-pixelpush-cannot-script)).
 
 ### Service worker
 
@@ -81,13 +83,13 @@ The panel opens per tab. The worker sets the side panel to disabled globally at 
 | `runtime.onInstalled` | Creates the **Design with Pixelpush** menu item (`open-pixelpush`, all contexts) and injects `inspector.js` and `audit.js` into already-open `http` and `https` tabs |
 | `runtime.onConnect` | Tracks a port named `sidepanel:<tabId>`. When the panel disconnects, it tells that tab to leave design mode |
 | `tabs.onUpdated` | When a tab with an open panel finishes loading, re-enables design mode (up to 5 attempts, 200 ms apart) and tells the panel with `tab-refreshed` |
-| `runtime.onMessage` | Re-sends `audit-findings`, `audit-error`, `audit-overlays-toggled`, `audit-progress` and `audit-digest` from a tab to the panel with the sender's `tabId`; on `audit-inject-fallback` injects `audit/detect.js` into the tab's `MAIN` world (and reports `audit-error` if that fails); relays tree messages, forwards design-mode toggles, runs component annotation and routes AI jobs (below) |
+| `runtime.onMessage` | Re-sends `audit-findings`, `audit-error`, `audit-overlays-toggled`, `audit-progress` and `audit-digest` from a tab to the panel with the sender's `tabId`; on `audit-inject-fallback` injects `audit/detect.js` into the tab's `MAIN` world (and reports `audit-error` if that fails); relays tree messages, forwards design-mode toggles, runs component annotation and routes AI jobs (below) and answers `pixelpush-page-check` |
 
 The AI router is the other half of the worker. It accepts `AI_COMPLETE`, `AI_ABORT` and `AI_TEST` only from an extension page (a sender with no `tab` and a `chrome-extension://<id>` URL), so a page's content script cannot start an inference job. It resolves the active provider, reads the key from `chrome.storage.local`, sends one request, extracts JSON from the reply and validates it per job kind. Details are in [AI providers](ai-providers.md) and [Privacy and permissions](privacy-and-permissions.md).
 
 ### Content scripts
 
-The manifest injects both files into every page at `document_idle`.
+The manifest injects both files into every page Chrome allows an extension to script, at `document_idle`. The worker injects them itself in two more cases: into open http and https tabs when the extension is installed or updated, and into a tab that does not answer when the panel opens on it.
 
 - **`inspector.js`** is the page inspector. It builds the element tree and sends it to the service worker (when design mode is switched on, after a selection, and when the page URL changes). It also answers the panel's messages: return computed styles, apply an inline style, text or icon edit, draw the hover outline and measurement overlay, and scan the page for colours and CSS custom properties. Hover and click capture are only attached after `enable-design-mode` and removed on `disable-design-mode`. The file is large (about 714 KB) because it bundles React and the Lucide icon set. The inspector's own code is the first 6 KB or so (selector, tree and measurement helpers) and the last 19 KB (from `main(){`).
 - **`audit.js`** is a small bridge (about 7 KB). On the first `audit-scan` it appends a `<script>` that loads `audit/detect.js` from the extension into the page and holds the scan command until the detector answers `audit-ready`; later scans are posted straight away. Commands reach the detector as `window.postMessage` calls of the form `{ source: "audit-command", action }`: the panel's scan, overlay, highlight and `audit-digest-request` messages all travel this way. It checks the shape of every reply (results, errors, progress, digests and overlay state) before forwarding it to the service worker, renaming `audit-results` to `audit-findings` on the way. If the script tag fails to load (for example a strict page CSP), it sends `audit-inject-fallback` and the worker injects `detect.js` with `scripting.executeScript` into the `MAIN` world instead.
@@ -133,6 +135,7 @@ All messages are plain objects with a `type` string. Nothing here is a public AP
 | `AI_ABORT` | `id` of the job | `{ ok: true, aborted: true }` |
 | `AI_TEST` | `providerId` | `{ ok, latencyMs, model }` or `{ ok: false, error }` |
 | `AFS_SYNC_SERVER` | `endpoint`, `action` (`push`, `sync_session`, `health`, `pending`, `list_sessions`, `update_status`), `payload` | `{ ok: true, sessionId, syncedCount }` or `{ ok: false, error }`. Accepted only from the side panel |
+| `pixelpush-page-check` | `tabId` | `{ ok: true }`, or `{ ok: false, kind }` where `kind` is `chrome-page`, `extension-page`, `web-store`, `policy` or `blocked`. Accepted only from an extension page. Sent by `guard.js` and `restricted.js` |
 | port `sidepanel:<tabId>` | none | Opened while the panel is attached to a tab. Its disconnect is the signal to leave design mode |
 
 ### Page to service worker
@@ -153,7 +156,7 @@ All messages are plain objects with a `type` string. Nothing here is a public AP
 | `type` | To | Purpose |
 | --- | --- | --- |
 | `element-tree`, `inline-edit-commit`, `audit-findings`, `audit-error`, `audit-overlays-toggled`, `audit-progress`, `audit-digest` | panel | Re-sent with the sender's `tabId` added. The panel ignores any whose `tabId` is not its own tab, and drops `audit-findings`, `audit-error` and `audit-progress` whose `scanId` is not the current scan |
-| `tab-refreshed` | panel | A tab with an open panel finished loading |
+| `tab-refreshed` | panel | A tab with an open panel finished loading. `guard.js` checks the tab again when it arrives |
 | `enable-design-mode`, `disable-design-mode` | tab | Attach or detach the inspector's hover and click capture |
 | `components-annotated`, `component-tree-annotated` | tab | Annotation finished; the inspector rebuilds and resends its tree |
 
@@ -209,6 +212,38 @@ sequenceDiagram
 ```
 
 In words: selection mode is on by default when the panel opens, so the panel asks the worker to switch the inspector on. A click is captured by the inspector, which asks the worker to name components, rebuilds its tree and reports the selection. The panel then asks for the element's styles. Each edit is recorded in the panel and applied to the page as an inline style. Reloading the page discards the inline styles; the panel copies any unsaved edits to the clipboard when it sees the reload.
+
+## Flow: open the panel on a page Pixelpush cannot script
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as You
+  participant P as Side panel (guard.js)
+  participant W as Service worker
+  participant T as Tab
+
+  U->>W: Click the toolbar icon
+  W->>P: Open sidepanel.html?tabId
+  P->>W: pixelpush-page-check (tabId)
+  W->>T: clear-highlight, as a ping
+  alt A content script answers
+    W-->>P: ok
+    P->>P: Show the inspector
+  else Nothing answers
+    W->>T: scripting.executeScript, both content scripts
+    alt Chrome allows it
+      W-->>P: ok
+    else Chrome refuses
+      W-->>P: not ok, with a kind read from the error text
+      P->>P: Replace the panel with restricted.html
+    end
+  end
+```
+
+In words: `sidepanel.html` hides itself until the worker answers, so a blocked tab never flashes the empty inspector. The kind comes from Chrome's error text because the tab's URL is hidden from an extension that cannot script it. `restricted.html` shows the matching copy and listens for the tab to finish loading again; when the worker says the tab is reachable, it sends the panel back to `sidepanel.html`. In the other direction, `tab-refreshed` makes `guard.js` check again, so navigating an open panel from a web page to the New Tab page swaps the view, and navigating back restores the inspector.
+
+Pixelpush does not use the debugger as a way in. In Chrome for Testing 153 the debugger could attach to another extension's page only with `--extensions-on-extension-urls`, never to a `chrome://` page, it shows Chrome's debugging bar, and the inspector talks to the panel through extension messages that a debugger session does not carry.
 
 ## Flow: file an issue, with an optional AI request
 
@@ -409,7 +444,8 @@ The repository ships the extension exactly as Chrome loads it. There is no `src/
 | `extension/panel/pixelpush.css` | Readable | The design layer. Loaded after `tailwind.css`, unlayered, so it wins. Edit directly |
 | `extension/audit/detect.js`, `extension/audit/antipatterns.json` | Readable, vendored | Edit directly, and keep [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md) accurate |
 | `extension/panel/panel.js` (about 1.0 MB) | Compiled and minified | Identifiers are mangled to one or two letters. UI strings, message types and storage keys are intact, so search for those |
-| `extension/background.js` (about 40 KB) | Compiled and minified | A few very long lines. The AI router and the message relay are in here |
+| `extension/background.js` (about 40 KB) | Compiled and minified | A few very long lines. The AI router and the message relay are in here, and so is the page check (`ppCheck`), which is readable |
+| `extension/restricted.html`, `extension/panel/guard.js`, `extension/panel/restricted.js` | Readable | Edit directly. The blocked view's styles are the "blocked page" section of `pixelpush.css` |
 | `extension/content-scripts/inspector.js` (about 780 KB) | Compiled and minified | Mostly bundled library code. Pixelpush's own code is at the start of the file and from `main(){` to the end |
 | `extension/content-scripts/audit.js` (about 7 KB) | Compiled and minified | The bridge |
 | `extension/panel/tailwind.css` | Compiled | Tailwind utilities that the panel bundle already uses. There is no Tailwind build here, so a utility class that is not already in the file has no styles |
@@ -445,6 +481,7 @@ No service worker, content script, side-panel API or scripting API runs in the h
 | Page digest | At most 14,000 characters of JSON: up to 28 headings, 14 calls to action, 16 sections with 200-character excerpts and 6 prose samples. Emails, 28-character-plus tokens and 10-character-plus digit runs are masked. The panel waits 9 seconds for it |
 | AI-added findings | At most 8 per reply. The panel drops ungrounded ones and restatements (word overlap 0.6 or more), lowers high to medium for AI tells and for findings that cite no heading or call to action, and discards all of them when at least half of 3 or more are ungrounded |
 | Contrast check | Up to 30 text candidates per scan. Each image it loads has 800 ms to arrive and is drawn onto a canvas of at most 640 pixels on its longest side |
+| Page check | One ping. For http, https, file and ftp pages, up to five more waits of 200 ms for the manifest's scripts before injecting. `guard.js` shows the panel anyway after 1.5 seconds without an answer |
 | Test connection | Aborts after 5 seconds |
 | Linear teams cache | 5 minutes, then revalidated in the background |
 | Linear lists | 50 issues per list, 30 for search |

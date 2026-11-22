@@ -29,15 +29,16 @@ In words: the inspector and the audit hand what they collect to the service work
 
 ## Permissions
 
-`extension/manifest.json` declares four permissions and one host permission. The manifest does not give reasons, so the "used for" column is taken from what the code does with each one.
+`extension/manifest.json` declares four permissions and two host permission patterns. The manifest does not give reasons, so the "used for" column is taken from what the code does with each one.
 
 | Permission | Used for |
 | --- | --- |
 | `sidePanel` | Turning the side panel off by default and enabling it for one tab at a time (`sidePanel.setOptions`), and opening it when you click the toolbar icon or the context-menu item (`sidePanel.open`). |
-| `scripting` | `scripting.executeScript`, for three purposes: injecting `inspector.js` and `audit.js` into tabs that were already open when the extension was installed or updated; injecting `audit/detect.js` into the page's own JavaScript world when the normal script tag is blocked; and running two small functions in that world that read framework component names (see [What runs on pages](#what-runs-on-pages)). |
+| `scripting` | `scripting.executeScript`, for four purposes: injecting `inspector.js` and `audit.js` into tabs that were already open when the extension was installed or updated; injecting the same two files when you open the panel on a tab whose page does not answer (the page check under [Pages Pixelpush cannot script](#pages-pixelpush-cannot-script)); injecting `audit/detect.js` into the page's own JavaScript world when the normal script tag is blocked; and running two small functions in that world that read framework component names (see [What runs on pages](#what-runs-on-pages)). |
 | `contextMenus` | One item, **Design with Pixelpush**, that opens the side panel. |
 | `storage` | `chrome.storage.sync` and `chrome.storage.local` (see [What is stored and where](#what-is-stored-and-where)). |
 | Host permission `<all_urls>` | Lets the extension inject into, and read the URL and title of, any tab. Pixelpush scripts whichever page you open it on, and the service worker sends model requests to whatever base URL you enter for an OpenAI-compatible provider, so neither set of hosts is known in advance. The manifest does not narrow this permission and does not say why it asks for every URL. |
+| Host permission `chrome://*/*` | Matters only when Chrome is started with `--extensions-on-chrome-urls`. With that switch it lets the service worker inject the inspector into `chrome://` pages. Without it Chrome ignores the pattern and refuses to script those pages, so it grants nothing. Chrome for Testing 153 loaded the manifest with it and showed no install warning. |
 
 Things the manifest does not ask for: `tabs`, `activeTab`, `identity`, `cookies`, `webRequest`, `downloads`, `history`, `bookmarks`, `notifications`, `clipboardRead`, `clipboardWrite`, `debugger` and `nativeMessaging`. It declares no `optional_permissions`, no `externally_connectable` and no custom `content_security_policy`, so Chrome's defaults for extension pages apply.
 
@@ -58,7 +59,7 @@ Copying to the clipboard uses `navigator.clipboard.writeText`, with a hidden-tex
 - **Where:** every URL Chrome allows an extension to script. The manifest sets neither `all_frames` nor `match_about_blank`, so Chrome's defaults apply (top frame only).
 - **When:** after the page is idle.
 - **Which world:** the content-script (isolated) world. The manifest does not set `world`.
-- **Programmatic injection:** when the extension is installed or updated, the service worker also injects both files into every open `http://*/*` and `https://*/*` tab, so you do not have to reload them.
+- **Programmatic injection:** when the extension is installed or updated, the service worker also injects both files into every open `http://*/*` and `https://*/*` tab, so you do not have to reload them. It does the same when you open the panel on a tab where neither script answers. If Chrome refuses, the panel shows a view that says why (see [Pages Pixelpush cannot script](#pages-pixelpush-cannot-script)).
 
 ### Web-accessible resource
 
@@ -110,6 +111,15 @@ The code never reads `document.cookie`, `localStorage`, `sessionStorage` or Inde
 - During an audit: a `data-audit-extension` attribute on `<html>`, a `<script>` tag for the detector (removed after it loads), overlay and spotlight elements, a `<style>` element, an `audit-hidden` class on `<body>` when you hide the overlays, and the scrolling described above, including its temporary inline `scroll-behavior`.
 
 **What the page can see.** The detector runs in the page's own JavaScript world, and the audit bridge talks to it with `window.postMessage` calls with target origin `*`, in both directions. Scripts on the page can read them. The bridge's commands carry the scan settings (the rule ids you disabled, the line-length limit, the spotlight-blur and scroll settings, the contrast-check options and a scan id), a selector to highlight, or the request id of a digest request. The detector's replies contain audit findings (selectors, rule ids, severity, detail text), scan progress (`audit-progress`: a phase and, while scrolling, a fraction) and, when you ask for an AI review, the page digest and its map from references to selectors (`audit-digest`, see [The page digest](#the-page-digest)), not keys or credentials. The digest consists of the page's own content (masked and trimmed) plus the scroll-coverage figures; its arrival tells the page that a review was requested. The detector also leaves `window.__AUDIT_CONFIG__` (the last scan settings) and the functions `auditDetect`, `auditDetectAsync`, `auditScan`, `auditScanAsync`, `auditCollectVisualContrastCandidates`, `auditAnalyzeVisualContrast` and `auditGetLastVisualContrastAnalyses` on `window`, so a page script can call them. The page can also see the attributes and overlay elements listed above, and the start-up message described earlier.
+
+## Pages Pixelpush cannot script
+
+Chrome does not let an extension script its own `chrome://` pages, other extensions' pages (including a New Tab page an extension provides), the Chrome Web Store, or a page that an organization's policy blocks. Pixelpush checks this when the panel opens and again each time the tab finishes loading while the panel is open.
+
+- **The request.** `panel/guard.js` sends the service worker `pixelpush-page-check` with the tab id. The worker accepts it only from an extension page: a sender with no `tab` and a `chrome-extension://<id>/` URL.
+- **The check.** The worker pings the tab with `clear-highlight`. If nothing answers, it waits up to a second for the manifest's scripts on http, https, file and ftp pages, then injects both content scripts. If Chrome refuses, the worker works out the reason from Chrome's error text and replies with it. It cannot use the URL: Pixelpush has no `tabs` permission, and Chrome hides the URL of a page it will not let an extension see.
+- **The result.** The panel loads `restricted.html`, which shows the reason and a **Check again** button. It makes no network request and reads nothing from the page. It returns to the inspector when the tab navigates to a page Pixelpush can script.
+- **What was observed.** In Chrome for Testing 153, with no launch switch, injection and the debugger are both refused on `chrome://` pages and on other extensions' pages. With `--extensions-on-chrome-urls`, the inspector ran on the New Tab page and on `chrome://version`. An extension-provided New Tab page and other extensions' pages stayed blocked, with and without the switch. Chrome's source has a feature that turns the switch off, so it can stop working in some releases.
 
 ## Network matrix
 
