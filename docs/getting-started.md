@@ -112,7 +112,7 @@ By default the scan first scrolls the page from top to bottom so lazy-loaded sec
 
 ## Optional: add an AI provider
 
-AI is off until you add a provider in **Settings**. Once you do, **Rewrite with AI**, **Propose edits** and **Enrich with AI** become available. Before the first request for each provider type (Local CLI aside), Pixelpush asks you to confirm what will be sent, and Enrich with AI has its own confirmation. [AI providers](ai-providers.md) covers the four provider types, their fields and what each error means.
+AI is off until you add a provider in **Settings**. Once you do, **Rewrite with AI**, **Propose edits**, **Self-Drive** and **Enrich with AI** become available. Before the first request for each provider type (Local CLI aside), Pixelpush asks you to confirm what will be sent, and Enrich with AI has its own confirmation. [AI providers](ai-providers.md) covers the five provider types, their fields and what each error means.
 
 ## If something looks off
 

@@ -68,7 +68,7 @@ Pixelpush stores each connected workspace by its Linear organization id and reme
 Build a draft first: on **Changes** or **Design** press **Create Linear issue**, or on **Audit** press **File N findings** (**File all N findings** when every finding is selected). That fills the composer and opens the Issue tab. Then review the fields and press **Create Linear issue** again.
 
 <p align="center">
-  <img src="screenshots/issue.png" width="320" alt="Pixelpush Issue tab: the Linear issue composer with title, description, team, project and priority fields, and a list of recent issues below.">
+  <img src="screenshots/issue.png" width="320" alt="Pixelpush Issue tab: the connected Linear workspace, an AI model switcher with Rewrite with AI, the issue composer with title, description, team, project and priority fields, and a list of recent issues below.">
 </p>
 
 <p align="center"><em>The Issue tab: composer on top, recent and matching issues below.</em></p>

@@ -39,15 +39,15 @@ Screenshots of the Design, Inspect, Issue, Changes and Audit tabs, plus Settings
   </tr>
   <tr>
     <td align="center" valign="top">
-      <img src="screenshots/changes.png" width="180" alt="Pixelpush Changes tab: the recorded edits with Copy CSS, Copy Tailwind and Reset all."><br>
+      <img src="screenshots/changes.png" width="180" alt="Pixelpush Changes tab: export buttons, MCP sync and the list of annotations and edits."><br>
       <sub><b>Changes</b></sub>
     </td>
     <td align="center" valign="top">
-      <img src="screenshots/audit.png" width="180" alt="Pixelpush Audit tab: findings grouped as AI tells and quality issues."><br>
+      <img src="screenshots/audit.png" width="180" alt="Pixelpush Audit tab: findings grouped as AI tells and quality issues, with an AI model switcher."><br>
       <sub><b>Audit</b></sub>
     </td>
     <td align="center" valign="top">
-      <img src="screenshots/settings.png" width="180" alt="Pixelpush Settings: the Disable AI features checkbox, app origins and AI provider cards."><br>
+      <img src="screenshots/settings.png" width="180" alt="Pixelpush Settings: the Disable AI features checkbox, the Background glow option, app origins and providers."><br>
       <sub><b>Settings</b></sub>
     </td>
   </tr>
