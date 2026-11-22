@@ -5,6 +5,25 @@ work by other authors, used under their own open-source licenses. Those licenses
 for the notices below to travel with every copy of the software, so `npm run package`
 copies this file and the [`licenses/`](licenses) folder into each release zip.
 
+## At a glance
+
+| Component | Used for | License | Full text |
+| --- | --- | --- | --- |
+| Handle (Tonkotsu AI) | Parts of the element inspector, style editor and side panel | MIT | [Notice](#inspector-style-editor-and-side-panel-core) |
+| Impeccable (Paul Bakaus) | The design-audit detector and its rule catalog | Apache-2.0 | [Notice](#design-audit-detector) and [`licenses/Apache-2.0.txt`](licenses/Apache-2.0.txt) |
+| React, React DOM and Scheduler | Side panel UI, compiled into `panel.js` | MIT | [Notice](#react-react-dom-and-scheduler-mit) |
+| Lucide icons (with portions from Feather) | Side panel icons, compiled into `panel.js` | ISC, with portions under MIT | [Notice](#lucide-icons-isc-with-portions-under-mit) |
+| WXT runtime | Runtime used by the service worker and both content scripts | MIT | [Notice](#wxt-runtime-mit) |
+| Tailwind CSS | Utility classes in `extension/panel/tailwind.css` | MIT | [Notice](#tailwind-css-mit) |
+| Instrument Sans | Panel text font | SIL OFL 1.1 | [`licenses/OFL-1.1-Instrument-Sans.txt`](licenses/OFL-1.1-Instrument-Sans.txt) |
+| JetBrains Mono | Panel code and label font | SIL OFL 1.1 | [`licenses/OFL-1.1-JetBrains-Mono.txt`](licenses/OFL-1.1-JetBrains-Mono.txt) |
+
+Everything else in this repository, including the Pixelpush panel design layer
+(`extension/panel/pixelpush.css`), the brand files in `brand/`, the helper scripts and
+the documentation, is original work released under the [MIT License](LICENSE). The
+bundled files under `extension/` are compiled and minified, so the table lists what is
+inside them. The sections below carry the notice text each license requires.
+
 ## Inspector, style editor and side panel core
 
 Parts of the element inspector, style editor and side panel are derived from Handle.
@@ -51,10 +70,10 @@ copy and broken-image rules that the browser build declared but never ran, adds 
 rules to the catalog, and parses modern CSS colour spaces. Those additions are
 original Pixelpush code, offered under the same Apache License, Version 2.0 as the
 file they live in. Ideas and thresholds for the added rules were taken from public
-projects and documents listed in
-[`research/audit-2026-10/`](research/audit-2026-10/outputs/audit-improvements-decision-report.md);
-no code or text was copied from them. The upstream NOTICE file only covers platform
-reference documents that Pixelpush does not include, so none of its notices apply here.
+projects and documents, and no code or text was copied from them. The research record
+behind those choices was removed from the repository and remains in its git history.
+The upstream NOTICE file only covers platform reference documents that Pixelpush does
+not include, so none of its notices apply here.
 
 ## Libraries compiled into the bundles
 
@@ -203,3 +222,12 @@ Font License 1.1. Each license, with its copyright line, is in `licenses/`.
 
 The files are the unmodified Latin subsets published by Fontsource, renamed for the
 extension. The fonts are not sold on their own.
+
+## Keeping this file current
+
+Add an entry here, and a license file in [`licenses/`](licenses) when the license needs
+one, whenever a release bundles new third-party code, a library, a font or an icon set.
+`npm run verify` checks only that `LICENSE`, this file and `licenses/Apache-2.0.txt`
+exist, and that every `.woff2` font has an OFL license file and a mention in this file.
+It cannot see what is compiled into the minified bundles, so a new library has to be
+added by hand.

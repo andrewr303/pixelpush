@@ -264,7 +264,6 @@ skills/
   pixelpush-self-driving/  Autonomous visual critique & AFS v1.1+ annotation skill
 brand/                     Icon sources: icon.svg (512 px PNG master), mark.svg (vector glyph)
 docs/                      Documentation, design system notes, banner and screenshots
-research/                  Research records: sources, claim ledgers, decision reports
 review/                    Cross-model review of the AFS integration: report, evidence, consult transcripts
 scripts/                   verify, contracts, contrast, package, icons
 tools/preview/             Browser preview harness for the side panel, plus audit fixtures
