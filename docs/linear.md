@@ -91,6 +91,17 @@ Build a draft first: on **Changes** or **Design** press **Create Linear issue**,
 > [!TIP]
 > Not ready to file? The clipboard button in the send bar copies the same issue as Markdown.
 
+## Quick capture
+
+[Quick capture](features.md#quick-capture) files issues from a composer over the page instead of the Issue tab, with the same connected workspace and key. It differs from the Issue tab in what it sends:
+
+- **Fields.** Team, project, status, priority, assignee and labels, all loaded from the selected team (workflow states in Linear's order, active projects, active members, the team's labels and workspace labels). The status defaults to the team's default state.
+- **Screenshot.** The screenshot is uploaded with Linear's `fileUpload` mutation and embedded in the description, and the full window is uploaded as a second image when **Attach full window** is on.
+- **Link.** The captured page's URL is attached to the issue with `attachmentLinkURL`.
+- **App origins.** The composer does not ask for the third-party confirmation; the page you capture is the one you are looking at.
+
+Its team and field lists are cached separately, as `pixelpushCaptureLinear_<workspace id>`, for five minutes.
+
 ## What the issue body contains
 
 The draft is built locally, with no AI involved, from three sources: your edits, your **Instructions** note and your selected audit findings. Sections appear only when they have content, in this order:

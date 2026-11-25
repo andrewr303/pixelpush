@@ -30,10 +30,10 @@ There is nothing to build. When the extension is installed or updated, its servi
 
 You can open Pixelpush in two ways:
 
-- Click the **Pixelpush** toolbar icon.
+- Click the **Pixelpush** toolbar icon (or press <kbd>Alt</kbd><kbd>Shift</kbd><kbd>P</kbd>) and choose **Open side panel**. The same menu starts a [quick capture](features.md#quick-capture) of an element, an area or the full window, which files a screenshot to Linear without opening the panel.
 - Right-click the page and choose **Design with Pixelpush**.
 
-The manifest declares no keyboard shortcut. The panel opens for the tab you were on, and each tab gets its own panel. Closing the panel switches selection mode off on that page.
+The panel opens for the tab you were on, and each tab gets its own panel. Closing the panel switches selection mode off on that page.
 
 <p align="center">
   <img src="screenshots/design.png" width="320" alt="The Pixelpush side panel on the Design tab: the page's element tree above the style editor, with the tab strip across the top and the send bar along the bottom.">
@@ -128,6 +128,10 @@ flowchart LR
 
 > [!NOTE]
 > If the page you captured is not one of your **App origins**, the Issue tab asks you to tick a confirmation before it will file. `localhost`, `127.0.0.1` and `[::1]` always count as yours. See [Linear](linear.md#first-party-app-origins-confirmation).
+
+## Or capture straight to Linear
+
+Once Linear is connected, you do not need the panel to file a visual bug. Press <kbd>Alt</kbd><kbd>Shift</kbd><kbd>E</kbd> (or choose **Element** in the toolbar menu), click the broken element, type a title and press <kbd>Ctrl</kbd><kbd>↵</kbd> (<kbd>⌘</kbd><kbd>↵</kbd> on a Mac). The issue gets the screenshot, the component and source file, the CSS that styles the element, the page details and the console errors and failed requests, below your text. **Draft with AI** writes the title and description for you when a provider is set up. See [Quick capture](features.md#quick-capture).
 
 ## Optional: run a design audit
 
