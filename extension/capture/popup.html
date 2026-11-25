@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pixelpush</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="pop">
+      <header class="pop-head">
+        <img src="../icons/icon-32.png" width="20" height="20" alt="" />
+        <span class="pop-name">Pixelpush</span>
+        <span class="pop-linear" id="linear"></span>
+      </header>
+
+      <section aria-labelledby="capture-label">
+        <h1 class="pop-label" id="capture-label">Capture for Linear</h1>
+        <div class="pop-modes" role="group" aria-labelledby="capture-label">
+          <button class="pop-mode" data-mode="element" type="button">
+            <span class="pop-tile" data-icon="mouse-pointer-click"></span>
+            <span class="pop-text"><span class="pop-title">Element</span><span class="pop-hint">Click anything</span></span>
+            <span class="pop-keys" data-command="capture-element"></span>
+          </button>
+          <button class="pop-mode" data-mode="area" type="button">
+            <span class="pop-tile" data-icon="square-dashed"></span>
+            <span class="pop-text"><span class="pop-title">Area</span><span class="pop-hint">Drag a region</span></span>
+            <span class="pop-keys" data-command="capture-area"></span>
+          </button>
+          <button class="pop-mode" data-mode="window" type="button">
+            <span class="pop-tile" data-icon="app-window"></span>
+            <span class="pop-text"><span class="pop-title">Full window</span><span class="pop-hint">The visible page</span></span>
+            <span class="pop-keys" data-command="capture-window"></span>
+          </button>
+        </div>
+        <p class="pop-blocked" id="blocked" role="status" hidden></p>
+      </section>
+
+      <footer class="pop-foot">
+        <button class="pop-panel" id="panel" type="button"><span data-icon="panel-right"></span>Open side panel</button>
+        <button class="pop-link" id="shortcuts" type="button">Shortcuts</button>
+      </footer>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
