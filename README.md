@@ -81,6 +81,8 @@ tab. Check the title, team and project, then press it again to create the issue.
 
 ## Features
 
+**Quick capture.** Click the toolbar icon (or press <kbd>Alt</kbd><kbd>Shift</kbd><kbd>E</kbd>), click the broken element, write a line and press <kbd>⌘</kbd><kbd>↵</kbd>. Pixelpush files a Linear issue with the screenshot, the component and its source file, the CSS rules that style the element (with any style that differs from its siblings flagged), the page details, and the console errors and failed requests that led up to it, all below your own text. Drag an area or take the full window instead, mark the screenshot up, pick the team, status, priority, assignee and labels, and let your AI provider draft the title and description from the screenshot and the page's code. See [docs/features.md](docs/features.md#quick-capture).
+
 | Tab | What you get |
 | --- | --- |
 | **Design** | An element tree for the page, a floating annotation toolbar on the page (**Annotate**, **Place UI**, **Rearrange**, **Draw**, **Self-Drive**, **Freeze**), per-element notes with intent and severity, and a live style editor for layout, spacing, size, colour, type, borders, radius and shadow. |
@@ -114,8 +116,9 @@ Each tab is covered in [docs/features.md](docs/features.md).
 
 ### AI features
 
-AI is optional and off until you add a provider. Four features use it:
+AI is optional and off until you add a provider. Five features use it:
 
+- **Draft with AI** (quick capture) writes the issue title and description from the screenshot, the captured element, its CSS and the page's console, and can read related source files the page loaded.
 - **Rewrite with AI** turns the raw capture, including annotations, wireframes and threads, into a clean issue.
 - **Propose edits** suggests CSS for the selected element, across 34 layout, typography and visual properties plus its text, from a note you write.
 - **Self-Drive** walks the page on its own and attaches structured design critiques, each with a one-click CSS or text fix.

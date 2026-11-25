@@ -1,6 +1,6 @@
 # AI providers
 
-How Pixelpush's four optional AI features work, which providers they can call, and exactly what each provider needs.
+How Pixelpush's five optional AI features work, which providers they can call, and exactly what each provider needs.
 
 **Docs:** [Home](README.md) · [Getting started](getting-started.md) · [Features](features.md) · [Audit](audit.md) · **AI providers** · [Linear](linear.md) · [Privacy and permissions](privacy-and-permissions.md) · [Architecture](architecture.md) · [Development](development.md) · [Design system](DESIGN.md)
 
@@ -13,6 +13,7 @@ Pixelpush does not host a model and ships with none configured. AI is off until 
 | **Rewrite with AI** | Issue tab | Turns the raw draft (including AFS v1.1+ annotations, wireframes, rearrangements, drawings, and threads) into a cleaner Linear issue. | A new title and body that replace the composer text. **Show raw draft** restores the original. |
 | **Propose edits** | Design tab, Edit mode | Suggests CSS across 34 layout, typography, spacing, and visual properties (plus the element's text) for the selected element from the note you wrote in **Instructions**. | A **Proposed fix** card listing each property edit (`from → to`, with the model's reason). **Apply proposed fix** applies them live to the element as tracked changes and **Undo AI proposal** reverts them; **Dismiss** drops the proposal without touching the page. |
 | **Self-Drive** | Design tab, Audit tab, and in-page toolbar | Autonomously inspects candidate elements on the page (`self_driving_critique`), spotlights each element in the viewport, and evaluates typography, rhythm, hierarchy, contrast, and polish. | Structured AFS v1.1+ annotations pinned to the page (`source: "self-driving"`), each with a 2–3 sentence design critique and one-click `proposedEdits` CSS/text fixes. |
+| **Draft with AI** | Quick capture: the quick view and the composer's AI tab | Writes the issue title and the top of the description from the screenshot, the captured element, its matching CSS rules and the console and network lines you kept. **Thorough** mode also reads up to five related files the page loaded. See [Draft with AI](#draft-with-ai-quick-capture). | A new title and description (**Restore your text** brings yours back), what the model found in the code, and suggested priority, labels and assignee with **Apply**. |
 | **Enrich with AI** | Audit tab | An AI design review on top of the detector. It does not replace the detector. See [Enrich with AI](#enrich-with-ai-audit-review). | Findings it hides as false hits, up to eight new findings that cite the page outline (suggestions that are not grounded in the page are dropped), reworded findings and a short brief. |
 
 > [!IMPORTANT]
@@ -40,6 +41,16 @@ Every AI job sends a **context pack**, not the page's HTML. Before the first Rew
 | Colour tokens | Up to 40 colour variables from the page. |
 
 Which parts are included depends on the feature. Rewrite adds the raw title and body of your draft, and Propose adds your note. A pack is capped at 40 KiB. If it is larger, Pixelpush drops the page digest, then the tokens, then the full selector, then trims the audit list to 30 findings, and if it is still too large it stops with `The capture is too large to send. Select fewer findings or edits.`
+
+## Draft with AI (quick capture)
+
+Quick capture's **Draft with AI** runs in the service worker (`capture/worker.js`) with its own request code, because its requests come from the capture composer, which the side panel's AI router does not accept. It uses the same settings: the active provider, its saved key, and the **Disable AI features** switch.
+
+- **Confirmation.** The first time per provider type, the composer shows: `Pixelpush does not host a model. Drafting sends <endpoint> the screenshot, the captured element’s HTML, styles and matching CSS, the page URL, and the console and network lines you include. Thorough mode also sends excerpts of related files the page loaded. It never sends cookies, form values or keys.` Accepting is saved in `chrome.storage.local` as `pixelpushCaptureConsent`, separately from the side panel's confirmations. Local CLI skips it.
+- **Models.** **Fast** is what the quick view uses; **Thorough** reads more and thinks longer. With Bedrock Runtime and a Claude model, Fast is `<geo>.anthropic.claude-sonnet-5-5` and Thorough is `<geo>.anthropic.claude-opus-5-5`. For every other provider both use the model on the provider card. The two modes then differ in context (Thorough adds up to five related files) and in effort: `low` for Fast and `medium` for Thorough, sent as `output_config.effort` (Messages), `reasoning.effort` (Responses) or `reasoning_effort` (Chat Completions) for the model ids that get those fields elsewhere. The choice is saved as `pixelpushCaptureModel`.
+- **Request.** One user message with the mode and the capture pack as JSON, plus the screenshot as an image: `image` content (base64 JPEG) for Messages, `image_url` for Chat Completions and `input_image` for Responses. If the provider answers HTTP 400 with a message about images or content types, the request is sent once more without the image, and the AI tab says the model drafted from the page data only. The same 429 retries and the token-parameter, `response_format` and `effort` fallbacks as the side panel apply. Output tokens are 2,048 for Fast and 4,096 for Thorough (at least 4,096 for Claude and GPT 6.1 ids). Fast stops after 60 seconds and Thorough after 150.
+- **Reply.** One JSON object `{ title, body, findings, suggest }`. The title is required and cut to 120 characters. A finding is kept only if its file names a stylesheet, source file or console source that is in the pack. Suggested labels and assignees must be names from the selected Linear team, and the priority must be one of Linear's five.
+- **Local CLI.** The bridge receives a job with `kind: "capture_draft"`, the pack and `input.system`, the system prompt, so it can build its own prompt. The screenshot is not sent to the bridge.
 
 ## Enrich with AI (audit review)
 

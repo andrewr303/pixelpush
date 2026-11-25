@@ -2,7 +2,7 @@
 // required license files and leftover strings from the pre-Pixelpush build.
 import { spawnSync } from "node:child_process"
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
-import { basename, join, relative } from "node:path"
+import { basename, dirname, join, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 import { Script } from "node:vm"
 
@@ -30,6 +30,7 @@ const referenced = [
   ...Object.values(manifest.icons ?? {}),
   ...Object.values(manifest.action?.default_icon ?? {}),
   manifest.side_panel?.default_path,
+  manifest.action?.default_popup,
   manifest.background?.service_worker,
   ...(manifest.content_scripts ?? []).flatMap((cs) => [...(cs.js ?? []), ...(cs.css ?? [])]),
   ...(manifest.web_accessible_resources ?? []).flatMap((war) => war.resources)
@@ -39,21 +40,48 @@ for (const file of new Set(referenced)) {
   if (!existsSync(join(ext, file))) fail(`manifest references missing file: ${file}`)
 }
 
-// Scripts loaded with type="module" parse as modules; everything else Chrome
-// runs (service worker, content scripts, injected files) parses as a classic script.
+const files = walk(ext)
+
+// Scripts loaded with type="module" (and everything they import) parse as
+// modules; everything else Chrome runs (service worker, content scripts,
+// injected files) parses as a classic script.
 const modules = new Set()
-for (const page of ["sidepanel.html"]) {
+const pages = [
+  "sidepanel.html",
+  manifest.action?.default_popup,
+  ...files.filter((f) => f.endsWith(".html")).map((f) => relative(ext, f))
+].filter(Boolean)
+for (const page of new Set(pages)) {
   const html = readFileSync(join(ext, page), "utf8")
-  for (const [, ref] of html.matchAll(/(?:src|href)="\/?([^"]+)"/g)) {
-    if (!existsSync(join(ext, ref))) fail(`${page} references missing file: ${ref}`)
+  const base = dirname(join(ext, page))
+  for (const [, ref] of html.matchAll(/(?:src|href)="([^"#?]+)"/g)) {
+    if (/^(https?:|data:|chrome:)/.test(ref)) continue
+    const path = ref.startsWith("/") ? join(ext, ref) : join(base, ref)
+    if (!existsSync(path)) fail(`${page} references missing file: ${ref}`)
   }
-  for (const [, ref] of html.matchAll(/<script[^>]*type="module"[^>]*src="\/?([^"]+)"/g)) {
-    modules.add(join(ext, ref))
+  for (const [, ref] of html.matchAll(/<script[^>]*type="module"[^>]*src="([^"]+)"/g)) {
+    modules.add(ref.startsWith("/") ? join(ext, ref) : join(base, ref))
   }
 }
 if (manifest.background?.type === "module") modules.add(join(ext, manifest.background.service_worker))
+// Follow static imports so every module a page pulls in is checked as one.
+for (const file of modules) {
+  if (!existsSync(file)) continue
+  const text = readFileSync(file, "utf8")
+  for (const [, ref] of text.matchAll(/^\s*(?:import|export)\s[^"']*?from\s*["'](\.{1,2}\/[^"']+)["']/gm)) {
+    const target = join(dirname(file), ref)
+    if (!existsSync(target)) fail(`${relative(root, file)} imports missing file: ${ref}`)
+    else modules.add(target)
+  }
+}
 
-const files = walk(ext)
+// The service worker entry may pull in more classic scripts with importScripts.
+const sw = manifest.background?.service_worker
+if (sw && existsSync(join(ext, sw))) {
+  for (const [, ref] of readFileSync(join(ext, sw), "utf8").matchAll(/["']([^"']+\.js)["']/g)) {
+    if (!existsSync(join(ext, ref))) fail(`${sw} imports missing file: ${ref}`)
+  }
+}
 
 for (const file of files.filter((f) => f.endsWith(".js"))) {
   if (modules.has(file)) {

@@ -44,8 +44,9 @@ There is no `test`, `lint` or `build` script.
 - `manifest_version` is not 3.
 - `manifest.version` differs from `package.json` `version`.
 - A file the manifest names does not exist: icons, the toolbar icon, the side panel page, the service worker, content-script files and web-accessible resources.
-- `sidepanel.html` references a file that does not exist.
-- A `.js` file has a syntax error. Scripts that `sidepanel.html` loads with `type="module"` are parsed as modules (`panel.js`); everything else is parsed as a classic script.
+- An extension page references a file that does not exist, or a module imports one.
+- A file the service worker entry loads with `importScripts` does not exist.
+- A `.js` file has a syntax error. Scripts that an extension page (`sidepanel.html`, the popup, the capture composer) loads with `type="module"`, and every file they import, are parsed as modules; everything else is parsed as a classic script.
 - A `.json` file is not valid JSON.
 - `LICENSE`, `THIRD_PARTY_NOTICES.md` or `licenses/Apache-2.0.txt` is missing.
 - A bundled `.woff2` font has no matching `licenses/OFL-1.1-<name>.txt` (any letter case) or is not named in `THIRD_PARTY_NOTICES.md`.
@@ -55,7 +56,7 @@ There is no `test`, `lint` or `build` script.
 With the current tree it prints:
 
 ```text
-verify: ok (20 files, manifest v2.1.0)
+verify: ok (40 files, manifest v2.1.0)
 ```
 
 On failure it prints `verify: N problem(s)` and one line per problem. The file count changes when files are added to `extension/`.
@@ -91,7 +92,7 @@ A failing run ends with `contrast: N pair(s) below minimum` and exits with code 
 - **Contents:** every file under `extension/` (skipping `.DS_Store`) with paths relative to `extension/`, so `manifest.json` is at the root of the archive. It also adds `LICENSE`, `THIRD_PARTY_NOTICES.md` and everything in `licenses/`.
 - **Order and compression:** entries are sorted by name, and each is deflated at level 9 unless that is not smaller.
 - **Reproducibility:** every entry gets the same fixed timestamp (1 January 2026), which the script says keeps the archive byte-for-byte reproducible.
-- **Output:** with the current tree, `package: dist/pixelpush-2.1.0.zip (25 files)`.
+- **Output:** with the current tree, `package: dist/pixelpush-2.1.0.zip (45 files)`.
 
 `dist/` and `*.zip` are in `.gitignore`.
 
@@ -127,11 +128,12 @@ The root path `/` serves the raw side-panel page without the stub; use `/__previ
 
 ### Audit fixtures
 
-Two plain HTML pages under `tools/preview/fixtures/` let you try the design audit without a live site. The preview server serves them at `/__preview/fixtures/<name>.html`. It serves `extension/` at `/`, so `/audit/detect.js` and the `/icons/*.png` files the pages use resolve from the extension folder.
+Three plain HTML pages under `tools/preview/fixtures/` let you try Pixelpush without a live site: `slop.html` and `clean.html` for the design audit, and `capture.html` for quick capture (load the extension, open the page from the preview server and capture it). The preview server serves them at `/__preview/fixtures/<name>.html`. It serves `extension/` at `/`, so `/audit/detect.js` and the `/icons/*.png` files the pages use resolve from the extension folder.
 
 | Fixture | What it is | What to expect |
 | --- | --- | --- |
 | `slop.html` | A deliberately generic, AI-looking landing page ("Nimbus") with real design problems: a gradient headline, glow and blur decoration, glass cards, emoji icons, an identical card row, a stat strip, numbered steps, placeholder links and copy, a stock avatar and a block of text that never reveals. A "What teams say" section is only built when a sentinel scrolls into view, which exercises the scroll pass. It loads one external image, `https://i.pravatar.cc/80?img=3`, as the stock avatar. | Many findings in both categories. Without the scroll pass the lazy section is never built, so its cards are never audited. |
+| `capture.html` | A small billing page ("Acme") for quick capture, with `capture.css`. The featured plan's button sits 8px lower than the others because of one rule, the page logs a console error and a warning, and one request fails. A script attaches React-style fiber properties so component names and source files show up without a build. | Capture the Pro card's **Upgrade** button: the composer shows `<PlanCard> › <Button>`, flags `margin-top` against the other two buttons with `capture.css:130`, and lists the error and the failed `POST`. |
 | `clean.html` | A plain, well-built page ("Harbour Bakery") that serves as a negative control. | Little or nothing. Its header comment says it exists to catch false positives when a rule changes, so a new finding here after an edit to `detect.js` points at a rule that is too loose. |
 
 ### Run a scan against a fixture
@@ -189,6 +191,8 @@ pixelpush/
       tailwind.css              Compiled Tailwind utilities
       pixelpush.css             Design system: tokens, palette, components (source)
       fonts/                    Instrument Sans and JetBrains Mono (woff2)
+    service-worker.js           Service worker entry: loads background.js and capture/worker.js
+    capture/                    Quick capture (source): popup, page-hook, overlay, worker, composer
     content-scripts/
       inspector.js              Page inspector (compiled)
       audit.js                  Audit bridge (compiled)

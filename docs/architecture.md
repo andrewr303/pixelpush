@@ -9,12 +9,13 @@ How Pixelpush is put together: which part runs where, what the parts say to each
 
 ## At a glance
 
-Pixelpush is a Manifest V3 extension with seven runtime pieces, a rule catalog and a storage layer. It has no server of its own.
+Pixelpush is a Manifest V3 extension with eight runtime pieces, a rule catalog and a storage layer. It has no server of its own.
 
 | Piece | File | Runs in | Source or compiled |
 | --- | --- | --- | --- |
 | Side panel UI | `extension/sidepanel.html`, `extension/panel/panel.js`, `tailwind.css`, `pixelpush.css` | The extension's side panel page | `panel.js` is compiled. `pixelpush.css` is readable source. `tailwind.css` is compiled utilities. |
-| Service worker | `extension/background.js` | The extension's service worker | Compiled |
+| Service worker | `extension/service-worker.js`, which loads `extension/background.js` and `extension/capture/worker.js` | The extension's service worker | `background.js` is compiled. `service-worker.js` and `capture/worker.js` are readable source |
+| Quick capture | `extension/capture/` (popup, page log recorder, selection overlay, composer) | The toolbar popup, every page (the recorder, in the page's world), the top frame on demand (the overlay), and a frame over the page (the composer) | Readable source. See [`extension/capture/README.md`](../extension/capture/README.md) |
 | Page inspector | `extension/content-scripts/inspector.js` | Every page, in the content-script (isolated) world | Compiled |
 | Audit bridge | `extension/content-scripts/audit.js` | Every page, in the content-script (isolated) world | Compiled |
 | Panel guard | `extension/panel/guard.js` | The side panel page, before `panel.js` | Readable source |
@@ -75,17 +76,61 @@ The panel opens per tab. The worker sets the side panel to disabled globally at 
 
 ### Service worker
 
+The manifest's service worker is `service-worker.js`, a one-line classic script that loads `background.js` and `capture/worker.js` with `importScripts`. The two share nothing but the worker: each registers its own listeners and ignores the other's messages.
+
 `background.js` registers these listeners:
 
 | Listener | What it does |
 | --- | --- |
-| `action.onClicked`, `contextMenus.onClicked` | Enable and open the side panel for that tab |
+| `action.onClicked`, `contextMenus.onClicked` | Enable and open the side panel for that tab. Since the toolbar icon opens a popup (`capture/popup.html`), Chrome no longer fires `action.onClicked`; the popup's **Open side panel** makes the same two `sidePanel` calls |
 | `runtime.onInstalled` | Creates the **Design with Pixelpush** menu item (`open-pixelpush`, all contexts) and injects `inspector.js` and `audit.js` into already-open `http` and `https` tabs |
 | `runtime.onConnect` | Tracks a port named `sidepanel:<tabId>`. When the panel disconnects, it tells that tab to leave design mode |
 | `tabs.onUpdated` | When a tab with an open panel finishes loading, re-enables design mode (up to 5 attempts, 200 ms apart) and tells the panel with `tab-refreshed` |
 | `runtime.onMessage` | Re-sends `audit-findings`, `audit-error`, `audit-overlays-toggled`, `audit-progress` and `audit-digest` from a tab to the panel with the sender's `tabId`; on `audit-inject-fallback` injects `audit/detect.js` into the tab's `MAIN` world (and reports `audit-error` if that fails); relays tree messages, forwards design-mode toggles, runs component annotation and routes AI jobs (below) and answers `pixelpush-page-check` |
 
 The AI router is the other half of the worker. It accepts `AI_COMPLETE`, `AI_ABORT` and `AI_TEST` only from an extension page (a sender with no `tab` and a `chrome-extension://<id>` URL), so a page's content script cannot start an inference job. It resolves the active provider, reads the key from `chrome.storage.local`, sends one request, extracts JSON from the reply and validates it per job kind. Details are in [AI providers](ai-providers.md) and [Privacy and permissions](privacy-and-permissions.md).
+
+### Quick capture
+
+Quick capture is plain, hand-written code in `extension/capture/`, with no build step. Its pieces, and how they talk:
+
+- **`popup.html`** is the toolbar popup. It sends `pp-capture:begin` (and `pp-capture:can` to grey out pages Chrome will not let it script) to the worker, or opens the side panel.
+- **`page-hook.js`** is a content script in the page's own world at `document_start` that keeps a ring buffer of console errors and warnings and fetch and XHR results. Nothing reads it until you capture.
+- **`overlay.js`** is injected on demand into the top frame (isolated world). It runs the element or area picker, describes the subject (selector, styles, matching CSS rules with file and line, flagged styles, HTML excerpt), asks the worker for the screenshot with `pp-capture:shoot`, then keeps the highlight on the subject and hosts the composer in a closed shadow root.
+- **`worker.js`** takes the screenshot with `tabs.captureVisibleTab`, runs `pageMain` in the page's world (component names and source locations, framework, the recorder's buffer), stores the capture in IndexedDB, serves it to the composer, and runs **Draft with AI** against the active provider. It also handles the three capture shortcuts and context-menu items.
+- **`composer.html`** is the quick view and the full composer, in a transparent frame over the page. It reads the capture from the worker, saves the draft back on every change, calls Linear itself (teams, team fields, `fileUpload`, `issueCreate`) with the key the side panel saved, and talks to the overlay with `chrome.tabs.sendMessage` through the worker (`pp-capture:close`, `pp-capture:new`, `pp-capture:recapture`).
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as You
+  participant P as Popup, shortcut or menu
+  participant W as Service worker
+  participant O as overlay.js
+  participant M as Page world
+  participant C as Composer frame
+  participant L as Linear
+
+  U->>P: Element, Area or Full window
+  P->>W: pp-capture:begin
+  W->>O: executeScript overlay.js, then pp-capture:start
+  U->>O: Pick an element or drag an area
+  O->>O: Describe it, hide the overlay
+  O->>W: pp-capture:shoot (anchor, element, page)
+  W->>W: captureVisibleTab
+  W->>M: executeScript pageMain (components, framework, console, network)
+  W->>W: Store the capture in IndexedDB
+  W-->>O: captureId
+  O->>C: Show composer.html?id=captureId beside the subject
+  C->>W: pp-capture:get
+  C->>L: teams, team fields
+  U->>C: Title, fields, optional Draft with AI
+  C->>L: fileUpload, PUT the PNG, issueCreate
+  C->>W: pp-capture:close
+  W->>O: pp-capture:teardown
+```
+
+In words: every entry point ends in the worker injecting the overlay and starting it in the chosen mode. The overlay does all reading of the DOM in its own world, hides itself, and hands its description to the worker, which takes the screenshot and adds what only the page's world can see. The composer then works from that stored record, so reloading its frame or collapsing and expanding it loses nothing.
 
 ### Content scripts
 
@@ -135,6 +180,7 @@ All messages are plain objects with a `type` string. Nothing here is a public AP
 | `AI_ABORT` | `id` of the job | `{ ok: true, aborted: true }` |
 | `AI_TEST` | `providerId` | `{ ok, latencyMs, model }` or `{ ok: false, error }` |
 | `AFS_SYNC_SERVER` | `endpoint`, `action` (`push`, `sync_session`, `health`, `pending`, `list_sessions`, `update_status`), `payload` | `{ ok: true, sessionId, syncedCount }` or `{ ok: false, error }`. Accepted only from the side panel |
+| `pp-capture:begin`, `pp-capture:can` | `tabId`, `mode` (`element`, `area` or `window`) | `{ ok }`, or `{ ok: false, kind }` as for the page check. Accepted only from `capture/popup.html` |
 | `pixelpush-page-check` | `tabId` | `{ ok: true }`, or `{ ok: false, kind }` where `kind` is `chrome-page`, `extension-page`, `web-store`, `policy` or `blocked`. Accepted only from an extension page. Sent by `guard.js` and `restricted.js` |
 | port `sidepanel:<tabId>` | none | Opened while the panel is attached to a tab. Its disconnect is the signal to leave design mode |
 
@@ -161,6 +207,23 @@ All messages are plain objects with a `type` string. Nothing here is a public AP
 | `components-annotated`, `component-tree-annotated` | tab | Annotation finished; the inspector rebuilds and resends its tree |
 
 The inspector and the audit bridge also contain handlers that nothing in this repository sends: `build-tree`, `hide-measurements` and `audit-remove`. The worker has a `linear-connect` handler that the panel never sends and that always fails (see [Linear](linear.md)).
+
+### Quick capture messages
+
+All quick-capture messages have a `type` that starts with `pp-capture:`. The worker checks the sender of each one: the popup page, the top frame of a web page (the overlay), or `capture/composer.html` in the same tab as the capture.
+
+| `type` | From → to | Carries | Reply |
+| --- | --- | --- | --- |
+| `begin`, `can` | Popup → worker | `tabId`, `mode` | `{ ok }` or `{ ok: false, kind }` |
+| `start` | Worker → overlay | `mode` | `{ ok, phase }` |
+| `shoot` | Overlay → worker | `payload`: `mode`, `anchor` (`{ kind: "element" \| "region" \| "window", rect }` in viewport CSS px), `element` or `region`, `page` | `{ ok, captureId }` or `{ ok: false, error }` |
+| `get`, `save-draft` | Composer → worker | `captureId`, `draft` | The capture record, or `{ ok }` |
+| `close`, `new`, `recapture` | Composer → worker → overlay (`teardown`, `start`, `hide` and `show`) | `captureId`, `undo`, `mode` | `{ ok }`, or for `recapture` the new `shot` and `anchor` |
+| `forget` | Overlay → worker | `captureId`, after the Undo toast expires | `{ ok }` |
+| `anchor` | Overlay → composer | The subject's new rect after a resize or scroll | none |
+| `code` | Worker → overlay | `hints` (rule files, source paths, component names) | `{ files }`: up to 5 excerpts of same-origin files |
+| `ai-info`, `ai-consent`, `ai-model`, `ai`, `ai-abort` | Composer → worker | The model choice, mode, text, screenshot and included lines | Provider and models, or `{ ok, result: { title, body, findings, suggest } }` |
+| `ai-progress` | Worker → composer | `steps`, `step` | none |
 
 ### Audit messages end to end
 
@@ -431,6 +494,8 @@ Each element node has `nodeId`, `tag`, `id` (with a leading `#`), `classes` (wit
 | `local` | `linearTeams_<orgId>` | Cached Linear teams, with a timestamp |
 | `local` | `reviewPrompt` | State of the GitHub star prompt |
 | `local` | `pixelpushLightField` | Whether the optional background glow is on |
+| `local` | `pixelpushCaptureLinear_<orgId>`, `pixelpushCaptureFields`, `pixelpushCaptureModel`, `pixelpushCaptureConsent` | Quick capture: cached team fields, the last team and project, the AI model choice and AI confirmations |
+| IndexedDB (worker) | `pixelpush-capture` | Quick capture: one record per open capture (screenshot, details, draft), kept until filed, discarded or 12 hours old |
 
 [Privacy and permissions](privacy-and-permissions.md#what-is-stored-and-where) explains each one, including one caveat about the synced provider list.
 

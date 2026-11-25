@@ -12,7 +12,7 @@ copies this file and the [`licenses/`](licenses) folder into each release zip.
 | Handle (Tonkotsu AI) | Parts of the element inspector, style editor and side panel | MIT | [Notice](#inspector-style-editor-and-side-panel-core) |
 | Impeccable (Paul Bakaus) | The design-audit detector and its rule catalog | Apache-2.0 | [Notice](#design-audit-detector) and [`licenses/Apache-2.0.txt`](licenses/Apache-2.0.txt) |
 | React, React DOM and Scheduler | Side panel UI, compiled into `panel.js` | MIT | [Notice](#react-react-dom-and-scheduler-mit) |
-| Lucide icons (with portions from Feather) | Side panel icons, compiled into `panel.js` | ISC, with portions under MIT | [Notice](#lucide-icons-isc-with-portions-under-mit) |
+| Lucide icons (with portions from Feather) | Side panel icons, compiled into `panel.js`; the icon paths in `capture/icons.js` and the capture overlay | ISC, with portions under MIT | [Notice](#lucide-icons-isc-with-portions-under-mit) |
 | WXT runtime | Runtime used by the service worker and both content scripts | MIT | [Notice](#wxt-runtime-mit) |
 | Tailwind CSS | Utility classes in `extension/panel/tailwind.css` | MIT | [Notice](#tailwind-css-mit) |
 | Instrument Sans | Panel text font | SIL OFL 1.1 | [`licenses/OFL-1.1-Instrument-Sans.txt`](licenses/OFL-1.1-Instrument-Sans.txt) |

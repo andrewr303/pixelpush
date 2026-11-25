@@ -1,10 +1,12 @@
 # Features
 
-A tour of every tab in the Pixelpush side panel, plus Settings, the context-menu entry, selection mode and keyboard navigation.
+A tour of quick capture and of every tab in the Pixelpush side panel, plus Settings, the context-menu entries, selection mode and keyboard navigation.
 
 **Docs:** [Home](README.md) · [Getting started](getting-started.md) · **Features** · [Audit](audit.md) · [AI providers](ai-providers.md) · [Linear](linear.md) · [Privacy and permissions](privacy-and-permissions.md) · [Architecture](architecture.md) · [Development](development.md) · [Design system](DESIGN.md)
 
 ## At a glance
+
+**Quick capture** files a screenshot of an element, an area or the whole window to Linear straight from the page, without opening the side panel. The toolbar icon opens a small menu with the three capture modes and **Open side panel**. See [Quick capture](#quick-capture).
 
 The tab strip reads **Design, Inspect, Colors, Issue, Changes, Audit**. This page covers them in a task order instead: Design, Inspect, Colors, Changes, Audit, then Issue, which is where everything ends up.
 
@@ -30,6 +32,48 @@ flowchart LR
 ```
 
 *In words: Design edits feed Changes, an Audit scan produces findings, and either one can be turned into a draft on the Issue tab, which files it to Linear. Inspect and Colors only read the page.*
+
+## Quick capture
+
+Quick capture turns what you see on a page into a Linear issue in a few seconds: pick the element (or drag an area, or take the whole window), type what is wrong, and file it. The issue gets the screenshot and everything Pixelpush can tell about the page and the element, formatted as sections under your text.
+
+**Start a capture.**
+
+| From | Element | Area | Full window |
+| --- | --- | --- | --- |
+| Toolbar icon (opens the Pixelpush menu, <kbd>Alt</kbd><kbd>Shift</kbd><kbd>P</kbd>) | **Element** or <kbd>E</kbd> | **Area** or <kbd>A</kbd> | **Full window** or <kbd>W</kbd> |
+| Keyboard, anywhere on the page | <kbd>Alt</kbd><kbd>Shift</kbd><kbd>E</kbd> | <kbd>Alt</kbd><kbd>Shift</kbd><kbd>S</kbd> | <kbd>Alt</kbd><kbd>Shift</kbd><kbd>W</kbd> |
+| Right-click menu | **Capture an element for Linear** | **Capture an area for Linear** | **Capture the full window for Linear** |
+
+These are Chrome's suggested shortcuts; Chrome skips any that clash with another extension, and you can change them on `chrome://extensions/shortcuts` (the menu's **Shortcuts** link opens it). On macOS <kbd>Alt</kbd> is <kbd>⌥</kbd>.
+
+**Pick.** In element mode, hover to outline an element with its tag, classes and size, and click to capture it. <kbd>↑</kbd> moves to the parent and <kbd>↓</kbd> back down, <kbd>Enter</kbd> captures the outlined element, and <kbd>Esc</kbd> or right-click cancels. Clicks go to Pixelpush, not to the page. In area mode, drag a rectangle. Full window captures at once.
+
+**Quick view.** A popover opens 40 px beside what you captured, with the subject still outlined on the page. It flips to the left near the right edge of the window; a full-window capture sits in the bottom-right corner. It has:
+
+- **Issue title** (<kbd>Enter</kbd> moves to the description) and a description box. Your text comes first in the issue; the captured details are added below it.
+- **Attached:** **Element** (or **Area**) and **Page**, which open those tabs of the full composer.
+- The screenshot thumbnail with its size, the component path (`<PlanCard> › <Button>`) or, for an area, the likely subject, and **Mark up**.
+- **Draft with AI**, when an AI provider is set up: the fast model writes the title and a short description from the screenshot, the element, its CSS and the console (see [Draft with AI](#draft-with-ai)).
+- **Team** and **Priority** menus, **Full composer**, and **Create issue** (<kbd>⌘</kbd><kbd>↵</kbd> or <kbd>Ctrl</kbd><kbd>↵</kbd>).
+
+After filing, the popover shows `<ID> created in <Team>` with **Open in Linear** and **New capture** (another capture in the same mode). Clicking outside the popover does nothing, so a draft is never lost by accident. <kbd>Esc</kbd> closes an open menu first; otherwise it discards the capture, and a **Capture discarded · Undo** toast gives you six seconds to bring it back.
+
+**Full composer.** **Full composer**, **Mark up**, **Element** or **Page** expands the popover into the full composer, and **Quick view** collapses it again. Both views edit the same draft, and the draft is saved as you type, so reloading the page's composer frame keeps it.
+
+- **Added below your text** toggles which sections go into the issue: **Screenshot**, **Element** (or **Area**), **Page**, **Console** and **Network**. **Preview description** shows the result.
+- **Screenshot**: frame it as the element (or area) or the full window, **Attach full window** as a second image, **Recapture**, and mark it up with a pen, boxes, ellipses, arrows and numbered pins (each pin gets a note that is listed under the screenshot), in five colours, with undo, redo and clear.
+- **Element**: the component path and its source file and line (React, Vue, Svelte and Angular dev builds), the selector, size, text, role and test id, and the computed styles with the rule that sets each one (`capture.css:130`). A style is flagged when it differs from the same property on similar elements (the matching button in the neighbouring cards, or elements with the same main class), which is often the bug.
+- **Page**: URL, browser, viewport, the detected framework and capture time; the console errors and warnings the page logged before the capture; and its fetch and XHR requests, with only failed ones ticked. Tick or untick single lines. The tab's coral badge counts console errors and failed requests.
+- **AI**: the model choice (**Fast** or **Thorough**), the description style (**Detailed**, **Short**, **With steps**), progress, what the model found in the code, suggested priority, labels and assignee with **Apply**, and **Restore your text**.
+- **Description preview**: the issue as Linear will show it.
+- **Fields**: **Team**, **Project**, **Status**, **Priority**, **Assignee** and **Labels**, loaded from the selected team. Changing the team resets the status to that team's default and drops a project, assignee or labels that do not exist in it. The last team and project you filed to are the next default.
+
+**What the issue contains.** Your text, a rule, then `### Screenshot` (the marked-up crop, and the full window when attached, uploaded to Linear), `### Element` or `### Area`, `### Page`, `### Console` and `### Failed requests`, each only when it is included and has content, and a collapsed **Details for developers** section with the full selector, computed styles, matching CSS rules, an HTML excerpt and the AI's findings. The page URL is also attached to the issue as a link.
+
+**Draft with AI.** It uses the provider that is active in Settings, with no extra setup. The first time per provider type it asks before sending anything. **Fast** (used by the quick view) reads the screenshot, the element, its CSS rules and the console and network lines you kept. **Thorough** also reads up to five related files the page loaded, such as the stylesheet that holds the element's rules and, on a dev server or with source maps, the component source, with more reasoning effort. With Bedrock Runtime and a Claude model, Fast is Claude Sonnet 5.5 and Thorough is Claude Opus 5.5; for other providers both use the model you configured. A model that does not accept images drafts from the page data alone. The model's findings must cite a file or rule that is in the capture, or they are dropped. What is sent is listed in [Privacy and permissions](privacy-and-permissions.md#quick-capture).
+
+**Limits.** Linear must be connected on the side panel's Issue tab first. Pages Chrome does not let extensions script (`chrome://` pages, other extensions, the Chrome Web Store) cannot be captured; the menu says so. Console and network lines are recorded from the moment a page loads, so a tab that was open before Pixelpush was installed starts recording at install time. Iframes are captured as part of the screenshot, but their elements cannot be picked one by one.
 
 ## The send bar
 
@@ -258,9 +302,9 @@ Two row actions appear while AI features are enabled:
 
 **Limits.** There are no controls for maximum output tokens, timeouts or the local bridge port in this build. The full story for each provider is in [AI providers](ai-providers.md).
 
-## Context-menu entry
+## Context-menu entries
 
-Right-click anywhere on a page and choose **Design with Pixelpush**. It opens the side panel for that tab, exactly like the toolbar icon. The menu item is registered when the extension is installed and applies to every context (`all`). There is no separate keyboard shortcut.
+Right-click anywhere on a page and choose **Design with Pixelpush** to open the side panel for that tab (the same as **Open side panel** in the toolbar menu), or one of the three **Capture … for Linear** items to start a [quick capture](#quick-capture). The items are registered when the extension is installed and apply to every context (`all`), including the toolbar icon's own right-click menu.
 
 ## Selection mode
 

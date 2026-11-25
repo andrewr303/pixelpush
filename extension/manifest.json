@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pixelpush",
-  "description": "Inspect and tweak any page, audit its design, then file the fix to Linear with your own AI model.",
+  "description": "Inspect and tweak any page, audit its design, or capture an element and file it to Linear, with your own AI model.",
   "version": "2.1.0",
   "minimum_chrome_version": "116",
   "homepage_url": "https://github.com/andrewr303/pixelpush",
@@ -12,18 +12,45 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "Open Pixelpush",
+    "default_title": "Pixelpush",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
       "48": "icons/icon-48.png"
-    }
+    },
+    "default_popup": "capture/popup.html"
   },
   "side_panel": {
     "default_path": "sidepanel.html"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "service-worker.js"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+P"
+      },
+      "description": "Open the Pixelpush menu"
+    },
+    "capture-element": {
+      "suggested_key": {
+        "default": "Alt+Shift+E"
+      },
+      "description": "Capture an element for Linear"
+    },
+    "capture-area": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Capture an area for Linear"
+    },
+    "capture-window": {
+      "suggested_key": {
+        "default": "Alt+Shift+W"
+      },
+      "description": "Capture the full window for Linear"
+    }
   },
   "permissions": [
     "sidePanel",
@@ -40,6 +67,16 @@
       "matches": [
         "<all_urls>"
       ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "js": [
+        "capture/page-hook.js"
+      ]
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
       "run_at": "document_idle",
       "js": [
         "content-scripts/audit.js",
@@ -52,6 +89,14 @@
       "resources": [
         "audit/detect.js",
         "schema/annotation.v1.1.json"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    },
+    {
+      "resources": [
+        "capture/composer.html"
       ],
       "matches": [
         "<all_urls>"

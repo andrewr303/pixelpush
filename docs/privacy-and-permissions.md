@@ -10,9 +10,10 @@ What Pixelpush is allowed to do in your browser, what it sends over the network 
 ## Summary
 
 - Pixelpush has no server, no account, no analytics and no telemetry. Network requests happen only to the places listed in the [network matrix](#network-matrix), and each one is started by something you do.
-- Linear traffic comes from the side panel. AI traffic comes from the service worker. The inspector and the audit code make no request to Linear, to an AI provider or to any Pixelpush server. Their one network activity is the audit's contrast check, which loads images the page already references (row 10 of the [network matrix](#network-matrix)).
+- Linear traffic comes from the side panel and, for quick capture, from the capture composer (an extension page shown over the tab). AI traffic comes from the service worker. The inspector and the audit code make no request to Linear, to an AI provider or to any Pixelpush server. Their one network activity is the audit's contrast check, which loads images the page already references (row 10 of the [network matrix](#network-matrix)).
 - An AI request carries a context pack: the page URL and title, a compact selector, your edits and notes, a list of computed styles and some page colour tokens. **Enrich with AI** sends the URL without its query string or fragment, and adds a compact outline of the page (a digest) that includes short excerpts of its text; emails, long tokens and phone-like numbers in the digest text are masked. A request does not carry cookies, raw page HTML, form values or any API key.
 - Your Linear key and your AI keys are stored in `chrome.storage.local` and are never written to `chrome.storage.sync`. One field in the synced provider list holds the first three and last four characters of an AI key (see [Keys and sync](#keys-and-sync)).
+- Quick capture takes a screenshot of the visible tab only when you capture, and keeps a short in-memory log of the page's console errors and failed requests from the moment the page loads. Both stay in the browser unless you file the capture or ask AI to draft it. See [Quick capture](#quick-capture).
 - The AI features can be switched off in Settings with one checkbox. Your keys stay saved.
 
 ```mermaid
@@ -33,12 +34,14 @@ In words: the inspector and the audit hand what they collect to the service work
 
 | Permission | Used for |
 | --- | --- |
-| `sidePanel` | Turning the side panel off by default and enabling it for one tab at a time (`sidePanel.setOptions`), and opening it when you click the toolbar icon or the context-menu item (`sidePanel.open`). |
-| `scripting` | `scripting.executeScript`, for four purposes: injecting `inspector.js` and `audit.js` into tabs that were already open when the extension was installed or updated; injecting the same two files when you open the panel on a tab whose page does not answer (the page check under [Pages Pixelpush cannot script](#pages-pixelpush-cannot-script)); injecting `audit/detect.js` into the page's own JavaScript world when the normal script tag is blocked; and running two small functions in that world that read framework component names (see [What runs on pages](#what-runs-on-pages)). |
-| `contextMenus` | One item, **Design with Pixelpush**, that opens the side panel. |
+| `sidePanel` | Turning the side panel off by default and enabling it for one tab at a time (`sidePanel.setOptions`), and opening it when you choose **Open side panel** in the toolbar popup or the **Design with Pixelpush** context-menu item (`sidePanel.open`). |
+| `scripting` | `scripting.executeScript`, for four purposes: injecting `inspector.js` and `audit.js` into tabs that were already open when the extension was installed or updated; injecting the same two files when you open the panel on a tab whose page does not answer (the page check under [Pages Pixelpush cannot script](#pages-pixelpush-cannot-script)); injecting `audit/detect.js` into the page's own JavaScript world when the normal script tag is blocked; and running two small functions in that world that read framework component names (see [What runs on pages](#what-runs-on-pages)). Quick capture adds three more: injecting the capture overlay (`capture/overlay.js`) when you start a capture, running one function in the page's world that reads component names and the log recorder's buffer when you take it, and starting the log recorder (`capture/page-hook.js`) in tabs that were already open when the extension was installed or updated. |
+| `contextMenus` | **Design with Pixelpush**, which opens the side panel, and three quick-capture items: **Capture an element for Linear**, **Capture an area for Linear** and **Capture the full window for Linear**. |
 | `storage` | `chrome.storage.sync` and `chrome.storage.local` (see [What is stored and where](#what-is-stored-and-where)). |
-| Host permission `<all_urls>` | Lets the extension inject into, and read the URL and title of, any tab. Pixelpush scripts whichever page you open it on, and the service worker sends model requests to whatever base URL you enter for an OpenAI-compatible provider, so neither set of hosts is known in advance. The manifest does not narrow this permission and does not say why it asks for every URL. |
+| Host permission `<all_urls>` | Lets the extension inject into, and read the URL and title of, any tab, and take a screenshot of the visible tab (`tabs.captureVisibleTab`) for quick capture. Pixelpush scripts whichever page you open it on, and the service worker sends model requests to whatever base URL you enter for an OpenAI-compatible provider, so neither set of hosts is known in advance. The manifest does not narrow this permission and does not say why it asks for every URL. |
 | Host permission `chrome://*/*` | Matters only when Chrome is started with `--extensions-on-chrome-urls`. With that switch it lets the service worker inject the inspector into `chrome://` pages. Without it Chrome ignores the pattern and refuses to script those pages, so it grants nothing. Chrome for Testing 153 loaded the manifest with it and showed no install warning. |
+
+The manifest also declares four keyboard `commands` (open the popup, and capture an element, an area or the full window). Commands need no permission.
 
 Things the manifest does not ask for: `tabs`, `activeTab`, `identity`, `cookies`, `webRequest`, `downloads`, `history`, `bookmarks`, `notifications`, `clipboardRead`, `clipboardWrite`, `debugger` and `nativeMessaging`. It declares no `optional_permissions`, no `externally_connectable` and no custom `content_security_policy`, so Chrome's defaults for extension pages apply.
 
@@ -49,12 +52,13 @@ Copying to the clipboard uses `navigator.clipboard.writeText`, with a hidden-tex
 ### Content script scope
 
 ```json
-"content_scripts": [{
-  "matches": ["<all_urls>"],
-  "run_at": "document_idle",
-  "js": ["content-scripts/audit.js", "content-scripts/inspector.js"]
-}]
+"content_scripts": [
+  { "matches": ["<all_urls>"], "run_at": "document_start", "world": "MAIN", "js": ["capture/page-hook.js"] },
+  { "matches": ["<all_urls>"], "run_at": "document_idle", "js": ["content-scripts/audit.js", "content-scripts/inspector.js"] }
+]
 ```
+
+The first entry is quick capture's log recorder; it runs in the page's own JavaScript world from the start of the page. See [Quick capture](#quick-capture). The rest of this section describes the second entry.
 
 - **Where:** every URL Chrome allows an extension to script. The manifest sets neither `all_frames` nor `match_about_blank`, so Chrome's defaults apply (top frame only).
 - **When:** after the page is idle.
@@ -64,8 +68,13 @@ Copying to the clipboard uses `navigator.clipboard.writeText`, with a hidden-tex
 ### Web-accessible resource
 
 ```json
-"web_accessible_resources": [{ "resources": ["audit/detect.js", "schema/annotation.v1.1.json"], "matches": ["<all_urls>"] }]
+"web_accessible_resources": [
+  { "resources": ["audit/detect.js", "schema/annotation.v1.1.json"], "matches": ["<all_urls>"] },
+  { "resources": ["capture/composer.html"], "matches": ["<all_urls>"] }
+]
 ```
+
+`capture/composer.html` is the quick-capture composer. The capture overlay shows it in a frame over the page, which requires it to be web accessible. A page that loads the file itself gets an empty frame: the composer asks the service worker for a capture by a random id, and the worker answers only a frame in the tab the capture came from.
 
 The audit bridge loads the detector with a `<script src>` pointing into the extension, which requires the file to be web accessible. The side effect is that any web page can request `chrome-extension://<extension id>/audit/detect.js`, and a page that does so learns that Pixelpush is installed. The detector is loaded from the extension package, never from a server; no code in Pixelpush is fetched from the network at run time.
 
@@ -100,7 +109,7 @@ The scan configuration the panel sends also switches on the detector's visual-co
 - When you press **Enrich with AI**, the detector also builds a page digest on request (see [The page digest](#the-page-digest)).
 - Framework component names, by reading React, Vue, Angular and Svelte internals on elements. This runs in the page's own JavaScript world through `scripting.executeScript`.
 
-The code never reads `document.cookie`, `localStorage`, `sessionStorage` or IndexedDB, and never calls `captureVisibleTab` or otherwise takes a screenshot.
+The code never reads `document.cookie`, `localStorage`, `sessionStorage` or IndexedDB. The inspector and the audit never take a screenshot; quick capture does, when you capture (see [Quick capture](#quick-capture)).
 
 **What it changes on the page.**
 
@@ -111,6 +120,20 @@ The code never reads `document.cookie`, `localStorage`, `sessionStorage` or Inde
 - During an audit: a `data-audit-extension` attribute on `<html>`, a `<script>` tag for the detector (removed after it loads), overlay and spotlight elements, a `<style>` element, an `audit-hidden` class on `<body>` when you hide the overlays, and the scrolling described above, including its temporary inline `scroll-behavior`.
 
 **What the page can see.** The detector runs in the page's own JavaScript world, and the audit bridge talks to it with `window.postMessage` calls with target origin `*`, in both directions. Scripts on the page can read them. The bridge's commands carry the scan settings (the rule ids you disabled, the line-length limit, the spotlight-blur and scroll settings, the contrast-check options and a scan id), a selector to highlight, or the request id of a digest request. The detector's replies contain audit findings (selectors, rule ids, severity, detail text), scan progress (`audit-progress`: a phase and, while scrolling, a fraction) and, when you ask for an AI review, the page digest and its map from references to selectors (`audit-digest`, see [The page digest](#the-page-digest)), not keys or credentials. The digest consists of the page's own content (masked and trimmed) plus the scroll-coverage figures; its arrival tells the page that a review was requested. The detector also leaves `window.__AUDIT_CONFIG__` (the last scan settings) and the functions `auditDetect`, `auditDetectAsync`, `auditScan`, `auditScanAsync`, `auditCollectVisualContrastCandidates`, `auditAnalyzeVisualContrast` and `auditGetLastVisualContrastAnalyses` on `window`, so a page script can call them. The page can also see the attributes and overlay elements listed above, and the start-up message described earlier.
+
+## Quick capture
+
+Quick capture files a screenshot and what Pixelpush can tell about the page straight to Linear, without the side panel. The details below are what the code does; the user-facing description is in [Features](features.md#quick-capture).
+
+**On every page, from the start.** `capture/page-hook.js` runs in the page's own JavaScript world at `document_start`. It wraps `console.error`, `console.warn`, `fetch` and `XMLHttpRequest` (with `Proxy`, so their names and behaviour stay the same) and listens for `error` and `unhandledrejection`. It keeps the last 50 errors and warnings (message text up to 600 characters and the first stack frame's file and line) and the last 100 fetch and XHR requests (method, URL, status and duration). Query parameters whose name looks like a secret (`token`, `key`, `secret`, `sig`, `auth`, `password`, `session`, `code`) or whose value is a long token are replaced with `[redacted]`, and fragments are dropped. It makes no request, writes nothing to the DOM and sends nothing anywhere: the buffer lives in the page's memory until the page unloads. Because it lives in the page's world, page scripts can read it through `Symbol.for("pixelpush.capture.log")` and could also write to it, so the capture treats it as untrusted text.
+
+**When you start a capture.** From the toolbar popup, a shortcut or a context-menu item, the service worker injects `capture/overlay.js` into the top frame (content-script world). In element and area mode it covers the page with a transparent layer until you pick, so the page's own click handlers do not fire; <kbd>Esc</kbd> cancels. When you pick, it reads the element: tag, id, classes, a selector, its size, its visible text (not form values), role and accessible name, a few attributes (`role`, `aria-*`, `name`, `type`, `href` without query, `alt`, `title`, `placeholder`, test ids), computed styles, an HTML excerpt (scripts, styles, `value`, `style`, `srcset` and event-handler attributes removed, long tokens and emails masked, at most 1800 characters) and the CSS rules that match it. For an area it also counts the elements inside. To give rule line numbers it may re-read the page's own same-origin stylesheets (`fetch` with `cache: "force-cache"`). It marks the picked element with a `data-pixelpush-capture` attribute, which it removes when the composer closes.
+
+**The screenshot.** The overlay hides itself, then the service worker calls `tabs.captureVisibleTab` once and runs one function in the page's world that reads framework component names and source locations for the picked element (React, Vue, Svelte, Angular), names the framework, and reads the recorder's buffer. The screenshot and those details are stored in the service worker's IndexedDB database `pixelpush-capture` until you file or discard the capture (with **Undo**, six seconds after discarding), and anything older than 12 hours is deleted when you take the next capture. **Recapture** takes the screenshot again the same way.
+
+**Filing.** The composer uploads the screenshot (and the full window, when **Attach full window** is on) with Linear's `fileUpload` mutation and a `PUT` to the upload URL Linear returns, then creates the issue with the description you see in **Description preview**, and attaches the page URL as a link. It uses the workspace and key the side panel saved; it never asks for or stores a Linear key itself.
+
+**Draft with AI.** The first time per provider type, the composer asks before anything is sent. The service worker then sends the configured provider the screenshot (scaled to at most 1280 px wide, as JPEG), the element details above, the matching CSS rules, the page URL without its query string, the browser and viewport, and only the console and network lines you left ticked, plus Linear label and member names so the model can suggest fields. **Thorough** mode also sends excerpts (at most 5 files, 5 KB each) of related files the page itself loaded: stylesheets that hold the element's rules and, when the page serves them or their source maps, the component source. Those files are read by the overlay from the page's own origin, within 3.5 seconds. No cookies, form values or keys are sent.
 
 ## Pages Pixelpush cannot script
 
@@ -123,7 +146,7 @@ Chrome does not let an extension script its own `chrome://` pages, other extensi
 
 ## Network matrix
 
-Every request below comes from code in this repository. Nothing else in the extension calls `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket` or `EventSource`. The one other way code here causes requests is the detector's image loading for the contrast check, in row 10. Row 11 is the only request that goes to an address you type outside the provider settings.
+Every request below comes from code in this repository. Nothing else in the extension calls `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket` or `EventSource`. The one other way code here causes requests is the detector's image loading for the contrast check, in row 10. Quick capture's page recorder wraps the page's own `fetch` and `XMLHttpRequest` to note their results; it does not make requests of its own. Row 11 is the only request that goes to an address you type outside the provider settings.
 
 | # | Request | Made by | Trigger | Destination | What it carries | Credential |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -138,6 +161,11 @@ Every request below comes from code in this repository. Nothing else in the exte
 | 9 | Rule catalog | Side panel | The panel starts | `chrome.runtime.getURL("audit/antipatterns.json")` | Nothing. This is a file inside the extension | None |
 | 10 | Images for the contrast check | Detector, in the page | An audit scan, for up to 30 text elements over a CSS background image or an `<img>`. With the scroll setting off, also when such text is later scrolled into view | The image URLs the page already references | Nothing from Pixelpush. It is an ordinary image load; images from another origin use `crossOrigin = "anonymous"` | None added by Pixelpush |
 | 11 | MCP sync | Service worker | You press **Push to MCP** on the Changes tab | The address in the **MCP Sync** field (default `http://localhost:4747`): `POST <endpoint>/sessions`, then `POST <endpoint>/sessions/<id>/annotations` once per annotation, then `GET <endpoint>/sessions/<id>`. Plain `http` is accepted only for `localhost`, `127.0.0.1` and `[::1]`; any other host must be `https`, and private-network IP addresses are refused | The page URL and each annotation record (at most 200): its comment, selector path, element name, nearby and selected text, computed styles, bounding box and any proposed edits. There is no confirmation dialog for this request | None |
+| 12 | Quick capture: teams and team fields | Capture composer | A capture opens with a connected workspace (cached 5 minutes) | `POST https://api.linear.app/graphql` | Queries for teams, then the selected team's workflow states, projects, members and labels | Your Linear key |
+| 13 | Quick capture: screenshot upload | Capture composer | You press **Create issue** with the screenshot included | `POST https://api.linear.app/graphql` (`fileUpload`), then `PUT` to the signed upload URL Linear returns | The PNG of the screenshot (and of the full window when attached) | Your Linear key for the mutation; the signed URL for the upload |
+| 14 | Quick capture: create the issue | Capture composer | You press **Create issue** | `POST https://api.linear.app/graphql` (`issueCreate`, then `attachmentLinkURL`) | Team, title, the description (your text, then the sections you kept), priority and, when chosen, project, status, assignee and labels; then the page URL as a link | Your Linear key |
+| 15 | Quick capture: AI draft | Service worker | You press **Draft with AI** (after the one-time confirmation) | The provider endpoint, as for row 5 | A fixed system prompt, the capture pack and the screenshot (see [Quick capture](#quick-capture)) | Your AI key |
+| 16 | Quick capture: page files | Capture overlay, in the page | You take a capture (stylesheets, for rule line numbers), or press **Draft with AI** in **Thorough** mode (stylesheets, scripts and their source maps) | Same-origin URLs the page already loaded | Nothing from Pixelpush. They are ordinary same-origin requests with the page's own cookies | None added by Pixelpush |
 
 AI endpoints for rows 5 and 6, by provider:
 
@@ -297,6 +325,12 @@ This area stays in the browser profile.
 | `linearTeams_<orgId>` | A cached copy of the `teams` query result (team, project and label names, member names and display names, the active cycle) with a timestamp. Once it is older than 5 minutes it is refreshed in the background |
 | `reviewPrompt` | `successfulSendCount`, `status`, and `snoozedUntil` for the GitHub star prompt |
 | `pixelpushLightField` | `true` when **Settings → Background glow** is on. Missing or `false` means off |
+| `pixelpushCaptureLinear_<orgId>` | Quick capture's cache of team names and, per team, workflow states, projects, member names and labels, with timestamps (5 minutes) |
+| `pixelpushCaptureFields` | The team and project of the last issue you filed with quick capture, used as the next default |
+| `pixelpushCaptureModel` | `fast` or `thorough`: the model choice in the composer's AI tab |
+| `pixelpushCaptureConsent` | Provider kinds you confirmed for **Draft with AI** |
+
+The service worker also keeps an IndexedDB database, `pixelpush-capture`, with one record per open capture: the screenshot, the element, page, console and network details, and your draft. A record is deleted when you file the issue (once the composer closes), when you discard it and the **Undo** window passes, or 12 hours after it was taken.
 
 Pixelpush does not encrypt either key. They sit in Chrome's extension storage as plain strings.
 
@@ -306,7 +340,7 @@ Neither your Linear key nor your AI keys are ever written to `chrome.storage.syn
 
 ### Never stored
 
-Edits, notes, the draft issue, the element tree, page colours and tokens, audit findings, the page digest and AI results exist only in the side panel's memory. Closing the panel or reloading the side panel discards them. Nothing is written to `localStorage`, `sessionStorage`, IndexedDB or cookies, and `chrome.storage.session` is not used.
+Edits, notes, the side panel's draft issue, the element tree, page colours and tokens, audit findings, the page digest and AI results exist only in the side panel's memory. Closing the panel or reloading the side panel discards them. Nothing is written to `localStorage`, `sessionStorage` or cookies, `chrome.storage.session` is not used, and the only IndexedDB database is quick capture's (above).
 
 ### Clipboard
 

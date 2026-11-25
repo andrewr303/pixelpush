@@ -1,0 +1,108 @@
+<!doctype html>
+<!--
+  Quick-capture fixture: a small billing page with one deliberate layout bug
+  (the featured plan's Upgrade button sits 8px lower than the others, from a
+  rule in capture.css), one console error, one console warning and one
+  failed request. Load the extension, open this page from `npm run preview`
+  (http://localhost:4173/__preview/fixtures/capture.html) and capture the
+  Pro card's Upgrade button.
+
+  There is no build step here, so the script at the bottom attaches the same
+  expando properties React DevTools reads (`__reactFiber$…` with
+  `_debugSource`) to a few elements. That lets the capture show component
+  names and source files the way it would on a React dev server.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Billing · Acme</title>
+    <link rel="stylesheet" href="capture.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="logo" href="#">Acme</a>
+      <nav class="nav">
+        <a class="nav-link" href="#">Dashboard</a>
+        <a class="nav-link is-active" href="#" aria-current="page">Billing</a>
+        <a class="nav-link" href="#">Settings</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      <h1 class="page-title">Billing</h1>
+      <p class="page-subtitle">Manage your plan, seats and invoices.</p>
+
+      <section class="plan-grid" aria-label="Plans">
+        <div class="plan-card">
+          <h3 class="plan-name">Starter</h3>
+          <p class="plan-price">$0 /mo</p>
+          <ul class="plan-features">
+            <li>✓ 1 project</li>
+            <li>✓ Community support</li>
+          </ul>
+          <button class="btn btn-secondary" data-testid="plan-starter">Current plan</button>
+        </div>
+        <div class="plan-card plan-card--featured">
+          <h3 class="plan-name">Pro</h3>
+          <p class="plan-price">$49 /mo</p>
+          <ul class="plan-features">
+            <li>✓ Unlimited projects</li>
+            <li>✓ Priority support</li>
+          </ul>
+          <button class="btn btn-primary" data-testid="plan-pro">Upgrade</button>
+        </div>
+        <div class="plan-card">
+          <h3 class="plan-name">Team</h3>
+          <p class="plan-price">$99 /mo</p>
+          <ul class="plan-features">
+            <li>✓ Everything in Pro</li>
+            <li>✓ SSO and audit log</li>
+          </ul>
+          <button class="btn btn-primary" data-testid="plan-team">Upgrade</button>
+        </div>
+      </section>
+
+      <section class="invoices">
+        <h2>Invoices</h2>
+        <table class="invoice-table">
+          <tbody>
+            <tr><td>INV-2041</td><td>Nov 1, 2026</td><td>$49.00</td><td><span class="badge-success">Paid</span></td></tr>
+            <tr><td>INV-1987</td><td>Oct 1, 2026</td><td>$49.00</td><td><span class="badge-success">Paid</span></td></tr>
+            <tr><td>INV-1932</td><td>Sep 1, 2026</td><td>$49.00</td><td><span class="badge-success">Paid</span></td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      // Simulated React fibers (see the comment at the top of this file).
+      ;(() => {
+        const comp = (name, fileName, lineNumber, ret) => ({ type: Object.defineProperty(function () {}, "name", { value: name }), _debugSource: { fileName, lineNumber }, return: ret })
+        const app = comp("BillingPage", "/app/src/pages/billing/index.tsx", 22, null)
+        const grid = comp("PlanGrid", "/app/src/pages/billing/index.tsx", 31, app)
+        const host = (tag, src, line, ret) => ({ type: tag, _debugSource: { fileName: src, lineNumber: line }, return: ret })
+        document.querySelectorAll(".plan-card").forEach((card) => {
+          const cardFiber = comp("PlanCard", "/app/src/components/billing/PlanGrid.tsx", 24, grid)
+          card["__reactFiber$fixture"] = host("div", "/app/src/components/billing/PlanCard.tsx", 18, cardFiber)
+          const btn = card.querySelector(".btn")
+          const btnFiber = comp("Button", "/app/src/components/billing/PlanCard.tsx", 42, cardFiber)
+          btn["__reactFiber$fixture"] = host("button", "/app/src/ui/Button.tsx", 18, btnFiber)
+        })
+        document.querySelector(".plan-grid")["__reactFiber$fixture"] = host("section", "/app/src/components/billing/PlanGrid.tsx", 18, grid)
+        window.React = { version: "18.3.1" }
+      })()
+
+      // The page's own problems, for the Console and Network sections.
+      fetch("capture.css", { cache: "no-store" }).catch(() => {})
+      fetch("/api/billing/preview", { method: "POST", body: JSON.stringify({ plan: "pro" }) }).catch(() => {})
+      const plan = { name: "Starter" }
+      try {
+        plan.billing.interval.toString()
+      } catch (err) {
+        console.error(err)
+      }
+      console.warn('Each child in a list should have a unique "key" prop.')
+    </script>
+  </body>
+</html>
